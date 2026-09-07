@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node ./node_modules/vite/bin/vite.js build",
+    "postbuild": "node -e \"import('fs').then(fs => fs.cpSync('dist', 'build', {recursive: true}))\"",
     "preview": "vite preview"
   },
   "dependencies": {
