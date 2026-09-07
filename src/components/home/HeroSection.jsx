@@ -137,18 +137,8 @@ export const HeroSection = ({ onNavigate }) => {
         }} />
       </div>
 
-      {/* ── Main Content Container ── */}
-      <div className="container" style={{
-        position: 'relative',
-        zIndex: 4,
-        paddingTop: '3.5rem',
-        paddingBottom: '4.5rem',
-        minHeight: '620px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '2rem',
-      }}>
+      {/* ── Main Content Container (Adaptado para PC, Tablets y Móviles) ── */}
+      <div className="container hero-main-container">
 
         {/* ── Left Flank Logos (UMSA & FCPN) - Puros logos, sin recuadros ni textos ── */}
         <div className="hero-flank-logos">
