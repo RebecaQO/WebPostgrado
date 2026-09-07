@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Phone, 
@@ -14,6 +14,34 @@ import {
 export const ContactView = () => {
   const [selectedCampus, setSelectedCampus] = useState('cota');
   const [submitted, setSubmitted] = useState(false);
+  const [info, setInfo] = useState({
+    direccion: 'Calle 27 de Cota Cota s/n, Campus Universitario UMSA, Edif. Estadística (2do Piso)',
+    telefono: '+591 (2) 279-2999',
+    whatsapp: '+591 76543210',
+    email_principal: 'estapost@fcpn.edu.bo',
+    horario_atencion: 'Lunes a Viernes 08:30 a 16:30 (Continuo)',
+    director_nombre: 'Dirección de la Carrera de Estadística y Posgrado',
+    ieta_descripcion: 'Instituto de Estadística Teórica y Aplicada (Investigación & Proyectos)',
+    club_cientifico_descripcion: 'Club Científico de Estudiantes e Investigadores de Estadística'
+  });
+
+  useEffect(() => {
+    const fetchInfo = async () => {
+      try {
+        const res = await fetch('/api/institucion/info');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.email_principal) {
+            setInfo(prev => ({ ...prev, ...data }));
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando info institucional en ContactView:', err);
+      }
+    };
+    fetchInfo();
+  }, []);
+
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -127,7 +155,7 @@ export const ContactView = () => {
                         Campus Universitario Cota Cota — FCPN
                       </strong>
                       <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                        Calle 27 s/n, Edif. Carrera de Estadística (2do Piso)
+                        {info.direccion}
                       </span>
                     </div>
                   </div>
@@ -201,16 +229,16 @@ export const ContactView = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-accent-orange)', marginBottom: '0.2rem' }}>
                     <Phone size={14} /> <strong>Teléfonos Fijos:</strong>
                   </div>
-                  <span>+591 (2) 279-2999</span>
-                  <div style={{ color: 'var(--color-text-subtle)' }}>Int. 142 / 144</div>
+                  <span>{info.telefono}</span>
+                  <div style={{ color: 'var(--color-text-subtle)' }}>Secretaría de Posgrado</div>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#4ade80', marginBottom: '0.2rem' }}>
                     <MessageCircle size={14} /> <strong>WhatsApp Directo:</strong>
                   </div>
-                  <a href="https://wa.me/59176543210" target="_blank" rel="noreferrer" style={{ color: '#4ade80', fontWeight: 600 }}>
-                    +591 76543210
+                  <a href={`https://wa.me/${(info.whatsapp || '').replace(/\D/g, '')}`} target="_blank" rel="noreferrer" style={{ color: '#4ade80', fontWeight: 600 }}>
+                    {info.whatsapp}
                   </a>
                   <div style={{ color: 'var(--color-text-subtle)' }}>Atención rápida</div>
                 </div>
@@ -219,15 +247,50 @@ export const ContactView = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#38bdf8', marginBottom: '0.2rem' }}>
                     <Mail size={14} /> <strong>Correo Oficial:</strong>
                   </div>
-                  <span>posgrado.estadistica@umsa.bo</span>
+                  <a href={`mailto:${info.email_principal}`} style={{ color: '#38bdf8', fontWeight: 700 }}>
+                    {info.email_principal}
+                  </a>
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#f59e0b', marginBottom: '0.2rem' }}>
                     <Clock size={14} /> <strong>Horario de Atención:</strong>
                   </div>
-                  <span>Lunes a Viernes</span>
-                  <div style={{ color: 'var(--color-text-subtle)' }}>08:30 a 16:30 (Continuo)</div>
+                  <span style={{ color: 'var(--color-text-muted)' }}>{info.horario_atencion}</span>
+                </div>
+              </div>
+
+              {/* Unidades Institucionales Adscritas */}
+              <div style={{
+                marginTop: '1.25rem',
+                paddingTop: '1rem',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.65rem',
+                fontSize: '0.825rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#ffffff' }}>
+                  <Building size={14} color="var(--color-accent-orange)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong>Dirección:</strong>{' '}
+                    <span style={{ color: 'var(--color-text-muted)' }}>{info.director_nombre}</span>
+                    {info.director_nombre && <div style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>Director: {info.director_nombre}</div>}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#ffffff' }}>
+                  <CheckCircle2 size={14} color="#38bdf8" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong>IETA:</strong>{' '}
+                    <span style={{ color: 'var(--color-text-muted)' }}>{info.ieta_descripcion}</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#ffffff' }}>
+                  <CheckCircle2 size={14} color="#4ade80" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div>
+                    <strong>Club Científico:</strong>{' '}
+                    <span style={{ color: 'var(--color-text-muted)' }}>{info.club_cientifico_descripcion}</span>
+                  </div>
                 </div>
               </div>
             </div>

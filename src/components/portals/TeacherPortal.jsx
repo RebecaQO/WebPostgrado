@@ -44,11 +44,13 @@ export const TeacherPortal = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
-  const teacher = currentUser || {
+  const defaultTeacher = {
     name: 'Dr. Marcelo Ramos Quispe',
     department: 'Departamento de Estadística Matemática',
     email: 'mramos@fcpn.edu.bo'
   };
+
+  const teacher = currentUser ? { ...defaultTeacher, ...currentUser } : defaultTeacher;
 
   return (
     <div className="section-spacing animate-fade-in">

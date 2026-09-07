@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   BookOpen, 
@@ -12,32 +12,91 @@ import {
   ArrowRight,
   ShieldCheck,
   QrCode,
-  Landmark
+  Landmark,
+  Layers,
+  Users,
+  Check
 } from 'lucide-react';
 
-export const ProgramDetailModal = ({ program, onClose, onApply }) => {
+export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }) => {
   const [activeTab, setActiveTab] = useState('malla');
-  const [installmentCount, setInstallmentCount] = useState(program.investment.maxInstallments || 12);
+  const [programData, setProgramData] = useState(initialProgram);
+  const [loading, setLoading] = useState(!initialProgram?.curriculum);
+  const [installmentCount, setInstallmentCount] = useState(12);
   const [paymentType, setPaymentType] = useState('cash');
 
-  if (!program) return null;
+  useEffect(() => {
+    if (!initialProgram?.id) return;
 
-  const totalTuition = program.investment.tuitionBob;
-  const matricula = program.investment.matriculaBob;
-  const discountPercent = program.investment.cashDiscountPercent;
+    const fetchMalla = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/programas/${initialProgram.id}/malla`);
+        if (res.ok) {
+          const data = await res.json();
+          setProgramData(data);
+          if (data?.investment?.maxInstallments) {
+            setInstallmentCount(data.investment.maxInstallments);
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando malla:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMalla();
+  }, [initialProgram?.id]);
+
+  if (!initialProgram) return null;
+
+  const prog = programData || initialProgram;
+  const isMaster = (prog.type || '').includes('Maestría') || prog.typeFilter === 'terminal' || prog.typeFilter === 'autofinanciada';
+  
+  const investment = prog.investment || {
+    tuitionBob: prog.monto_cuota && prog.numero_cuotas ? Number(prog.monto_cuota) * Number(prog.numero_cuotas) : 0,
+    matriculaBob: prog.valor_matricula ? Number(prog.valor_matricula) : 0,
+    monthlyBob: prog.monto_cuota ? Number(prog.monto_cuota) : 0,
+    cashDiscountPercent: prog.descuento_contado_porcentaje ?? 10,
+    maxInstallments: prog.numero_cuotas ? Number(prog.numero_cuotas) : 18,
+    cuotaInitialBob: prog.valor_matricula ? Number(prog.valor_matricula) : 0,
+    cptCode: `CPT-UMSA-${prog.id || '2026'}`
+  };
+
+  const totalTuition = investment.tuitionBob || 0;
+  const matricula = investment.matriculaBob || 0;
+  const discountPercent = investment.cashDiscountPercent ?? 10;
   const cashDiscountAmount = (totalTuition * discountPercent) / 100;
   const cashTotal = totalTuition - cashDiscountAmount + matricula;
+  const monthlyFee = investment.monthlyBob || (installmentCount > 0 ? Math.round(totalTuition / installmentCount) : 0);
 
-  const installmentMonthly = Math.round((totalTuition - (program.investment.cuotaInitialBob || 0)) / installmentCount);
+  const curriculum = prog.curriculum || [];
+
+  const hasPerfilAspirante = Boolean(prog.perfil_aspirante && prog.perfil_aspirante.trim());
+  const hasPerfilEgreso = Boolean(prog.perfil_egreso && prog.perfil_egreso.trim());
+  const hasRequisitos = Boolean(prog.requisitos_admision && prog.requisitos_admision.trim());
+  const hasPerfilOrRequisitos = hasPerfilAspirante || hasPerfilEgreso || hasRequisitos;
+  const hasTitulacion = Boolean(prog.modalidad_titulacion && prog.modalidad_titulacion.trim());
+
+  // Si la pestaña actual no tiene datos, redirigir a malla
+  useEffect(() => {
+    if (activeTab === 'titulacion' && !hasTitulacion) {
+      setActiveTab('malla');
+    } else if (activeTab === 'perfil' && !hasPerfilOrRequisitos) {
+      setActiveTab('malla');
+    }
+  }, [activeTab, hasTitulacion, hasPerfilOrRequisitos]);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content modal-content-xl"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '980px', borderRadius: 'var(--radius-xl)' }}
       >
         {/* Modal Header */}
-        <div className="modal-header">
+        <div className="modal-header" style={{ borderBottom: '2px solid var(--color-border)' }}>
           <div>
             <div style={{
               display: 'flex',
@@ -45,23 +104,33 @@ export const ProgramDetailModal = ({ program, onClose, onApply }) => {
               gap: '0.5rem',
               marginBottom: '0.35rem'
             }}>
-              <span className={`badge ${program.type === 'Maestría' ? 'badge-orange' : 'badge-blue'}`}>
-                {program.type}
+              <span className={`badge ${isMaster ? 'badge-green-inst' : 'badge-blue'}`}>
+                {prog.type || 'Programa'}
               </span>
               <span className="badge badge-green">
-                {program.status}
+                ✓ {prog.status || 'Convocatoria Activa'}
               </span>
               <span style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', fontFamily: 'var(--font-family-mono)', fontWeight: 700 }}>
-                {program.code}
+                {prog.id || prog.code}
               </span>
             </div>
 
-            <h2 style={{ fontSize: '1.45rem', color: 'var(--color-umsa-blue-dark)', margin: 0 }}>
-              {program.title}
+            <h2 style={{ fontSize: '1.45rem', color: 'var(--color-text-main)', margin: 0, fontWeight: 800 }}>
+              {prog.title}
             </h2>
 
-            <div style={{ fontSize: '0.825rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-              {program.resolution} • Grado que otorga: <strong style={{ color: 'var(--color-accent-orange)' }}>{program.degree}</strong>
+            <div style={{ fontSize: '0.825rem', color: 'var(--color-text-muted)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span>{prog.resolution}</span>
+              <span>•</span>
+              <span>Grado Académico: <strong style={{ color: 'var(--color-green-inst)' }}>{prog.degree || 'Posgrado UMSA'}</strong></span>
+              {prog.resolucion_hcu && (
+                <>
+                  <span>•</span>
+                  <span className="badge" style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '0.75rem' }}>
+                    📜 {prog.resolucion_hcu}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -72,422 +141,343 @@ export const ProgramDetailModal = ({ program, onClose, onApply }) => {
 
         {/* Modal Body */}
         <div className="modal-body">
-          {/* Sub-tabs */}
-          <div className="tabs-header" style={{ marginBottom: '2rem' }}>
+          {/* Sub-tabs dinámicas según datos existentes en BD */}
+          <div className="tabs-header" style={{ marginBottom: '1.75rem' }}>
             <button
               className={`tab-btn ${activeTab === 'malla' ? 'active' : ''}`}
               onClick={() => setActiveTab('malla')}
             >
               <BookOpen size={16} />
-              <span>1. Malla Curricular Modular</span>
+              <span>1. Malla Curricular Modular {curriculum.length > 0 ? `(${curriculum.length})` : ''}</span>
             </button>
 
-            <button
-              className={`tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
-              onClick={() => setActiveTab('perfil')}
-            >
-              <GraduationCap size={16} />
-              <span>2. Perfil de Ingreso & Egreso</span>
-            </button>
+            {hasPerfilOrRequisitos && (
+              <button
+                className={`tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
+                onClick={() => setActiveTab('perfil')}
+              >
+                <GraduationCap size={16} />
+                <span>2. Perfil {hasRequisitos ? '& Requisitos de Admisión' : 'Académico'}</span>
+              </button>
+            )}
 
-            <button
-              className={`tab-btn ${activeTab === 'titulacion' ? 'active' : ''}`}
-              onClick={() => setActiveTab('titulacion')}
-            >
-              <Award size={16} />
-              <span>3. Modalidades de Titulación</span>
-            </button>
+            {hasTitulacion && (
+              <button
+                className={`tab-btn ${activeTab === 'titulacion' ? 'active' : ''}`}
+                onClick={() => setActiveTab('titulacion')}
+              >
+                <Award size={16} />
+                <span>3. Modalidades de Titulación</span>
+              </button>
+            )}
 
             <button
               className={`tab-btn ${activeTab === 'inversion' ? 'active' : ''}`}
               onClick={() => setActiveTab('inversion')}
             >
               <CreditCard size={16} />
-              <span>4. Inversión & Simulador de Pagos</span>
+              <span>4. Inversión & Pagos</span>
             </button>
           </div>
 
-          {/* TAB 1: Malla Curricular */}
+          {/* TAB 1: Malla Curricular Modular */}
           {activeTab === 'malla' && (
             <div className="animate-fade-in">
               <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', color: 'var(--color-umsa-blue-dark)', margin: 0 }}>
-                    Estructura Curricular por Semestres Académicos
+                  <h3 style={{ fontSize: '1.2rem', color: 'var(--color-text-main)', margin: 0, fontWeight: 800 }}>
+                    Estructura Curricular Modular (Base de Datos)
                   </h3>
                   <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                    Total: {program.credits} • Modalidad: {program.modality}
+                    Total: <strong>{prog.credits} créditos</strong> • Duración: <strong>{prog.duration || '18 meses'}</strong> • Modalidad: <strong>{prog.modality || 'Híbrida – Turno Noche'}</strong>
                   </div>
                 </div>
 
-                <div className="badge badge-orange">
-                  SNC-CEUB Homologado
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  {prog.enlace_pdf_programa && (
+                    <a
+                      href={prog.enlace_pdf_programa}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+                    >
+                      <FileText size={14} color="var(--color-green-inst)" />
+                      <span>Descargar Malla (PDF)</span>
+                    </a>
+                  )}
+                  <div className="badge badge-green-inst">
+                    SNC-CEUB Homologado
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-                {program.curriculum.map((sem, sIdx) => (
-                  <div key={sIdx} className="glass-panel" style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0' }}>
-                    <div style={{
-                      fontSize: '1.05rem',
-                      fontWeight: 800,
-                      color: 'var(--color-umsa-blue)',
-                      borderBottom: '1.5px solid #e2e8f0',
-                      paddingBottom: '0.5rem',
-                      marginBottom: '1rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between'
-                    }}>
-                      <span>{sem.semester}</span>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 600 }}>
-                        {sem.modules.length} Módulos Especializados
-                      </span>
-                    </div>
+              {loading ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-green-inst)' }}>
+                  Cargando estructura curricular desde la base de datos...
+                </div>
+              ) : curriculum.length === 0 ? (
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>
+                  No se registran módulos ni asignaturas en la base de datos para este programa.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {curriculum.map((sem, sIdx) => (
+                    <div key={sIdx} className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
+                      <div style={{
+                        fontSize: '1.05rem',
+                        fontWeight: 800,
+                        color: 'var(--color-green-inst)',
+                        borderBottom: '1.5px solid var(--color-border)',
+                        paddingBottom: '0.6rem',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <span>{sem.semester}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 600 }}>
+                          {sem.modules.length} Asignaturas
+                        </span>
+                      </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                      {sem.modules.map((mod, mIdx) => (
-                        <div
-                          key={mIdx}
-                          style={{
-                            background: '#ffffff',
-                            border: '1px solid #e2e8f0',
-                            borderRadius: 'var(--radius-md)',
-                            padding: '0.95rem 1.15rem',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '0.35rem',
-                            boxShadow: 'var(--shadow-xs)'
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <span style={{
-                                fontFamily: 'var(--font-family-mono)',
-                                fontSize: '0.75rem',
-                                color: '#0284c7',
-                                background: '#f0f9ff',
-                                padding: '0.2rem 0.5rem',
-                                borderRadius: 'var(--radius-sm)',
-                                fontWeight: 700,
-                                border: '1px solid #bae6fd'
-                              }}>
-                                {mod.code}
-                              </span>
-                              <strong style={{ color: 'var(--color-umsa-blue-dark)', fontSize: '0.95rem' }}>{mod.name}</strong>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                        {sem.modules.map((mod, mIdx) => (
+                          <div
+                            key={mIdx}
+                            style={{
+                              background: 'var(--color-bg-primary)',
+                              padding: '1rem 1.25rem',
+                              borderRadius: 'var(--radius-md)',
+                              border: '1px solid var(--color-border)'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                              <div>
+                                <span style={{
+                                  fontFamily: 'var(--font-family-mono)',
+                                  fontWeight: 800,
+                                  fontSize: '0.8rem',
+                                  color: 'var(--color-green-inst)',
+                                  background: 'var(--color-green-inst-subtle)',
+                                  padding: '0.15rem 0.5rem',
+                                  borderRadius: 'var(--radius-sm)',
+                                  marginRight: '0.5rem'
+                                }}>
+                                  {mod.code}
+                                </span>
+                                <strong style={{ fontSize: '0.95rem', color: 'var(--color-text-main)' }}>
+                                  {mod.name}
+                                </strong>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '0.4rem', fontSize: '0.78rem' }}>
+                                <span className="badge" style={{ background: 'var(--color-blue-steel-subtle)', color: 'var(--color-blue-steel)' }}>
+                                  {mod.credits} Créditos ({mod.hours} hrs)
+                                </span>
+                                <span className="badge" style={{ background: '#f1f5f9', color: 'var(--color-text-main)' }}>
+                                  {mod.type}
+                                </span>
+                              </div>
                             </div>
 
-                            <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                              <span><strong>Créditos:</strong> {mod.credits}</span>
-                              <span><strong>Carga:</strong> {mod.hours} hrs</span>
+                            {mod.desc && (
+                              <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', margin: '0.35rem 0 0.5rem 0' }}>
+                                {mod.desc}
+                              </p>
+                            )}
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.78rem', color: 'var(--color-text-subtle)', flexWrap: 'wrap' }}>
+                              {mod.software && (
+                                <span><strong>Software:</strong> {mod.software}</span>
+                              )}
+                              {mod.prerequisites && mod.prerequisites !== 'Ninguno' && (
+                                <span style={{ color: 'var(--color-status-warning)' }}><strong>Prerrequisito:</strong> {mod.prerequisites}</span>
+                              )}
                             </div>
                           </div>
-
-                          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-muted)', lineHeight: 1.5 }}>
-                            {mod.desc}
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
-          {/* TAB 2: Perfil Ingreso & Egreso */}
+          {/* TAB 2: Perfil & Requisitos de Admisión (Elimina secciones sin datos) */}
           {activeTab === 'perfil' && (
             <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div className="glass-card" style={{ borderLeft: '4px solid var(--color-accent-orange)', background: '#ffffff' }}>
-                <h3 style={{ fontSize: '1.15rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <GraduationCap size={18} color="var(--color-accent-orange)" />
-                  Perfil del Postulante (Requisitos de Ingreso)
-                </h3>
-                <p style={{ fontSize: '0.95rem', lineHeight: '1.7', marginBottom: '1rem', color: 'var(--color-text-muted)' }}>
-                  {program.targetAudience}
-                </p>
-                <div style={{
-                  background: '#f8fafc',
-                  padding: '1.25rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.875rem',
-                  border: '1px solid #e2e8f0'
-                }}>
-                  <strong style={{ color: 'var(--color-umsa-blue-dark)', display: 'block', marginBottom: '0.4rem' }}>
-                    Requisitos Académicos Previos:
-                  </strong>
-                  <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem', color: 'var(--color-text-muted)' }}>
-                    <li>Título en Provisión Nacional a nivel Licenciatura.</li>
-                    <li>Conocimientos de cálculo, álgebra lineal y probabilidad elemental.</li>
-                    <li>Comprensión de lectura de literatura científica en idioma inglés técnico.</li>
-                  </ul>
+              {hasPerfilAspirante && (
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                  <h4 style={{ color: 'var(--color-green-inst)', fontWeight: 800, marginBottom: '0.6rem' }}>
+                    Perfil del Postulante / Aspirante
+                  </h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.6, whiteSpace: 'pre-line', margin: 0 }}>
+                    {prog.perfil_aspirante}
+                  </p>
                 </div>
-              </div>
+              )}
 
-              <div className="glass-card" style={{ borderLeft: '4px solid #059669', background: '#ffffff' }}>
-                <h3 style={{ fontSize: '1.15rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Award size={18} color="#059669" />
-                  Competencias de Egreso y Campo Laboral
-                </h3>
-                <p style={{ fontSize: '0.95rem', lineHeight: '1.7', marginBottom: '1rem', color: 'var(--color-text-muted)' }}>
-                  {program.graduateProfile}
-                </p>
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                  gap: '0.75rem',
-                  fontSize: '0.85rem'
-                }}>
-                  <div style={{ background: '#ecfdf5', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px solid #a7f3d0' }}>
-                    <strong style={{ color: '#065f46', display: 'block' }}>Sector Financiero & Asegurador</strong>
-                    <span style={{ color: '#047857' }}>Modelos de credit scoring, solvencia y riesgo de mercado.</span>
-                  </div>
-                  <div style={{ background: '#f0f9ff', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px solid #bae6fd' }}>
-                    <strong style={{ color: '#0369a1', display: 'block' }}>Centros de Investigación & Salud</strong>
-                    <span style={{ color: '#0284c7' }}>Ensayos clínicos, bioestadística y epidemiología espacial.</span>
-                  </div>
-                  <div style={{ background: '#fffbeb', padding: '0.85rem', borderRadius: 'var(--radius-md)', border: '1px solid #fde68a' }}>
-                    <strong style={{ color: '#92400e', display: 'block' }}>Sector Público & Organismos</strong>
-                    <span style={{ color: '#b45309' }}>Encuestas complejas en el INE, ministerios y agencias ONU.</span>
-                  </div>
+              {hasPerfilEgreso && (
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                  <h4 style={{ color: 'var(--color-green-inst)', fontWeight: 800, marginBottom: '0.6rem' }}>
+                    Perfil de Egreso Profesional
+                  </h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', lineHeight: 1.6, whiteSpace: 'pre-line', margin: 0 }}>
+                    {prog.perfil_egreso}
+                  </p>
                 </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* TAB 3: Titulación */}
-          {activeTab === 'titulacion' && (
-            <div className="animate-fade-in">
-              <h3 style={{ fontSize: '1.2rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '1.25rem' }}>
-                Modalidades de Graduación Acreditadas (CEUB / FCPN)
-              </h3>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-                {program.titulationOptions.map((opt, idx) => (
-                  <div key={idx} className="glass-card" style={{ padding: '1.5rem', background: '#ffffff' }}>
-                    <div style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '8px',
-                      background: 'var(--color-accent-orange-subtle)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--color-accent-orange)',
-                      marginBottom: '0.85rem'
-                    }}>
-                      <Award size={22} />
-                    </div>
-
-                    <h4 style={{ color: 'var(--color-umsa-blue-dark)', fontSize: '1.1rem', marginBottom: '0.5rem' }}>
-                      {opt.name}
+              {hasRequisitos && (
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.8rem' }}>
+                    <h4 style={{ color: 'var(--color-green-inst)', fontWeight: 800, margin: 0 }}>
+                      Requisitos de Admisión Documental (CEUB - FCPN UMSA)
                     </h4>
-
-                    <p style={{ fontSize: '0.875rem', lineHeight: 1.6, margin: 0, color: 'var(--color-text-muted)' }}>
-                      {opt.desc}
-                    </p>
+                    {prog.enlace_pdf_programa && (
+                      <a
+                        href={prog.enlace_pdf_programa}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+                      >
+                        <FileText size={14} color="var(--color-green-inst)" />
+                        <span>Descargar PDF de Requisitos</span>
+                      </a>
+                    )}
                   </div>
-                ))}
+                  <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', whiteSpace: 'pre-line', lineHeight: 1.7 }}>
+                    {prog.requisitos_admision}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 3: Modalidades de Titulación (Solo se renderiza si hay datos en BD) */}
+          {activeTab === 'titulacion' && hasTitulacion && (
+            <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--color-green-inst)', fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.75rem' }}>
+                  <CheckCircle2 size={20} />
+                  <span>Modalidades de Titulación Aprobadas</span>
+                </div>
+                <p style={{ fontSize: '0.925rem', color: 'var(--color-text-muted)', margin: 0, paddingLeft: '1.75rem', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                  {prog.modalidad_titulacion}
+                </p>
               </div>
             </div>
           )}
 
-          {/* TAB 4: Inversión & Simulador de Pagos */}
+          {/* TAB 4: Inversión & Pagos (Conectado a BD) */}
           {activeTab === 'inversion' && (
             <div className="animate-fade-in">
-              <div className="grid-2" style={{ marginBottom: '2rem' }}>
-                {/* Cost Details */}
-                <div className="glass-card" style={{ background: '#ffffff' }}>
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Calculator size={18} color="var(--color-accent-orange)" />
-                    Aranceles Oficiales de Colegiatura
-                  </h3>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.9rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
-                      <span>Colegiatura Total del Programa:</span>
-                      <strong style={{ color: 'var(--color-umsa-blue-dark)', fontFamily: 'var(--font-family-mono)' }}>{totalTuition.toLocaleString()} BOB</strong>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
-                      <span>Matrícula Universitaria UMSA:</span>
-                      <strong style={{ color: 'var(--color-umsa-blue-dark)', fontFamily: 'var(--font-family-mono)' }}>{matricula.toLocaleString()} BOB</strong>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
-                      <span>Descuento por Pago al Contado:</span>
-                      <strong style={{ color: '#059669', fontFamily: 'var(--font-family-mono)' }}>{discountPercent}% OFF (-{cashDiscountAmount.toLocaleString()} BOB)</strong>
-                    </div>
-
-                    <div style={{
-                      background: '#f8fafc',
-                      padding: '0.85rem',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: '0.85rem',
-                      color: 'var(--color-text-muted)',
-                      border: '1px solid #e2e8f0'
-                    }}>
-                      Código CPT de Recaudación: <strong style={{ color: 'var(--color-accent-orange)' }}>{program.investment.cptCode}</strong>
-                    </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 700 }}>VALOR MATRÍCULA DE ADMISIÓN</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-green-inst)', fontFamily: 'var(--font-family-mono)' }}>
+                    {matricula > 0 ? `${matricula} BOB` : 'Gratuita (Beca Institucional UMSA)'}
                   </div>
                 </div>
 
-                {/* Simulator Controls */}
-                <div className="glass-card" style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1' }}>
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '1rem' }}>
-                    Simulador Interactivo de Pagos
-                  </h3>
-
-                  {/* Payment Type Switch */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '0.5rem',
-                    background: '#e2e8f0',
-                    padding: '0.3rem',
-                    borderRadius: 'var(--radius-md)',
-                    marginBottom: '1.25rem'
-                  }}>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentType('cash')}
-                      style={{
-                        padding: '0.55rem',
-                        borderRadius: 'var(--radius-sm)',
-                        background: paymentType === 'cash' ? 'var(--color-accent-orange)' : 'transparent',
-                        color: paymentType === 'cash' ? '#ffffff' : 'var(--color-text-main)',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Pago al Contado
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPaymentType('installments')}
-                      style={{
-                        padding: '0.55rem',
-                        borderRadius: 'var(--radius-sm)',
-                        background: paymentType === 'installments' ? 'var(--color-accent-orange)' : 'transparent',
-                        color: paymentType === 'installments' ? '#ffffff' : 'var(--color-text-main)',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Plan en Cuotas
-                    </button>
+                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 700 }}>COLEGIATURA TOTAL / MENSUALIDAD</div>
+                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-blue-steel)', fontFamily: 'var(--font-family-mono)' }}>
+                    {totalTuition > 0 ? `${totalTuition.toLocaleString()} BOB` : 'Sin Costo de Colegiatura'}
                   </div>
-
-                  {paymentType === 'cash' ? (
-                    <div style={{ textAlign: 'center', padding: '1rem', background: '#ffffff', borderRadius: 'var(--radius-md)', border: '1px solid #e2e8f0' }}>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: '0.35rem' }}>
-                        Monto Final con Descuento Institucional ({discountPercent}%):
-                      </div>
-                      <div style={{
-                        fontSize: '2.2rem',
-                        fontWeight: 800,
-                        color: '#059669',
-                        fontFamily: 'var(--font-family-mono)',
-                        marginBottom: '0.5rem'
-                      }}>
-                        {cashTotal.toLocaleString()} BOB
-                      </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)' }}>
-                        Incluye Matrícula ({matricula} BOB) + Colegiatura con {discountPercent}% de ahorro.
-                      </div>
-                    </div>
-                  ) : (
-                    <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid #e2e8f0' }}>
-                      <div style={{ marginBottom: '1rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.35rem' }}>
-                          <span>Seleccionar Número de Cuotas Mensuales:</span>
-                          <strong style={{ color: 'var(--color-accent-orange)' }}>{installmentCount} Meses</strong>
-                        </div>
-                        <input
-                          type="range"
-                          min="3"
-                          max={program.investment.maxInstallments}
-                          value={installmentCount}
-                          onChange={(e) => setInstallmentCount(Number(e.target.value))}
-                          style={{ width: '100%', accentColor: 'var(--color-accent-orange)', cursor: 'pointer' }}
-                        />
-                      </div>
-
-                      <div style={{
-                        background: '#f8fafc',
-                        borderRadius: 'var(--radius-md)',
-                        padding: '1rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.4rem',
-                        fontSize: '0.85rem'
-                      }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Cuota Inicial / Matrícula:</span>
-                          <strong style={{ color: 'var(--color-umsa-blue-dark)' }}>{program.investment.cuotaInitialBob} BOB</strong>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>{installmentCount} Cuotas Mensuales de:</span>
-                          <strong style={{ color: 'var(--color-accent-orange)', fontSize: '1.15rem', fontFamily: 'var(--font-family-mono)' }}>
-                            {installmentMonthly.toLocaleString()} BOB / mes
-                          </strong>
-                        </div>
-                      </div>
+                  {monthlyFee > 0 && (
+                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                      {monthlyFee} BOB / mes ({investment.maxInstallments || 18} cuotas)
                     </div>
                   )}
-
-                  {/* Payment channels */}
-                  <div style={{
-                    marginTop: '1.25rem',
-                    padding: '0.75rem',
-                    borderTop: '1px solid #e2e8f0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: '0.8rem',
-                    color: 'var(--color-text-subtle)'
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <Landmark size={14} color="#0284c7" /> Banco Unión (Caja / Depósito)
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                      <QrCode size={14} color="#059669" /> QR Simple / CPT UMSA
-                    </span>
-                  </div>
                 </div>
               </div>
+
+              {totalTuition > 0 && (
+                <div className="glass-panel" style={{ background: 'var(--color-bg-primary)', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
+                  <h4 style={{ color: 'var(--color-text-main)', fontWeight: 800, marginBottom: '0.75rem' }}>
+                    Simulador de Cuotas & Descuento al Contado
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', fontSize: '0.875rem' }}>
+                    <div>
+                      <strong>Pago al Contado ({discountPercent}% Descuento):</strong>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-green-inst)', marginTop: '0.25rem' }}>
+                        {cashTotal.toLocaleString()} BOB
+                      </div>
+                    </div>
+                    <div>
+                      <strong>Plan en Cuotas Mensuales:</strong>
+                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-blue-steel)', marginTop: '0.25rem' }}>
+                        {monthlyFee} BOB / mes ({investment.maxInstallments || installmentCount} cuotas)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+        </div>
 
-          {/* Modal Footer Actions */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: '1.5rem',
-            borderTop: '1px solid #e2e8f0',
-            flexWrap: 'wrap',
-            gap: '1rem'
-          }}>
-            <button className="btn btn-secondary" onClick={onClose}>
-              Cerrar Ficha
-            </button>
-
+        {/* Modal Footer with Direct Actions */}
+        <div style={{
+          padding: '1.25rem 2rem',
+          borderTop: '1.5px solid var(--color-border)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          background: 'var(--color-bg-primary)',
+          borderRadius: '0 0 var(--radius-xl) var(--radius-xl)'
+        }}>
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => {
-                onClose();
-                onApply(program.id);
-              }}
-              className="btn btn-primary btn-lg"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              onClick={onClose}
+              className="btn btn-secondary btn-sm"
             >
-              <span>Iniciar Postulación Online</span>
-              <ArrowRight size={18} />
+              Cerrar
             </button>
+
+            {/* Si la convocatoria ya está cerrada/concluida, se puede consultar el repositorio histórico en Drive */}
+            {prog.status !== 'Activo' && prog.enlace_convocatoria_drive && (
+              <a
+                href={prog.enlace_convocatoria_drive}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-secondary btn-sm"
+                style={{ color: 'var(--color-green-inst)', borderColor: 'var(--color-green-inst)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <span>Repositorio Drive (Histórico)</span>
+              </a>
+            )}
+
+            {prog.enlace_pdf_programa && (
+              <a
+                href={prog.enlace_pdf_programa}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-secondary btn-sm"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <FileText size={15} color="var(--color-green-inst)" />
+                <span>Descargar Detalle (PDF)</span>
+              </a>
+            )}
           </div>
+
+          <a
+            href={prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms'}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.95rem', padding: '0.65rem 1.5rem', textDecoration: 'none' }}
+          >
+            <span>Postular vía Google Forms</span>
+            <ArrowRight size={16} />
+          </a>
         </div>
       </div>
     </div>

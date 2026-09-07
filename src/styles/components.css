@@ -1,10 +1,10 @@
 /* ==========================================================================
-   COMPONENTS DESIGN SYSTEM (LIGHT & CRISP INSTITUTIONAL THEME)
+   COMPONENTS DESIGN SYSTEM — PALETA VERDE INSTITUCIONAL UMSA FCPN
    ========================================================================== */
 
 /* Glass Cards & Containers */
 .glass-card {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-white);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
@@ -25,12 +25,12 @@
 }
 
 .glass-card-interactive:hover {
-  border-color: var(--color-accent-orange);
-  box-shadow: var(--shadow-glow-orange);
+  border-color: var(--color-green-inst);
+  box-shadow: var(--shadow-glow-green);
 }
 
 .glass-panel {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-primary);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-md);
   padding: 1.25rem;
@@ -49,22 +49,26 @@
   text-transform: uppercase;
 }
 
-.badge-orange {
-  background: var(--color-accent-orange-subtle);
-  color: var(--color-accent-orange);
-  border: 1px solid var(--color-accent-orange-border);
+/* Verde institucional — Maestría Terminal */
+.badge-orange,
+.badge-green-inst {
+  background: var(--color-green-inst-subtle);
+  color: var(--color-green-inst);
+  border: 1px solid var(--color-green-inst-border);
 }
 
+/* Azul acero — Diplomado / Autofinanciada */
 .badge-blue {
-  background: var(--color-status-info-bg);
-  color: var(--color-status-info);
-  border: 1px solid var(--color-status-info-border);
+  background: var(--color-blue-steel-subtle);
+  color: var(--color-blue-steel);
+  border: 1px solid var(--color-blue-steel-border);
 }
 
+/* Verde status */
 .badge-green {
   background: var(--color-status-success-bg);
   color: var(--color-status-success);
-  border: 1px solid var(--color-status-success-border);
+  border: 1px solid rgba(0, 100, 0, 0.25);
 }
 
 .badge-yellow {
@@ -95,40 +99,57 @@
   user-select: none;
 }
 
+/* PRIMARY — Verde Oscuro Institucional */
 .btn-primary {
-  background: var(--color-accent-orange);
+  background: var(--color-green-inst);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(242, 104, 28, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 100, 0, 0.28);
 }
 
 .btn-primary:hover {
-  background: var(--color-accent-orange-hover);
+  background: var(--color-green-inst-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(242, 104, 28, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 100, 0, 0.38);
 }
 
+/* SECONDARY — Azul Acero */
 .btn-secondary {
-  background: var(--color-bg-secondary);
+  background: var(--color-bg-white);
   color: var(--color-text-main);
   border: 1.5px solid var(--color-glass-border);
   box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover {
-  background: var(--color-bg-tertiary);
-  border-color: #cbd5e1;
-  color: var(--color-umsa-blue);
+  background: var(--color-bg-primary);
+  border-color: var(--color-blue-steel);
+  color: var(--color-blue-steel);
   transform: translateY(-2px);
 }
 
-.btn-outline-orange {
+/* OUTLINE GREEN */
+.btn-outline-orange,
+.btn-outline-green {
   background: transparent;
-  color: var(--color-accent-orange);
-  border: 1.5px solid var(--color-accent-orange);
+  color: var(--color-green-inst);
+  border: 1.5px solid var(--color-green-inst);
 }
 
-.btn-outline-orange:hover {
-  background: var(--color-accent-orange);
+.btn-outline-orange:hover,
+.btn-outline-green:hover {
+  background: var(--color-green-inst);
+  color: #ffffff;
+}
+
+/* OUTLINE BLUE */
+.btn-outline-blue {
+  background: transparent;
+  color: var(--color-blue-steel);
+  border: 1.5px solid var(--color-blue-steel);
+}
+
+.btn-outline-blue:hover {
+  background: var(--color-blue-steel);
   color: #ffffff;
 }
 
@@ -154,7 +175,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem;
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-secondary);
   border: 1px solid var(--color-glass-border);
   border-radius: var(--radius-lg);
   overflow-x: auto;
@@ -177,12 +198,12 @@
 
 .tab-btn:hover {
   color: var(--color-text-main);
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .tab-btn.active {
   background: #ffffff;
-  color: var(--color-accent-orange);
+  color: var(--color-green-inst);
   box-shadow: var(--shadow-sm);
 }
 
@@ -213,7 +234,7 @@
   width: 100%;
   padding: 0.8rem 1rem;
   background: #ffffff;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-main);
   font-size: 0.95rem;
@@ -222,20 +243,20 @@
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: var(--color-accent-orange);
+  border-color: var(--color-green-inst);
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(242, 104, 28, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 100, 0, 0.15);
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
-  color: #94a3b8;
+  color: #9aa3ae;
 }
 
 /* Modals */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(55, 58, 64, 0.55);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
@@ -289,7 +310,7 @@
 }
 
 .modal-close-btn {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-primary);
   border: 1px solid var(--color-glass-border);
   color: var(--color-text-subtle);
   width: 36px;
@@ -303,9 +324,9 @@
 }
 
 .modal-close-btn:hover {
-  background: var(--color-accent-orange);
+  background: var(--color-green-inst);
   color: #ffffff;
-  border-color: var(--color-accent-orange);
+  border-color: var(--color-green-inst);
 }
 
 /* Data Tables */
@@ -326,24 +347,32 @@
 }
 
 .data-table th {
-  background: #f8fafc;
-  color: var(--color-text-muted);
+  background: var(--color-table-header-bg);   /* rgb(230,235,245) */
+  color: var(--color-text-main);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   padding: 1rem 1.25rem;
-  border-bottom: 1.5px solid var(--color-glass-border);
+  border-bottom: 1.5px solid var(--color-border-table);
 }
 
 .data-table td {
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-glass-border);
+  border-bottom: 1px solid var(--color-border-table);
   color: var(--color-text-main);
 }
 
+.data-table tr:nth-child(even) td {
+  background: var(--color-table-row-even);    /* rgb(245,245,245) */
+}
+
+.data-table tr:nth-child(odd) td {
+  background: var(--color-table-row-odd);     /* rgb(235,230,218) */
+}
+
 .data-table tr:hover td {
-  background: #f8fafc;
+  background: var(--color-green-inst-subtle);
 }
 
 /* Wizard Steps Indicator */
@@ -362,7 +391,7 @@
   left: 5%;
   right: 5%;
   height: 3px;
-  background: #e2e8f0;
+  background: var(--color-border);
   transform: translateY(-50%);
   z-index: 1;
 }
@@ -382,7 +411,7 @@
   height: 42px;
   border-radius: var(--radius-full);
   background: #ffffff;
-  border: 2.5px solid #cbd5e1;
+  border: 2.5px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -394,10 +423,10 @@
 }
 
 .wizard-step-item.active .wizard-step-circle {
-  background: var(--color-accent-orange);
-  border-color: var(--color-accent-orange);
+  background: var(--color-green-inst);
+  border-color: var(--color-green-inst);
   color: #ffffff;
-  box-shadow: 0 0 16px rgba(242, 104, 28, 0.4);
+  box-shadow: 0 0 16px rgba(0, 100, 0, 0.35);
 }
 
 .wizard-step-item.completed .wizard-step-circle {
@@ -415,7 +444,7 @@
 }
 
 .wizard-step-item.active .wizard-step-label {
-  color: var(--color-umsa-blue-dark);
+  color: var(--color-green-inst);
 }
 
 /* KPI Counter Block */
@@ -432,7 +461,7 @@
   font-size: clamp(2.5rem, 4vw, 3.5rem);
   font-weight: 800;
   font-family: var(--font-family-heading);
-  color: var(--color-umsa-blue);
+  color: var(--color-green-inst);
   line-height: 1;
   margin-bottom: 0.5rem;
 }
@@ -471,3 +500,57 @@
   .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
   .wizard-step-label { display: none; }
 }
+
+/* ==========================================================================
+   HERO INSTITUTIONAL LOGOS (FLANCOS LATERALES LIMPIOS, SIN RECUADROS NI TEXTO)
+   ========================================================================== */
+.hero-flank-logos {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  z-index: 4;
+  flex-shrink: 0;
+}
+
+.hero-flank-logo-img {
+  width: auto;
+  height: 84px;
+  max-width: 110px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.8));
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  user-select: none;
+}
+
+.hero-flank-logo-img:hover {
+  transform: scale(1.12);
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.95));
+}
+
+@media (max-width: 991px) {
+  .hero-flank-logos {
+    display: none;
+  }
+  .hero-logos-mobile-row {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    z-index: 4;
+  }
+  .hero-logos-mobile-row .hero-flank-logo-img {
+    height: 48px;
+    max-width: 62px;
+  }
+}
+
+@media (min-width: 992px) {
+  .hero-logos-mobile-row {
+    display: none !important;
+  }
+}
+
+

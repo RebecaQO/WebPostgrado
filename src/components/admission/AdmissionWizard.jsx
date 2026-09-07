@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApplicants } from '../../context/ApplicantsContext';
-import { programsData } from '../../data/programsData';
 import { printOrDownloadOfficialCertificate } from '../../utils/downloader';
 import { 
   User, 
@@ -23,8 +22,33 @@ import {
 export const AdmissionWizard = ({ preselectedProgramId, onFinished }) => {
   const { addApplicant } = useApplicants();
 
+  const [programList, setProgramList] = useState([]);
   const [currentStep, setCurrentStep] = useState(1);
   const [submittedApplicant, setSubmittedApplicant] = useState(null);
+
+  useEffect(() => {
+    const loadPrograms = async () => {
+      try {
+        const response = await fetch('/api/programas/activos');
+        const data = await response.json();
+        const validPrograms = Array.isArray(data) ? data : [];
+        setProgramList(validPrograms);
+
+        if (validPrograms.length > 0 && !validPrograms.some(p => p.id === preselectedProgramId)) {
+          setFormData(prev => ({
+            ...prev,
+            programId: validPrograms[0].id,
+            programTitle: validPrograms[0].title,
+          }));
+        }
+      } catch (error) {
+        console.error('Error cargando programas para admisión:', error);
+        setProgramList([]);
+      }
+    };
+
+    loadPrograms();
+  }, [preselectedProgramId]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -89,10 +113,10 @@ export const AdmissionWizard = ({ preselectedProgramId, onFinished }) => {
     }
 
     if (currentStep === 4) {
-      const prog = programsData.find(p => p.id === formData.programId) || programsData[0];
+      const prog = programList.find(p => p.id === formData.programId) || programList[0];
       const dataToSubmit = {
         ...formData,
-        programTitle: prog.title
+        programTitle: prog ? prog.title : formData.programTitle || 'Programa de posgrado'
       };
       const created = addApplicant(dataToSubmit);
       setSubmittedApplicant(created);
@@ -258,11 +282,15 @@ export const AdmissionWizard = ({ preselectedProgramId, onFinished }) => {
               onChange={(e) => handleInputChange('programId', e.target.value)}
               className="form-select"
             >
-              {programsData.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.title} ({p.type} - {p.duration})
-                </option>
-              ))}
+              {programList.length === 0 ? (
+                <option value="">Cargando programas vigentes...</option>
+              ) : (
+                programList.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.title} ({p.type} - {p.periodo || 'Gestión 2026'})
+                  </option>
+                ))
+              )}
             </select>
           </div>
         </div>

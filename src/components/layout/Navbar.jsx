@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logoPosgrado from '../../assets/images/logo/logo_posgrado.jpg';
 import { useAuth } from '../../context/AuthContext';
 import { 
   GraduationCap, 
@@ -29,7 +30,7 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
       hasDropdown: true 
     },
     { id: 'admision', label: 'Admisión & Matrícula' },
-    { id: 'normativa', label: 'Procesos y Normativa' },
+    { id: 'normativa', label: 'Convocatorias Anteriores' },
     { id: 'noticias', label: 'Noticias y Tesis' },
     { id: 'contacto', label: 'Ubicación & Contacto' }
   ];
@@ -69,47 +70,41 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
             userSelect: 'none'
           }}
         >
-          {/* UMSA Shield emblem */}
-          <div style={{
-            width: '46px',
-            height: '46px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #003876 0%, #00224d 100%)',
-            border: '2px solid var(--color-accent-orange)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(0, 56, 118, 0.25)',
-            flexShrink: 0
-          }}>
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-              <rect x="5" y="10" width="4" height="16" rx="1" fill="#ffffff" fillOpacity="0.9"/>
-              <rect x="11" y="6" width="4" height="20" rx="1" fill="#f2681c"/>
-              <rect x="17" y="12" width="4" height="14" rx="1" fill="#38bdf8"/>
-              <rect x="23" y="4" width="4" height="22" rx="1" fill="#e5a823"/>
-              <path d="M2 24 C8 24, 11 12, 16 12 C21 12, 24 24, 30 24" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" fill="none"/>
-            </svg>
-          </div>
+          {/* Real institutional logo */}
+          <img
+            src={logoPosgrado}
+            alt="Carrera de Estadística – Unidad de Posgrado UMSA"
+            style={{
+              width: '54px',
+              height: '54px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '2.5px solid var(--color-green-inst)',
+              boxShadow: '0 3px 10px rgba(38, 115, 66, 0.25)',
+              flexShrink: 0,
+              background: '#ffffff'
+            }}
+          />
 
           <div>
             <div style={{
               fontSize: '1.05rem',
               fontWeight: 800,
               fontFamily: 'var(--font-family-heading)',
-              color: 'var(--color-umsa-blue-dark)',
+              color: 'var(--color-text-main)',
               lineHeight: 1.15,
               letterSpacing: '-0.01em'
             }}>
               CARRERA DE ESTADÍSTICA
             </div>
             <div style={{
-              fontSize: '0.75rem',
-              color: 'var(--color-accent-orange)',
+              fontSize: '0.72rem',
+              color: 'var(--color-green-inst)',
               fontWeight: 700,
               letterSpacing: '0.04em',
               textTransform: 'uppercase'
             }}>
-              Unidad de Posgrado e Investigación • FCPN UMSA
+              Unidad de Posgrado · FCPN UMSA
             </div>
           </div>
         </div>

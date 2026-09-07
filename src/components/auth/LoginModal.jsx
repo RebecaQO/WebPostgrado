@@ -13,10 +13,10 @@ import {
 } from 'lucide-react';
 
 export const LoginModal = ({ onLoginSuccess }) => {
-  const { loginModalOpen, setLoginModalOpen, selectedRoleTab, setSelectedRoleTab, loginAs } = useAuth();
-  
-  const [emailInput, setEmailInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
+  const { loginModalOpen, setLoginModalOpen, selectedRoleTab, setSelectedRoleTab, loginAs, authError } = useAuth();
+
+  const [emailInput, setEmailInput] = useState('admin@umsa.bo');
+  const [passwordInput, setPasswordInput] = useState('Admin123!');
   const [rememberMe, setRememberMe] = useState(true);
 
   if (!loginModalOpen) return null;
@@ -24,22 +24,24 @@ export const LoginModal = ({ onLoginSuccess }) => {
   const handleRoleSelect = (role) => {
     setSelectedRoleTab(role);
     if (role === 'estudiante') {
-      setEmailInput('alejandro.choque@posgrado.fcpn.edu.bo');
-      setPasswordInput('••••••••••••');
+      setEmailInput('mtorres@email.com');
+      setPasswordInput('Estudiante123!');
     } else if (role === 'docente') {
-      setEmailInput('mramos@fcpn.edu.bo');
-      setPasswordInput('••••••••••••');
+      setEmailInput('cmamani@umsa.bo');
+      setPasswordInput('Docente123!');
     } else if (role === 'admin') {
-      setEmailInput('admin.posgrado@fcpn.edu.bo');
-      setPasswordInput('••••••••••••');
+      setEmailInput('admin@umsa.bo');
+      setPasswordInput('Admin123!');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    loginAs(selectedRoleTab);
-    if (onLoginSuccess) {
-      onLoginSuccess(selectedRoleTab);
+    const user = await loginAs({ email: emailInput, password: passwordInput });
+    if (user) {
+      if (onLoginSuccess) {
+        onLoginSuccess(user.role || selectedRoleTab);
+      }
     }
   };
 
@@ -240,18 +242,19 @@ export const LoginModal = ({ onLoginSuccess }) => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">
-                <span>Correo Institucional o C.I.</span>
-                <span className="form-label-hint">Ej: usuario@posgrado.fcpn.edu.bo</span>
+                <span>Correo Institucional</span>
+                <span className="form-label-hint">Ej: admin@umsa.bo</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-subtle)' }} />
                 <input
                   type="text"
                   required
-                  defaultValue={currentConfig.demoEmail}
+                  value={emailInput}
+                  onChange={(e) => setEmailInput(e.target.value)}
                   className="form-input"
                   style={{ paddingLeft: '2.5rem', background: '#f8fafc' }}
-                  placeholder="tu.usuario@fcpn.edu.bo"
+                  placeholder="admin@umsa.bo"
                 />
               </div>
             </div>
@@ -259,14 +262,15 @@ export const LoginModal = ({ onLoginSuccess }) => {
             <div className="form-group">
               <label className="form-label">
                 <span>Contraseña</span>
-                <span className="form-label-hint">Mínimo 8 caracteres</span>
+                <span className="form-label-hint">Credencial real del sistema</span>
               </label>
               <div style={{ position: 'relative' }}>
                 <KeyRound size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-subtle)' }} />
                 <input
                   type="password"
                   required
-                  defaultValue="ContraseñaDemo2026*"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
                   className="form-input"
                   style={{ paddingLeft: '2.5rem', background: '#f8fafc' }}
                   placeholder="••••••••••••"
@@ -309,7 +313,21 @@ export const LoginModal = ({ onLoginSuccess }) => {
               <ArrowRight size={18} />
             </button>
 
-            {/* Fast Demo Access Note */}
+            {authError && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '0.75rem 0.9rem',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 'var(--radius-md)',
+                color: '#b91c1c',
+                fontSize: '0.8rem',
+                fontWeight: 600
+              }}>
+                {authError}
+              </div>
+            )}
+
             <div style={{
               marginTop: '1.25rem',
               padding: '0.85rem',
@@ -324,7 +342,7 @@ export const LoginModal = ({ onLoginSuccess }) => {
             }}>
               <Info size={16} style={{ flexShrink: 0 }} />
               <span>
-                <strong>Modo Demostración Activo:</strong> Puedes hacer clic directamente en cualquier rol y presionar "Ingresar" para explorar las interfaces interactivas.
+                <strong>Acceso real:</strong> usa un usuario activo de la base de datos y la contraseña del sistema para ingresar al portal correspondiente.
               </span>
             </div>
           </form>

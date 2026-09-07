@@ -1,7 +1,7 @@
 export const programsData = [
   {
     id: "msc-ciencia-datos",
-    title: "Maestría en Estadística Aplicada y Ciencia de Datos",
+    title: "Maestría en Estadística Aplicada",
     degree: "Magíster Scientiarum (M.Sc.)",
     type: "Maestría",
     typeFilter: "maestria",

@@ -2,75 +2,35 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-const DEMO_USERS = {
+const DEFAULT_PROFILES = {
   estudiante: {
     role: 'estudiante',
-    name: 'Ing. Alejandro Choque Mamani',
-    email: 'alejandro.choque@posgrado.fcpn.edu.bo',
-    ci: '6834921 LP',
-    program: 'Maestría en Estadística Aplicada y Ciencia de Datos',
-    studentCode: 'MAT-2025-0481',
-    currentSemester: 'Semestre II',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-    grades: [
-      { code: 'EST-801', name: 'Fundamentos Matemáticos para Estadística', grade: 92, status: 'Aprobado', semester: 'I-2025' },
-      { code: 'EST-802', name: 'Inferencia Estadística Avanzada', grade: 88, status: 'Aprobado', semester: 'I-2025' },
-      { code: 'EST-803', name: 'Programación Estadística con R y Python', grade: 95, status: 'Aprobado', semester: 'I-2025' },
-      { code: 'EST-811', name: 'Modelos Lineales Generalizados (GLM)', grade: 85, status: 'En Curso', semester: 'II-2025' },
-      { code: 'EST-812', name: 'Aprendizaje Estadístico y Machine Learning', grade: 90, status: 'En Curso', semester: 'II-2025' }
-    ],
-    payments: [
-      { concept: 'Matrícula Anual Gestión 2025', amountBob: 1200, status: 'Cancelado', date: '10/02/2025', receipt: 'REC-UMSA-0912' },
-      { concept: 'Cuota 1 - Colegiatura Semestre I', amountBob: 1500, status: 'Cancelado', date: '15/03/2025', receipt: 'REC-UMSA-1420' },
-      { concept: 'Cuota 2 - Colegiatura Semestre I', amountBob: 1500, status: 'Cancelado', date: '15/05/2025', receipt: 'REC-UMSA-1983' },
-      { concept: 'Cuota 3 - Colegiatura Semestre II', amountBob: 1500, status: 'Cancelado', date: '10/09/2025', receipt: 'REC-UMSA-2341' },
-      { concept: 'Cuota 4 - Colegiatura Semestre II', amountBob: 1500, status: 'Pendiente', dueDate: '30/03/2026', cpt: 'CPT-2026-88492' }
-    ],
-    thesis: {
-      title: "Modelación de Series de Tiempo con Componente Espacial en la Predicción de Rendimientos Agrícolas en el Altiplano",
-      tutor: "Dr. Marcelo Ramos Quispe (Ph.D.)",
-      progressPercent: 65,
-      stage: "Capítulo 3: Metodología y Estimación Bayesiana",
-      lastFeedback: "Revisar la convergencia de las cadenas de Markov en el paquete R-INLA."
-    }
+    name: 'Estudiante UMSA',
+    email: 'estudiante@umsa.bo',
+    ci: '0000000 LP',
+    program: 'Programa de Posgrado',
+    studentCode: 'MAT-2026-0000',
+    currentSemester: 'Semestre I',
+    grades: [],
+    payments: [],
+    thesis: { title: 'Sin proyecto registrado', tutor: 'Sin tutor asignado', progressPercent: 0, stage: 'Pendiente', lastFeedback: 'Sin observaciones' }
   },
   docente: {
     role: 'docente',
-    name: 'Dr. Marcelo Ramos Quispe',
-    email: 'mramos@fcpn.edu.bo',
-    ci: '3349120 LP',
+    name: 'Docente UMSA',
+    email: 'docente@umsa.bo',
+    ci: '0000000 LP',
     department: 'Departamento de Estadística Matemática',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-    assignedModules: [
-      {
-        code: 'EST-802',
-        name: 'Inferencia Estadística Avanzada',
-        program: 'Maestría en Estadística Aplicada (Semestre I)',
-        enrolledCount: 28,
-        status: 'Concluido',
-        period: 'Gestión I-2025'
-      },
-      {
-        code: 'EST-832',
-        name: 'Estadística Bayesiana Computacional (MCMC)',
-        program: 'Maestría en Ciencia de Datos (Semestre IV)',
-        enrolledCount: 22,
-        status: 'En Curso',
-        period: 'Gestión I-2026'
-      }
-    ],
-    supervisedStudents: [
-      { name: 'Lic. Rodrigo Paredes', thesis: 'Modelos de Espacio de Estados para Inflación', status: 'Defensa Programada (28/03/2026)' },
-      { name: 'Ing. Alejandro Choque', thesis: 'Modelación Espacio-Temporal en Altiplano', status: 'Avance 65%' },
-      { name: 'Lic. Mariana Siles', thesis: 'Estimación en Áreas Pequeñas (SAE)', status: 'Avance 40%' }
-    ]
+    avatar: '',
+    assignedModules: [],
+    supervisedStudents: []
   },
   admin: {
     role: 'admin',
-    name: 'M.Sc. Roxana Quisbert Valle',
-    email: 'admin.posgrado@fcpn.edu.bo',
-    position: 'Directora de la Unidad de Posgrado e Investigación',
-    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80'
+    name: 'Administrador UMSA',
+    email: 'admin@umsa.bo',
+    position: 'Administración de Posgrado',
+    avatar: ''
   }
 };
 
@@ -82,6 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [selectedRoleTab, setSelectedRoleTab] = useState('estudiante');
+  const [authError, setAuthError] = useState('');
 
   useEffect(() => {
     if (currentUser) {
@@ -91,15 +52,57 @@ export const AuthProvider = ({ children }) => {
     }
   }, [currentUser]);
 
-  const loginAs = (role) => {
-    if (DEMO_USERS[role]) {
-      setCurrentUser(DEMO_USERS[role]);
+  const loginAs = async (credentialsOrRole, passwordValue) => {
+    let requestPayload = credentialsOrRole;
+
+    if (typeof credentialsOrRole === 'string') {
+      requestPayload = {
+        email: credentialsOrRole,
+        password: passwordValue || ''
+      };
+    }
+
+    const email = (requestPayload?.email || '').trim();
+    const password = requestPayload?.password || '';
+
+    if (!email || !password) {
+      setAuthError('Debe ingresar correo y contraseña');
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        setAuthError(data.error || 'Credenciales inválidas');
+        return false;
+      }
+
+      const normalizedUser = {
+        ...DEFAULT_PROFILES[data.user?.role || selectedRoleTab],
+        ...data.user,
+        role: data.user?.role || selectedRoleTab,
+        name: data.user?.name || data.user?.email || DEFAULT_PROFILES[data.user?.role || selectedRoleTab].name,
+      };
+
+      setCurrentUser(normalizedUser);
       setLoginModalOpen(false);
+      setAuthError('');
+      return normalizedUser;
+    } catch (error) {
+      setAuthError('No se pudo conectar con el servidor de autenticación');
+      return null;
     }
   };
 
   const logout = () => {
     setCurrentUser(null);
+    setAuthError('');
   };
 
   return (
@@ -111,7 +114,9 @@ export const AuthProvider = ({ children }) => {
         loginModalOpen,
         setLoginModalOpen,
         selectedRoleTab,
-        setSelectedRoleTab
+        setSelectedRoleTab,
+        authError,
+        setAuthError
       }}
     >
       {children}

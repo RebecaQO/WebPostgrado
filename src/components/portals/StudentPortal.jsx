@@ -22,7 +22,7 @@ export const StudentPortal = () => {
   const [thesisDraftUploaded, setThesisDraftUploaded] = useState(false);
   const [generatedCpt, setGeneratedCpt] = useState(null);
 
-  const student = currentUser || {
+  const defaultStudent = {
     name: 'Ing. Alejandro Choque Mamani',
     program: 'Maestría en Estadística Aplicada y Ciencia de Datos',
     studentCode: 'MAT-2025-0481',
@@ -50,6 +50,8 @@ export const StudentPortal = () => {
       lastFeedback: "Revisar la convergencia de las cadenas de Markov en el paquete R-INLA."
     }
   };
+
+  const student = currentUser ? { ...defaultStudent, ...currentUser } : defaultStudent;
 
   const handleGenerateCpt = () => {
     setGeneratedCpt(`CPT-UMSA-${Math.floor(10000 + Math.random() * 90000)}`);

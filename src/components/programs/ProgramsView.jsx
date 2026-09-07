@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { programsData } from '../../data/programsData';
+import React, { useEffect, useState } from 'react';
 import { ProgramDetailModal } from './ProgramDetailModal';
 import { 
   GraduationCap, 
@@ -17,17 +16,38 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
   const [activeCategory, setActiveCategory] = useState(initialFilter?.level || 'todos');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProgram, setSelectedProgram] = useState(null);
+  const [programs, setPrograms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPrograms = programsData.filter((prog) => {
+  useEffect(() => {
+    const loadPrograms = async () => {
+      try {
+        const response = await fetch('/api/programas/activos');
+        const data = await response.json();
+        setPrograms(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error cargando programas:', error);
+        setPrograms([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPrograms();
+  }, []);
+
+  const filteredPrograms = programs.filter((prog) => {
     if (activeCategory === 'maestria' && prog.typeFilter !== 'maestria') return false;
     if (activeCategory === 'diplomado' && prog.typeFilter !== 'diplomado') return false;
+    if (activeCategory === 'autofinanciada' && prog.typeFilter !== 'autofinanciada') return false;
+    if (activeCategory === 'terminal' && prog.typeFilter !== 'terminal') return false;
 
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
-      const matchTitle = prog.title.toLowerCase().includes(q);
-      const matchArea = prog.area.toLowerCase().includes(q);
-      const matchCode = prog.code.toLowerCase().includes(q);
-      const matchDesc = prog.description.toLowerCase().includes(q);
+      const matchTitle = (prog.title || '').toLowerCase().includes(q);
+      const matchArea = (prog.area || '').toLowerCase().includes(q);
+      const matchCode = (prog.id || '').toLowerCase().includes(q);
+      const matchDesc = (prog.description || '').toLowerCase().includes(q);
       if (!matchTitle && !matchArea && !matchCode && !matchDesc) return false;
     }
 
@@ -67,7 +87,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
               onClick={() => setActiveCategory('todos')}
             >
               <Layers size={16} />
-              <span>TODAS LAS OFERTAS ({programsData.length})</span>
+              <span>TODAS LAS OFERTAS ({programs.length})</span>
             </button>
 
             <button
@@ -102,7 +122,11 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
         </div>
 
         {/* Programs Grid */}
-        {filteredPrograms.length === 0 ? (
+        {loading ? (
+          <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#ffffff' }}>
+            <h3 style={{ color: 'var(--color-umsa-blue-dark)' }}>Cargando programas vigentes...</h3>
+          </div>
+        ) : filteredPrograms.length === 0 ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#ffffff' }}>
             <Filter size={40} color="var(--color-text-subtle)" style={{ marginBottom: '1rem' }} />
             <h3 style={{ color: 'var(--color-umsa-blue-dark)' }}>No se encontraron programas con estos filtros</h3>
@@ -185,6 +209,55 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                         <Layers size={14} color="#d97706" />
                         <span><strong>Modalidad:</strong> {prog.modality}</span>
                       </div>
+                    </div>
+
+                    {/* Descuento al Contado y Plan de Cuotas */}
+                    <div style={{
+                      background: '#f1f5f9',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.75rem 1rem',
+                      border: '1px solid #e2e8f0',
+                      marginBottom: '1.25rem',
+                      fontSize: '0.8rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.35rem'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Pago al Contado:</span>
+                        <strong style={{ color: 'var(--color-green-inst)' }}>{prog.descuento_contado_porcentaje || 10}% de Descuento</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ color: 'var(--color-text-muted)' }}>Cuotas Mensuales:</span>
+                        <strong style={{ color: 'var(--color-blue-steel)' }}>{prog.numero_cuotas || (isMaster ? 18 : 6)} cuotas de {prog.monto_cuota || (isMaster ? 850 : 600)} BOB</strong>
+                      </div>
+                      {prog.resolucion_hcu && (
+                        <div style={{ fontSize: '0.72rem', color: '#92400e', marginTop: '0.2rem', fontWeight: 600 }}>
+                          📜 {prog.resolucion_hcu}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Drive and PDF Fast Links */}
+                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                      <a
+                        href={prog.enlace_convocatoria_drive || 'https://drive.google.com'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, fontSize: '0.75rem', padding: '0.4rem 0.5rem', justifyContent: 'center', color: 'var(--color-green-inst)', borderColor: 'var(--color-green-inst)' }}
+                      >
+                        Drive Convocatoria
+                      </a>
+                      <a
+                        href={prog.enlace_pdf_programa || 'https://drive.google.com'}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="btn btn-secondary btn-sm"
+                        style={{ flex: 1, fontSize: '0.75rem', padding: '0.4rem 0.5rem', justifyContent: 'center' }}
+                      >
+                        Descargar PDF
+                      </a>
                     </div>
                   </div>
 

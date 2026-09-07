@@ -19,10 +19,10 @@ body {
   line-height: 1.6;
   min-height: 100vh;
   overflow-x: hidden;
-  background-image: 
-    radial-gradient(circle at 10% 10%, rgba(0, 56, 118, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 90% 20%, rgba(242, 104, 28, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 50% 80%, rgba(2, 132, 199, 0.03) 0%, transparent 50%);
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(0, 100, 0, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(70, 130, 180, 0.04) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(0, 100, 0, 0.03) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
@@ -35,8 +35,8 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-h1 { font-size: clamp(2.1rem, 4.5vw, 3.4rem); color: var(--color-umsa-blue-dark); }
-h2 { font-size: clamp(1.6rem, 3.2vw, 2.35rem); color: var(--color-umsa-blue-dark); }
+h1 { font-size: clamp(2.1rem, 4.5vw, 3.4rem); color: var(--color-text-main); }
+h2 { font-size: clamp(1.6rem, 3.2vw, 2.35rem); color: var(--color-text-main); }
 h3 { font-size: clamp(1.25rem, 2vw, 1.65rem); }
 h4 { font-size: 1.2rem; }
 
@@ -64,16 +64,16 @@ button, input, select, textarea {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-tertiary);
+  background: var(--color-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #b0b8c2;
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-orange);
+  background: var(--color-green-inst);
 }
 
 /* Layout Utilities */
@@ -99,16 +99,16 @@ button, input, select, textarea {
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 1rem;
-  background: var(--color-accent-orange-subtle);
-  border: 1px solid var(--color-accent-orange-border);
+  background: var(--color-green-inst-subtle);
+  border: 1px solid var(--color-green-inst-border);
   border-radius: var(--radius-full);
-  color: var(--color-accent-orange);
+  color: var(--color-green-inst);
   font-size: 0.825rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(242, 104, 28, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 100, 0, 0.1);
 }
 
 .section-title {

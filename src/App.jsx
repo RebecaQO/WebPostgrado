@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ApplicantsProvider } from './context/ApplicantsContext';
-import { TopBar } from './components/layout/TopBar';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { LoginModal } from './components/auth/LoginModal';
 
 import { HeroSection } from './components/home/HeroSection';
-import { KpiSection } from './components/home/KpiSection';
 import { FeaturedPrograms } from './components/home/FeaturedPrograms';
+import { KpiSection } from './components/home/KpiSection';
 import { LabsSection } from './components/home/LabsSection';
 import { EventsSection } from './components/home/EventsSection';
 
@@ -48,16 +47,14 @@ const MainApp = () => {
     setCurrentTab('programas');
   };
 
-  const handleLoginSuccess = (role) => {
-    setCurrentTab(`portal-${role}`);
+  const handleLoginSuccess = (roleOrUser) => {
+    const roleName = typeof roleOrUser === 'string' ? roleOrUser : roleOrUser?.role || 'estudiante';
+    setCurrentTab(`portal-${roleName}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top franja institucional */}
-      <TopBar />
-
       {/* Main Glass Sticky Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -74,11 +71,12 @@ const MainApp = () => {
               onNavigate={setCurrentTab}
               onFilterPrograms={handleFilterPrograms}
             />
-            <KpiSection />
+            {/* 3 Programas vigentes interactivos directamente bajo el título */}
             <FeaturedPrograms
               onSelectProgram={(prog) => setSelectedProgramModal(prog)}
               onNavigateToAdmission={handleNavigateToAdmission}
             />
+            <KpiSection />
             <LabsSection />
             <EventsSection onNavigate={setCurrentTab} />
           </div>
