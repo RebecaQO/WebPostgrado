@@ -4,33 +4,11 @@ import { apiUrl } from '../utils/api';
 const AuthContext = createContext();
 
 const DEFAULT_PROFILES = {
-  estudiante: {
-    role: 'estudiante',
-    name: 'Estudiante UMSA',
-    email: 'estudiante@umsa.bo',
-    ci: '0000000 LP',
-    program: 'Programa de Posgrado',
-    studentCode: 'MAT-2026-0000',
-    currentSemester: 'Semestre I',
-    grades: [],
-    payments: [],
-    thesis: { title: 'Sin proyecto registrado', tutor: 'Sin tutor asignado', progressPercent: 0, stage: 'Pendiente', lastFeedback: 'Sin observaciones' }
-  },
-  docente: {
-    role: 'docente',
-    name: 'Docente UMSA',
-    email: 'docente@umsa.bo',
-    ci: '0000000 LP',
-    department: 'Departamento de Estadística Matemática',
-    avatar: '',
-    assignedModules: [],
-    supervisedStudents: []
-  },
   admin: {
     role: 'admin',
     name: 'Administrador UMSA',
     email: 'admin@umsa.bo',
-    position: 'Administración de Posgrado',
+    position: 'Dirección y Administración de Posgrado',
     avatar: ''
   }
 };
@@ -42,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [selectedRoleTab, setSelectedRoleTab] = useState('estudiante');
+  const [selectedRoleTab, setSelectedRoleTab] = useState('admin');
   const [authError, setAuthError] = useState('');
 
   useEffect(() => {
@@ -85,44 +63,48 @@ export const AuthProvider = ({ children }) => {
       }
 
       const normalizedUser = {
-        ...DEFAULT_PROFILES[data.user?.role || selectedRoleTab],
+        ...DEFAULT_PROFILES.admin,
         ...data.user,
-        role: data.user?.role || selectedRoleTab,
-        name: data.user?.name || data.user?.email || DEFAULT_PROFILES[data.user?.role || selectedRoleTab].name,
+        role: 'admin',
+        name: data.user?.name || data.user?.email || DEFAULT_PROFILES.admin.name,
       };
 
       setCurrentUser(normalizedUser);
-      setLoginModalOpen(false);
       setAuthError('');
+      setLoginModalOpen(false);
       return normalizedUser;
     } catch (error) {
-      setAuthError('No se pudo conectar con el servidor de autenticación');
-      return null;
+      console.error('Error durante autenticación:', error);
+      setAuthError('Error de red o servidor no disponible');
+      return false;
     }
   };
 
   const logout = () => {
     setCurrentUser(null);
-    setAuthError('');
+    localStorage.removeItem('posgrado_umsa_auth');
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        currentUser,
-        loginAs,
-        logout,
-        loginModalOpen,
-        setLoginModalOpen,
-        selectedRoleTab,
-        setSelectedRoleTab,
-        authError,
-        setAuthError
-      }}
-    >
+    <AuthContext.Provider value={{
+      currentUser,
+      loginModalOpen,
+      setLoginModalOpen,
+      selectedRoleTab,
+      setSelectedRoleTab,
+      loginAs,
+      logout,
+      authError
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

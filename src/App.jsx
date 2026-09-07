@@ -19,8 +19,6 @@ import { RegulationsView } from './components/regulations/RegulationsView';
 import { NewsView } from './components/news/NewsView';
 import { ContactView } from './components/contact/ContactView';
 
-import { StudentPortal } from './components/portals/StudentPortal';
-import { TeacherPortal } from './components/portals/TeacherPortal';
 import { AdminPortal } from './components/portals/AdminPortal';
 
 import './styles/index.css';
@@ -47,9 +45,8 @@ const MainApp = () => {
     setCurrentTab('programas');
   };
 
-  const handleLoginSuccess = (roleOrUser) => {
-    const roleName = typeof roleOrUser === 'string' ? roleOrUser : roleOrUser?.role || 'estudiante';
-    setCurrentTab(`portal-${roleName}`);
+  const handleLoginSuccess = () => {
+    setCurrentTab('portal-admin');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -108,8 +105,6 @@ const MainApp = () => {
         {currentTab === 'contacto' && <ContactView />}
 
         {/* ROLE PORTALS */}
-        {currentTab === 'portal-estudiante' && <StudentPortal />}
-        {currentTab === 'portal-docente' && <TeacherPortal />}
         {currentTab === 'portal-admin' && <AdminPortal />}
       </main>
 
