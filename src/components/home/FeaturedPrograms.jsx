@@ -12,6 +12,7 @@ import {
   TrendingUp,
   ChevronRight
 } from 'lucide-react';
+import { apiUrl } from '../../utils/api';
 
 /* ── Helpers ─────────────────────────────────────── */
 const resolveTypeLabel = (prog) => {
@@ -60,7 +61,7 @@ export const FeaturedPrograms = ({ onSelectProgram, onNavigateToAdmission }) => 
     const loadPrograms = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/programas/activos');
+        const response = await fetch(apiUrl('/api/programas/activos'));
         if (!response.ok) throw new Error('Error al obtener programas');
         const data = await response.json();
 

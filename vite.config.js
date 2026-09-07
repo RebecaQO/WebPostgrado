@@ -8,7 +8,12 @@ export default defineConfig({
     open: false,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:5000',
+        target: 'https://webpostgrado.onrender.com',
+        changeOrigin: true,
+        secure: false
+      },
+      '/images': {
+        target: 'https://webpostgrado.onrender.com',
         changeOrigin: true,
         secure: false
       }
