@@ -887,20 +887,9 @@ export const AdminPortal = () => {
         </div>
 
         {/* Main Dashboard Layout with Sidebar */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '260px 1fr',
-          gap: '2rem',
-          alignItems: 'start'
-        }}>
+        <div className="admin-dashboard-layout">
           {/* SIDEBAR NAVIGATION TABS */}
-          <aside className="glass-card" style={{
-            padding: '1.25rem',
-            background: '#ffffff',
-            border: '1.5px solid var(--color-border)',
-            position: 'sticky',
-            top: '100px'
-          }}>
+          <aside className="glass-card admin-dashboard-sidebar">
             <div style={{
               fontSize: '0.75rem',
               fontWeight: 800,

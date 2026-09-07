@@ -189,10 +189,10 @@ export const FeaturedPrograms = ({ onSelectProgram, onNavigateToAdmission }) => 
 
         {/* ── Programs Grid ── */}
         {!loading && programs.length > 0 && (
-          <div style={{
+          <div className="featured-programs-grid" style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.75rem',
           }}>
             {programs.map((prog, idx) => {
               const master = isMaestria(prog);
@@ -413,8 +413,8 @@ export const FeaturedPrograms = ({ onSelectProgram, onNavigateToAdmission }) => 
                   </div>
 
                   {/* ── Card Footer Actions ── */}
-                  <div style={{
-                    padding: '1rem 1.75rem 1.5rem',
+                  <div className="featured-card-footer" style={{
+                    padding: '1rem 1.5rem 1.25rem',
                     borderTop: '1px solid var(--color-border)',
                     display: 'grid',
                     gridTemplateColumns: '1fr 1.5fr',
@@ -511,6 +511,18 @@ export const FeaturedPrograms = ({ onSelectProgram, onNavigateToAdmission }) => 
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 540px) {
+          .featured-card-footer {
+            grid-template-columns: 1fr !important;
+          }
+          .featured-card-footer .btn {
+            width: 100% !important;
+            padding: 0.65rem 1rem !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };

@@ -594,6 +594,74 @@
   }
 }
 
+/* ==========================================================================
+   ADMIN PORTAL RESPONSIVENESS
+   ========================================================================== */
+.admin-dashboard-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
 
+.admin-dashboard-sidebar {
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1.5px solid var(--color-border);
+  position: sticky;
+  top: 100px;
+}
 
+@media (max-width: 1024px) {
+  .admin-dashboard-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .admin-dashboard-sidebar {
+    position: static;
+  }
+}
 
+/* ==========================================================================
+   GLOBAL SMARTPHONE & TABLET RESPONSIVENESS
+   ========================================================================== */
+@media (max-width: 768px) {
+  .section-spacing {
+    padding: 3.25rem 0;
+  }
+  .section-header {
+    margin-bottom: 2.25rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 1rem;
+  }
+  .glass-card {
+    padding: 1.25rem 1rem;
+  }
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+  .modal-content {
+    max-height: 94vh;
+    border-radius: var(--radius-lg);
+  }
+  .modal-header {
+    padding: 1rem 1.15rem;
+  }
+  .modal-body {
+    padding: 1.15rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-main-container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  .btn {
+    font-size: 0.875rem;
+  }
+}

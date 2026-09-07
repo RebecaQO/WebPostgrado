@@ -55,8 +55,8 @@ export const EventsSection = ({ onNavigate }) => {
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.75rem'
           }}>
             {defenses.map((def) => (
               <div

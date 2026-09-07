@@ -71,12 +71,13 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
           }}
         >
           {/* Real institutional logo */}
-          <img
-            src={logoPosgrado}
-            alt="Carrera de Estadística – Unidad de Posgrado UMSA"
+          <img 
+            src={logoPosgrado} 
+            alt="Carrera de Estadística – Unidad de Posgrado UMSA" 
+            className="navbar-brand-logo"
             style={{
-              width: '54px',
-              height: '54px',
+              width: '50px',
+              height: '50px',
               borderRadius: '50%',
               objectFit: 'cover',
               border: '2.5px solid var(--color-green-inst)',
@@ -86,23 +87,25 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
             }}
           />
 
-          <div>
+          <div className="navbar-brand-text">
             <div style={{
-              fontSize: '1.05rem',
+              fontSize: 'clamp(0.82rem, 3.2vw, 1.05rem)',
               fontWeight: 800,
               fontFamily: 'var(--font-family-heading)',
               color: 'var(--color-text-main)',
               lineHeight: 1.15,
-              letterSpacing: '-0.01em'
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap'
             }}>
               CARRERA DE ESTADÍSTICA
             </div>
             <div style={{
-              fontSize: '0.72rem',
+              fontSize: 'clamp(0.62rem, 2.1vw, 0.72rem)',
               color: 'var(--color-green-inst)',
               fontWeight: 700,
               letterSpacing: '0.04em',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap'
             }}>
               Unidad de Posgrado · FCPN UMSA
             </div>
@@ -274,26 +277,24 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
         </div>
 
         {/* Right CTA Button or User Role Profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <button
-                onClick={() => handleNavClick(`portal-${currentUser.role}`)}
+                onClick={() => handleNavClick('portal-admin')}
                 className="btn btn-sm"
                 style={{
-                  background: 'var(--color-accent-orange-subtle)',
-                  border: '1.5px solid var(--color-accent-orange)',
-                  color: 'var(--color-accent-orange)',
+                  background: 'var(--color-green-inst-subtle)',
+                  border: '1.5px solid var(--color-green-inst)',
+                  color: 'var(--color-green-inst)',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.5rem',
+                  gap: '0.45rem',
                   fontWeight: 800
                 }}
               >
                 <LayoutDashboard size={14} />
-                <span>
-                  Portal {currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)}
-                </span>
+                <span className="hide-on-mobile">Portal Admin</span>
               </button>
 
               <button
@@ -308,16 +309,16 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
           ) : (
             <button
               onClick={() => setLoginModalOpen(true)}
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm nav-admin-btn-desktop"
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
+                gap: '0.45rem',
                 fontWeight: 800
               }}
             >
               <User size={15} />
-              <span>Portal Académico / Login</span>
+              <span>Portal Admin</span>
             </button>
           )}
 
@@ -325,20 +326,22 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="mobile-nav-toggle"
+            aria-label="Abrir menú"
             style={{
               background: '#f1f5f9',
               border: '1px solid #cbd5e1',
               color: 'var(--color-text-main)',
-              width: '40px',
-              height: '40px',
+              width: '42px',
+              height: '42px',
               borderRadius: 'var(--radius-md)',
               display: 'none',
               alignItems: 'center',
               justifyContent: 'center',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              flexShrink: 0
             }}
           >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
       </div>
@@ -348,10 +351,10 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
         <div style={{
           background: '#ffffff',
           borderBottom: '2px solid #e2e8f0',
-          padding: '1.25rem 1.5rem',
+          padding: '1.25rem 1.25rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.5rem',
+          gap: '0.4rem',
           animation: 'fadeIn 0.2s ease-out'
         }}>
           {navItems.map(item => (
@@ -368,7 +371,8 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
                 fontSize: '0.95rem',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                minHeight: '44px'
               }}
             >
               <span>{item.label}</span>
@@ -376,18 +380,43 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
             </button>
           ))}
 
-          {!currentUser && (
+          {!currentUser ? (
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
                 setLoginModalOpen(true);
               }}
               className="btn btn-primary btn-block"
-              style={{ marginTop: '1rem' }}
+              style={{ marginTop: '0.75rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
               <User size={16} />
-              <span>Ingresar al Portal Académico</span>
+              <span>Acceso al Portal Administrativo</span>
             </button>
+          ) : (
+            <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleNavClick('portal-admin');
+                }}
+                className="btn btn-primary btn-block"
+                style={{ flex: 1, minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                <LayoutDashboard size={16} />
+                <span>Panel Administrativo</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logout();
+                }}
+                className="btn btn-secondary"
+                title="Cerrar Sesión"
+                style={{ minHeight: '44px', padding: '0 1rem' }}
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -407,6 +436,20 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
           }
           .mobile-nav-toggle {
             display: flex !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .nav-admin-btn-desktop {
+            display: none !important;
+          }
+          .hide-on-mobile {
+            display: none !important;
+          }
+        }
+        @media (max-width: 380px) {
+          .navbar-brand-logo {
+            width: 40px !important;
+            height: 40px !important;
           }
         }
       `}</style>

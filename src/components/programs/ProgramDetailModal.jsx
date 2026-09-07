@@ -142,10 +142,11 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
         {/* Modal Body */}
         <div className="modal-body">
           {/* Sub-tabs dinámicas según datos existentes en BD */}
-          <div className="tabs-header" style={{ marginBottom: '1.75rem' }}>
+          <div className="tabs-header modal-tabs-header" style={{ marginBottom: '1.75rem', overflowX: 'auto', flexWrap: 'nowrap', WebkitOverflowScrolling: 'touch', paddingBottom: '0.25rem' }}>
             <button
               className={`tab-btn ${activeTab === 'malla' ? 'active' : ''}`}
               onClick={() => setActiveTab('malla')}
+              style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               <BookOpen size={16} />
               <span>1. Malla Curricular Modular {curriculum.length > 0 ? `(${curriculum.length})` : ''}</span>
@@ -155,6 +156,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
               <button
                 className={`tab-btn ${activeTab === 'perfil' ? 'active' : ''}`}
                 onClick={() => setActiveTab('perfil')}
+                style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
               >
                 <GraduationCap size={16} />
                 <span>2. Perfil {hasRequisitos ? '& Requisitos de Admisión' : 'Académico'}</span>
@@ -165,6 +167,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
               <button
                 className={`tab-btn ${activeTab === 'titulacion' ? 'active' : ''}`}
                 onClick={() => setActiveTab('titulacion')}
+                style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
               >
                 <Award size={16} />
                 <span>3. Modalidades de Titulación</span>
@@ -174,6 +177,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
             <button
               className={`tab-btn ${activeTab === 'inversion' ? 'active' : ''}`}
               onClick={() => setActiveTab('inversion')}
+              style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               <CreditCard size={16} />
               <span>4. Inversión & Pagos</span>
@@ -422,7 +426,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
         </div>
 
         {/* Modal Footer with Direct Actions */}
-        <div style={{
+        <div className="program-modal-footer" style={{
           padding: '1.25rem 2rem',
           borderTop: '1.5px solid var(--color-border)',
           display: 'flex',
@@ -472,14 +476,27 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
             href={prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms'}
             target="_blank"
             rel="noreferrer"
-            className="btn btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.95rem', padding: '0.65rem 1.5rem', textDecoration: 'none' }}
+            className="btn btn-primary program-modal-apply-btn"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', fontSize: '0.95rem', padding: '0.65rem 1.5rem', textDecoration: 'none' }}
           >
             <span>Postular vía Google Forms</span>
             <ArrowRight size={16} />
           </a>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .program-modal-footer {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 1rem 1.25rem !important;
+          }
+          .program-modal-apply-btn {
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

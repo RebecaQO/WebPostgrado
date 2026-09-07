@@ -142,8 +142,8 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.75rem'
           }}>
             {filteredPrograms.map((prog) => {
               const isMaster = prog.type === 'Maestría';
@@ -262,13 +262,16 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                   </div>
 
                   {/* Actions */}
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1.2fr 1fr',
-                    gap: '0.75rem',
-                    paddingTop: '1.25rem',
-                    borderTop: '1px solid #f1f5f9'
-                  }}>
+                  <div 
+                    className="programs-card-actions"
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1.2fr 1fr',
+                      gap: '0.75rem',
+                      paddingTop: '1.25rem',
+                      borderTop: '1px solid #f1f5f9'
+                    }}
+                  >
                     <button
                       onClick={() => setSelectedProgram(prog)}
                       className="btn btn-secondary btn-sm"
@@ -302,6 +305,18 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
           />
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 540px) {
+          .programs-card-actions {
+            grid-template-columns: 1fr !important;
+          }
+          .programs-card-actions .btn {
+            width: 100% !important;
+            padding: 0.65rem 1rem !important;
+          }
+        }
+      `}</style>
     </div>
   );
 };

@@ -239,16 +239,17 @@ export const HeroSection = ({ onNavigate }) => {
           </p>
 
           {/* CTA Buttons */}
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div className="hero-cta-container" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <button
               onClick={() => onNavigate('admision')}
-              className="btn btn-lg"
+              className="btn btn-lg hero-cta-btn"
               style={{
                 background: slide.accent,
                 color: '#ffffff',
                 border: 'none',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '0.6rem',
                 boxShadow: `0 8px 24px -4px ${slide.accent}60`,
                 fontWeight: 800,
@@ -261,7 +262,7 @@ export const HeroSection = ({ onNavigate }) => {
 
             <button
               onClick={() => onNavigate('programas')}
-              className="btn btn-lg"
+              className="btn btn-lg hero-cta-btn"
               style={{
                 background: 'rgba(255,255,255,0.12)',
                 color: '#ffffff',
@@ -269,6 +270,7 @@ export const HeroSection = ({ onNavigate }) => {
                 backdropFilter: 'blur(8px)',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '0.6rem',
               }}
             >
@@ -300,6 +302,7 @@ export const HeroSection = ({ onNavigate }) => {
       <button
         onClick={prev}
         aria-label="Anterior"
+        className="hero-arrow-btn"
         style={{
           position: 'absolute',
           left: '1rem',
@@ -328,6 +331,7 @@ export const HeroSection = ({ onNavigate }) => {
       <button
         onClick={next}
         aria-label="Siguiente"
+        className="hero-arrow-btn"
         style={{
           position: 'absolute',
           right: '1rem',
@@ -384,19 +388,42 @@ export const HeroSection = ({ onNavigate }) => {
       </div>
 
       {/* ── Slide counter ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: '1.25rem',
-        right: '1.5rem',
-        zIndex: 5,
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: '0.78rem',
-        fontWeight: 700,
-        fontFamily: 'var(--font-family-mono)',
-        letterSpacing: '0.05em',
-      }}>
+      <div 
+        className="hero-slide-counter"
+        style={{
+          position: 'absolute',
+          bottom: '1.25rem',
+          right: '1.5rem',
+          zIndex: 5,
+          color: 'rgba(255,255,255,0.5)',
+          fontSize: '0.78rem',
+          fontWeight: 700,
+          fontFamily: 'var(--font-family-mono)',
+          letterSpacing: '0.05em',
+        }}
+      >
         {String(current + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
       </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .hero-cta-container {
+            flex-direction: column !important;
+            width: 100% !important;
+          }
+          .hero-cta-btn {
+            width: 100% !important;
+            font-size: 0.92rem !important;
+            padding: 0.75rem 1rem !important;
+          }
+          .hero-arrow-btn {
+            display: none !important;
+          }
+          .hero-slide-counter {
+            display: none !important;
+          }
+        }
+      `}</style>
     </section>
   );
 };
