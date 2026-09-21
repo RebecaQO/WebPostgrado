@@ -29,7 +29,6 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
       label: 'Programas Académicos',
       hasDropdown: true 
     },
-    { id: 'admision', label: 'Admisión & Matrícula' },
     { id: 'normativa', label: 'Convocatorias Anteriores' },
     { id: 'noticias', label: 'Noticias y Tesis' },
     { id: 'contacto', label: 'Ubicación & Contacto' }

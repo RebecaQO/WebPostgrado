@@ -6,18 +6,29 @@ import {
   Layers, 
   Award, 
   Clock, 
-  ArrowRight, 
-  CheckCircle2, 
   FileText,
-  Filter
+  Filter,
+  MessageCircle
 } from 'lucide-react';
 
 export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) => {
   const [activeCategory, setActiveCategory] = useState(initialFilter?.level || 'todos');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialFilter?.search || '');
+  const [selectedArea, setSelectedArea] = useState(initialFilter?.area || 'todas');
+  const [selectedModality, setSelectedModality] = useState(initialFilter?.modality || 'todas');
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Sync state if initialFilter prop changes (e.g. searching again from banner)
+  useEffect(() => {
+    if (initialFilter) {
+      if (initialFilter.level) setActiveCategory(initialFilter.level);
+      if (initialFilter.search !== undefined) setSearchTerm(initialFilter.search || '');
+      if (initialFilter.area) setSelectedArea(initialFilter.area);
+      if (initialFilter.modality) setSelectedModality(initialFilter.modality);
+    }
+  }, [initialFilter]);
 
   useEffect(() => {
     const loadPrograms = async () => {
@@ -41,6 +52,19 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
     if (activeCategory === 'diplomado' && prog.typeFilter !== 'diplomado') return false;
     if (activeCategory === 'autofinanciada' && prog.typeFilter !== 'autofinanciada') return false;
     if (activeCategory === 'terminal' && prog.typeFilter !== 'terminal') return false;
+
+    if (selectedArea && selectedArea !== 'todas') {
+      const qArea = selectedArea.toLowerCase();
+      const pArea = (prog.area || '').toLowerCase();
+      const pTitle = (prog.title || '').toLowerCase();
+      if (!pArea.includes(qArea) && !pTitle.includes(qArea)) return false;
+    }
+
+    if (selectedModality && selectedModality !== 'todas') {
+      const qMod = selectedModality.toLowerCase();
+      const pMod = (prog.modality || '').toLowerCase();
+      if (!pMod.includes(qMod)) return false;
+    }
 
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
@@ -121,6 +145,48 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
           </div>
         </div>
 
+        {/* Active Filter Chips */}
+        {(selectedArea !== 'todas' || selectedModality !== 'todas' || searchTerm || activeCategory !== 'todos') && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 700 }}>Filtros aplicados:</span>
+            {activeCategory !== 'todos' && (
+              <span className="badge badge-green" style={{ borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                Nivel: {activeCategory === 'maestria' ? 'Maestrías' : 'Diplomados'}
+              </span>
+            )}
+            {selectedArea !== 'todas' && (
+              <span className="badge badge-blue" style={{ borderRadius: '3px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                Especialidad: {selectedArea}
+              </span>
+            )}
+            {selectedModality !== 'todas' && (
+              <span className="badge" style={{ borderRadius: '3px', background: '#e0f2fe', color: '#0369a1', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700 }}>
+                Modalidad: {selectedModality}
+              </span>
+            )}
+            {searchTerm && (
+              <span className="badge" style={{ borderRadius: '3px', background: '#e2e8f0', color: 'var(--color-text-main)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                Búsqueda: "{searchTerm}"
+              </span>
+            )}
+            <button 
+              onClick={() => { setActiveCategory('todos'); setSelectedArea('todas'); setSelectedModality('todas'); setSearchTerm(''); }}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--color-border)',
+                borderRadius: '3px',
+                padding: '0.25rem 0.65rem',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+                color: 'var(--color-text-muted)',
+                fontWeight: 700
+              }}
+            >
+              ✕ Restablecer filtros
+            </button>
+          </div>
+        )}
+
         {/* Programs Grid */}
         {loading ? (
           <div className="glass-card" style={{ textAlign: 'center', padding: '4rem 2rem', background: '#ffffff' }}>
@@ -158,20 +224,11 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                     justifyContent: 'space-between',
                     background: '#ffffff',
                     border: '1px solid #e2e8f0',
+                    borderRadius: '4px',
                     boxShadow: 'var(--shadow-sm)'
                   }}
                 >
                   <div>
-                    {/* Top tags */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                      <span className={`badge ${isMaster ? 'badge-orange' : 'badge-blue'}`}>
-                        {prog.type}
-                      </span>
-
-                      <span className="badge badge-green">
-                        {prog.status}
-                      </span>
-                    </div>
 
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)', fontFamily: 'var(--font-family-mono)', fontWeight: 700, marginBottom: '0.35rem' }}>
                       {prog.code} • {prog.resolution}
@@ -210,63 +267,14 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                         <span><strong>Modalidad:</strong> {prog.modality}</span>
                       </div>
                     </div>
-
-                    {/* Descuento al Contado y Plan de Cuotas */}
-                    <div style={{
-                      background: '#f1f5f9',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '0.75rem 1rem',
-                      border: '1px solid #e2e8f0',
-                      marginBottom: '1.25rem',
-                      fontSize: '0.8rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.35rem'
-                    }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--color-text-muted)' }}>Pago al Contado:</span>
-                        <strong style={{ color: 'var(--color-green-inst)' }}>{prog.descuento_contado_porcentaje || 10}% de Descuento</strong>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: 'var(--color-text-muted)' }}>Cuotas Mensuales:</span>
-                        <strong style={{ color: 'var(--color-blue-steel)' }}>{prog.numero_cuotas || (isMaster ? 18 : 6)} cuotas de {prog.monto_cuota || (isMaster ? 850 : 600)} BOB</strong>
-                      </div>
-                      {prog.resolucion_hcu && (
-                        <div style={{ fontSize: '0.72rem', color: '#92400e', marginTop: '0.2rem', fontWeight: 600 }}>
-                          📜 {prog.resolucion_hcu}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Drive and PDF Fast Links */}
-                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                      <a
-                        href={prog.enlace_convocatoria_drive || 'https://drive.google.com'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-secondary btn-sm"
-                        style={{ flex: 1, fontSize: '0.75rem', padding: '0.4rem 0.5rem', justifyContent: 'center', color: 'var(--color-green-inst)', borderColor: 'var(--color-green-inst)' }}
-                      >
-                        Drive Convocatoria
-                      </a>
-                      <a
-                        href={prog.enlace_pdf_programa || 'https://drive.google.com'}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn btn-secondary btn-sm"
-                        style={{ flex: 1, fontSize: '0.75rem', padding: '0.4rem 0.5rem', justifyContent: 'center' }}
-                      >
-                        Descargar PDF
-                      </a>
-                    </div>
                   </div>
 
-                  {/* Actions */}
-                  <div 
+                  {/* Actions: Solo Más Información y WhatsApp */}
+                  <div
                     className="programs-card-actions"
                     style={{
                       display: 'grid',
-                      gridTemplateColumns: '1.2fr 1fr',
+                      gridTemplateColumns: '1fr 1fr',
                       gap: '0.75rem',
                       paddingTop: '1.25rem',
                       borderTop: '1px solid #f1f5f9'
@@ -275,17 +283,34 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                     <button
                       onClick={() => setSelectedProgram(prog)}
                       className="btn btn-secondary btn-sm"
+                      style={{ borderRadius: '4px', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.84rem', fontWeight: 600 }}
                     >
-                      Ver Malla & Requisitos
+                      <FileText size={15} color="var(--color-green-inst)" />
+                      <span>Más información</span>
                     </button>
 
-                    <button
-                      onClick={() => onNavigateToAdmission(prog.id)}
-                      className="btn btn-primary btn-sm"
+                    <a
+                      href={`https://wa.me/59176543210?text=${encodeURIComponent(`Hola, deseo más información sobre el programa: ${prog.title}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-sm"
+                      style={{
+                        background: '#25D366',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        justifyContent: 'center',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        fontSize: '0.84rem',
+                        fontWeight: 700,
+                        textDecoration: 'none'
+                      }}
                     >
-                      <span>Postular</span>
-                      <ArrowRight size={14} />
-                    </button>
+                      <MessageCircle size={15} />
+                      <span>WhatsApp</span>
+                    </a>
                   </div>
                 </div>
               );

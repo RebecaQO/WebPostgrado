@@ -8,7 +8,7 @@ import { LoginModal } from './components/auth/LoginModal';
 import { HeroSection } from './components/home/HeroSection';
 import { FeaturedPrograms } from './components/home/FeaturedPrograms';
 import { KpiSection } from './components/home/KpiSection';
-import { LabsSection } from './components/home/LabsSection';
+import { FAQSection } from './components/home/FAQSection';
 import { EventsSection } from './components/home/EventsSection';
 
 import { InstitutionView } from './components/institution/InstitutionView';
@@ -68,14 +68,12 @@ const MainApp = () => {
               onNavigate={setCurrentTab}
               onFilterPrograms={handleFilterPrograms}
             />
-            {/* 3 Programas vigentes interactivos directamente bajo el título */}
+            {/* 3 Convocatorias Principales Vigentes desde la BD */}
             <FeaturedPrograms
               onSelectProgram={(prog) => setSelectedProgramModal(prog)}
-              onNavigateToAdmission={handleNavigateToAdmission}
             />
             <KpiSection />
-            <LabsSection />
-            <EventsSection onNavigate={setCurrentTab} />
+            <FAQSection />
           </div>
         )}
 

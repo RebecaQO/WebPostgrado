@@ -4,26 +4,16 @@ import {
   BookOpen, 
   GraduationCap, 
   Award, 
-  CreditCard, 
   CheckCircle2, 
   Clock, 
   FileText, 
-  Calculator, 
-  ArrowRight,
-  ShieldCheck,
-  QrCode,
-  Landmark,
-  Layers,
-  Users,
-  Check
+  Layers
 } from 'lucide-react';
 
 export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }) => {
   const [activeTab, setActiveTab] = useState('malla');
   const [programData, setProgramData] = useState(initialProgram);
   const [loading, setLoading] = useState(!initialProgram?.curriculum);
-  const [installmentCount, setInstallmentCount] = useState(12);
-  const [paymentType, setPaymentType] = useState('cash');
 
   useEffect(() => {
     if (!initialProgram?.id) return;
@@ -54,23 +44,6 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
   const prog = programData || initialProgram;
   const isMaster = (prog.type || '').includes('Maestría') || prog.typeFilter === 'terminal' || prog.typeFilter === 'autofinanciada';
   
-  const investment = prog.investment || {
-    tuitionBob: prog.monto_cuota && prog.numero_cuotas ? Number(prog.monto_cuota) * Number(prog.numero_cuotas) : 0,
-    matriculaBob: prog.valor_matricula ? Number(prog.valor_matricula) : 0,
-    monthlyBob: prog.monto_cuota ? Number(prog.monto_cuota) : 0,
-    cashDiscountPercent: prog.descuento_contado_porcentaje ?? 10,
-    maxInstallments: prog.numero_cuotas ? Number(prog.numero_cuotas) : 18,
-    cuotaInitialBob: prog.valor_matricula ? Number(prog.valor_matricula) : 0,
-    cptCode: `CPT-UMSA-${prog.id || '2026'}`
-  };
-
-  const totalTuition = investment.tuitionBob || 0;
-  const matricula = investment.matriculaBob || 0;
-  const discountPercent = investment.cashDiscountPercent ?? 10;
-  const cashDiscountAmount = (totalTuition * discountPercent) / 100;
-  const cashTotal = totalTuition - cashDiscountAmount + matricula;
-  const monthlyFee = investment.monthlyBob || (installmentCount > 0 ? Math.round(totalTuition / installmentCount) : 0);
-
   const curriculum = prog.curriculum || [];
 
   const hasPerfilAspirante = Boolean(prog.perfil_aspirante && prog.perfil_aspirante.trim());
@@ -173,15 +146,6 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                 <span>3. Modalidades de Titulación</span>
               </button>
             )}
-
-            <button
-              className={`tab-btn ${activeTab === 'inversion' ? 'active' : ''}`}
-              onClick={() => setActiveTab('inversion')}
-              style={{ whiteSpace: 'nowrap', flexShrink: 0 }}
-            >
-              <CreditCard size={16} />
-              <span>4. Inversión & Pagos</span>
-            </button>
           </div>
 
           {/* TAB 1: Malla Curricular Modular */}
@@ -376,53 +340,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
             </div>
           )}
 
-          {/* TAB 4: Inversión & Pagos (Conectado a BD) */}
-          {activeTab === 'inversion' && (
-            <div className="animate-fade-in">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 700 }}>VALOR MATRÍCULA DE ADMISIÓN</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-green-inst)', fontFamily: 'var(--font-family-mono)' }}>
-                    {matricula > 0 ? `${matricula} BOB` : 'Gratuita (Beca Institucional UMSA)'}
-                  </div>
-                </div>
 
-                <div className="glass-panel" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)' }}>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', fontWeight: 700 }}>COLEGIATURA TOTAL / MENSUALIDAD</div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-blue-steel)', fontFamily: 'var(--font-family-mono)' }}>
-                    {totalTuition > 0 ? `${totalTuition.toLocaleString()} BOB` : 'Sin Costo de Colegiatura'}
-                  </div>
-                  {monthlyFee > 0 && (
-                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                      {monthlyFee} BOB / mes ({investment.maxInstallments || 18} cuotas)
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {totalTuition > 0 && (
-                <div className="glass-panel" style={{ background: 'var(--color-bg-primary)', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)' }}>
-                  <h4 style={{ color: 'var(--color-text-main)', fontWeight: 800, marginBottom: '0.75rem' }}>
-                    Simulador de Cuotas & Descuento al Contado
-                  </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', fontSize: '0.875rem' }}>
-                    <div>
-                      <strong>Pago al Contado ({discountPercent}% Descuento):</strong>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-green-inst)', marginTop: '0.25rem' }}>
-                        {cashTotal.toLocaleString()} BOB
-                      </div>
-                    </div>
-                    <div>
-                      <strong>Plan en Cuotas Mensuales:</strong>
-                      <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-blue-steel)', marginTop: '0.25rem' }}>
-                        {monthlyFee} BOB / mes ({investment.maxInstallments || installmentCount} cuotas)
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Modal Footer with Direct Actions */}
@@ -445,8 +363,8 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
               Cerrar
             </button>
 
-            {/* Si la convocatoria ya está cerrada/concluida, se puede consultar el repositorio histórico en Drive */}
-            {prog.status !== 'Activo' && prog.enlace_convocatoria_drive && (
+            {/* Descargar la convocatoria del programa */}
+            {prog.enlace_convocatoria_drive && (
               <a
                 href={prog.enlace_convocatoria_drive}
                 target="_blank"
@@ -454,7 +372,8 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                 className="btn btn-secondary btn-sm"
                 style={{ color: 'var(--color-green-inst)', borderColor: 'var(--color-green-inst)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                <span>Repositorio Drive (Histórico)</span>
+                <FileText size={15} color="var(--color-green-inst)" />
+                <span>Descargar Convocatoria</span>
               </a>
             )}
 
@@ -467,21 +386,11 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
                 <FileText size={15} color="var(--color-green-inst)" />
-                <span>Descargar Detalle (PDF)</span>
+                <span>Descargar PDF del Programa</span>
               </a>
             )}
           </div>
 
-          <a
-            href={prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms'}
-            target="_blank"
-            rel="noreferrer"
-            className="btn btn-primary program-modal-apply-btn"
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', fontSize: '0.95rem', padding: '0.65rem 1.5rem', textDecoration: 'none' }}
-          >
-            <span>Postular vía Google Forms</span>
-            <ArrowRight size={16} />
-          </a>
         </div>
       </div>
 

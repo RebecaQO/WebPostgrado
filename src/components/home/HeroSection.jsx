@@ -1,429 +1,268 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowRight, Layers, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
+import { 
+  GraduationCap, 
+  BookOpen, 
+  ArrowRight, 
+  ChevronLeft, 
+  ChevronRight 
+} from 'lucide-react';
+import { apiUrl } from '../../utils/api';
 
-import logoUmsa from '../../assets/images/logo/logo_umsa.png';
-import logoFcpn from '../../assets/images/logo/logo_fcpn.png';
-import logoEstadistica from '../../assets/images/logo/logo_estadistica.png';
-import logoMaestriaDatos from '../../assets/images/logo/logo_maestria_datos.png';
-
-// Carousel slides – content complements each background image
 const SLIDES = [
-  {
-    bg: new URL('../../assets/images/carrusel/slide1.jpg', import.meta.url).href,
-    badge: 'UNIDAD DE POSTGRADO DE ESTADÍSTICA · FCPN UMSA',
-    title: 'Maestría en Estadística',
-    titleAccent: 'Aplicada',
-    subtitle: 'Rigor metodológico, aprendizaje computacional avanzado con R & Python. Programa autofinanciado de 18 meses con turno nocturno.',
-    accent: '#267342',
-    tipo: 'Maestría',
-  },
-  {
-    bg: new URL('../../assets/images/carrusel/slide2.jpg', import.meta.url).href,
-    badge: 'UNIDAD DE POSTGRADO DE ESTADÍSTICA · FCPN UMSA',
-    title: 'Maestría en Ciencia',
-    titleAccent: 'de Datos e IA',
-    subtitle: 'Formación de cuarto nivel en machine learning, deep learning y estadística computacional para el ecosistema digital boliviano.',
-    accent: '#4f7e9f',
-    tipo: 'Maestría',
-  },
-  {
-    bg: new URL('../../assets/images/carrusel/slide3.jpg', import.meta.url).href,
-    badge: 'UNIDAD DE POSTGRADO DE ESTADÍSTICA · FCPN UMSA',
-    title: 'Diplomado en Análisis',
-    titleAccent: 'Estadístico con R',
-    subtitle: 'Certificación profesional orientada a la práctica. Modelamiento de datos, visualización y reportes científicos con herramientas modernas.',
-    accent: '#267342',
-    tipo: 'Diplomado',
-  },
-  {
-    bg: new URL('../../assets/images/carrusel/slide4.jpg', import.meta.url).href,
-    badge: 'CONVOCATORIA GESTIÓN ACADÉMICA 2026 · CEUB',
-    title: 'Unidad de Postgrado de',
-    titleAccent: 'Estadística UMSA',
-    subtitle: 'Excelencia académica de cuarto nivel en la Universidad Mayor de San Andrés. Programas acreditados bajo el Sistema Nacional de Acreditación del CEUB.',
-    accent: '#267342',
-    tipo: null,
-  },
+  new URL('../../assets/images/carrusel/slide1.jpg', import.meta.url).href,
+  new URL('../../assets/images/carrusel/slide2.jpg', import.meta.url).href,
+  new URL('../../assets/images/carrusel/slide3.jpg', import.meta.url).href,
+  new URL('../../assets/images/carrusel/slide4.jpg', import.meta.url).href,
 ];
 
-export const HeroSection = ({ onNavigate }) => {
+export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
   const [current, setCurrent] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [selectedLevel, setSelectedLevel] = useState('');
+  const [selectedArea, setSelectedArea] = useState('');
+  const [areas, setAreas] = useState([]);
 
-  const goTo = useCallback((idx) => {
-    if (animating) return;
-    setAnimating(true);
-    setTimeout(() => {
-      setCurrent(idx);
-      setAnimating(false);
-    }, 350);
-  }, [animating]);
+  // Auto-advance slides every 6 seconds
+  const next = useCallback(() => {
+    setCurrent((prev) => (prev + 1) % SLIDES.length);
+  }, []);
 
-  const prev = () => goTo((current - 1 + SLIDES.length) % SLIDES.length);
-  const next = useCallback(() => goTo((current + 1) % SLIDES.length), [current, goTo]);
+  const prev = () => {
+    setCurrent((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
+  };
 
-  // Auto-advance every 6 seconds
   useEffect(() => {
     const timer = setInterval(next, 6000);
     return () => clearInterval(timer);
   }, [next]);
 
-  const slide = SLIDES[current];
+  // Fetch unique areas from the DB via the programas activos endpoint
+  useEffect(() => {
+    const fetchAreas = async () => {
+      try {
+        const res = await fetch(apiUrl('/api/programas/activos'));
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            // Extract unique non-empty areas from the BD
+            const unique = [...new Set(
+              data
+                .map(p => p.area || '')
+                .filter(a => a.trim().length > 0)
+            )].sort();
+            setAreas(unique);
+          }
+        }
+      } catch (_) {
+        // Fallback: keep empty → no options shown besides default
+      }
+    };
+    fetchAreas();
+  }, []);
+
+  // Handle program search submission (solo filtros)
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (onFilterPrograms) {
+      onFilterPrograms({
+        level: selectedLevel || 'todos',
+        area: selectedArea || 'todas',
+        modality: 'todas',
+        search: ''
+      });
+    } else if (onNavigate) {
+      onNavigate('programas');
+    }
+  };
 
   return (
-    <section style={{
-      position: 'relative',
-      width: '100%',
-      minHeight: '620px',
-      overflow: 'hidden',
-      background: '#0d1a0f',
-    }}>
-      {/* ── Background Image with Ken Burns effect ── */}
-      {SLIDES.map((s, idx) => (
+    <section className="hero-banner-section">
+      {/* ── Background Slides with Subtle Ken Burns Transition ── */}
+      {SLIDES.map((slideImg, idx) => (
         <div
           key={idx}
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `url(${s.bg})`,
+            backgroundImage: `url(${slideImg})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             opacity: idx === current ? 1 : 0,
-            transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1)',
             transform: idx === current ? 'scale(1.03)' : 'scale(1)',
             transitionProperty: 'opacity, transform',
-            transitionDuration: idx === current ? '6s, 6s' : '0.7s, 0.7s',
+            transitionDuration: idx === current ? '6s, 6s' : '0.8s, 0.8s',
             zIndex: 0,
           }}
         />
       ))}
 
-      {/* ── Multi-layer Overlay for readability ── */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        background: 'linear-gradient(105deg, rgba(8,24,12,0.92) 0%, rgba(8,24,12,0.76) 50%, rgba(8,24,12,0.58) 100%)',
-        zIndex: 1,
-      }} />
+      {/* ── Overlay equilibrado ── */}
+      <div className="hero-image-overlay" />
 
-      {/* ── Left accent stripe ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '5px',
-        height: '100%',
-        background: `linear-gradient(180deg, ${slide.accent}, ${slide.accent}aa, transparent)`,
-        zIndex: 2,
-        transition: 'background 0.5s ease',
-      }} />
-
-      {/* ── Bottom progress bar ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-        background: 'rgba(255,255,255,0.15)',
-        zIndex: 3,
-      }}>
-        <div style={{
-          height: '100%',
-          background: slide.accent,
-          width: `${((current + 1) / SLIDES.length) * 100}%`,
-          transition: 'width 0.4s ease',
-          borderRadius: '0 2px 2px 0',
-        }} />
-      </div>
-
-      {/* ── Main Content Container (Adaptado para PC, Tablets y Móviles) ── */}
-      <div className="container hero-main-container">
-
-        {/* ── Left Flank Logos (UMSA & FCPN) - Puros logos, sin recuadros ni textos ── */}
-        <div className="hero-flank-logos">
-          <img
-            src={logoUmsa}
-            alt="Universidad Mayor de San Andrés"
-            title="Universidad Mayor de San Andrés - UMSA"
-            className="hero-flank-logo-img"
-          />
-          <img
-            src={logoFcpn}
-            alt="Facultad de Ciencias Puras y Naturales"
-            title="Facultad de Ciencias Puras y Naturales - FCPN"
-            className="hero-flank-logo-img"
-          />
-        </div>
-
-        {/* ── Center: Slide Text & Content ── */}
-        <div style={{
-          flex: '1 1 auto',
-          maxWidth: '760px',
-          padding: '0 1rem',
-          opacity: animating ? 0 : 1,
-          transform: animating ? 'translateY(12px)' : 'translateY(0)',
-          transition: 'opacity 0.35s ease, transform 0.35s ease',
-        }}>
-          {/* Fila móvil para pantallas pequeñas (sin recuadros ni textos) */}
-          <div className="hero-logos-mobile-row">
-            <img src={logoUmsa} alt="UMSA" className="hero-flank-logo-img" />
-            <img src={logoFcpn} alt="FCPN" className="hero-flank-logo-img" />
-            <img src={logoEstadistica} alt="Carrera de Estadística" className="hero-flank-logo-img" />
-            <img src={logoMaestriaDatos} alt="Posgrado en Estadística" className="hero-flank-logo-img" />
-          </div>
-
-          {/* Badge */}
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            padding: '0.4rem 1.1rem',
-            borderRadius: '99px',
-            background: 'rgba(255,255,255,0.12)',
-            border: `1.5px solid ${slide.accent}80`,
-            color: '#ffffff',
-            fontSize: '0.78rem',
-            fontWeight: 800,
-            letterSpacing: '0.08em',
-            marginBottom: '1.25rem',
-            backdropFilter: 'blur(6px)',
-            transition: 'border-color 0.4s ease',
-          }}>
-            {slide.tipo && (
-              <span style={{
-                background: slide.accent,
-                color: '#fff',
-                fontSize: '0.68rem',
-                fontWeight: 900,
-                padding: '0.15rem 0.55rem',
-                borderRadius: '99px',
-                letterSpacing: '0.06em',
-                marginRight: '0.2rem',
-              }}>
-                {slide.tipo.toUpperCase()}
-              </span>
-            )}
-            <span>{slide.badge}</span>
-          </div>
-
-          {/* Main Title */}
-          <h1 style={{
-            fontSize: 'clamp(2.1rem, 4.8vw, 3.5rem)',
-            fontWeight: 900,
-            lineHeight: 1.2,
-            color: '#ffffff',
-            marginBottom: '1.25rem',
-            letterSpacing: '-0.025em',
-            textShadow: '0 2px 16px rgba(0,0,0,0.55)',
-          }}>
-            <span style={{ display: 'block' }}>{slide.title}</span>
-            <span style={{
-              display: 'block',
-              color: slide.accent === '#4f7e9f' ? '#9fd4f0' : '#7ee8a2',
-              fontWeight: 900,
-            }}>
-              {slide.titleAccent}
-            </span>
+      {/* ── Central Hero Content ── */}
+      <div className="hero-content-wrapper">
+        
+        {/* ── Texto Institucional ── */}
+        <div className="hero-top-badge animate-fade-in">
+          <span className="hero-top-institution">
+            FACULTAD DE CIENCIAS PURAS Y NATURALES · UNIVERSIDAD MAYOR DE SAN ANDRÉS
+          </span>
+          <h1 className="hero-top-title">
+            UNIDAD DE POSGRADO EN ESTADÍSTICA
           </h1>
-
-          {/* Subtitle */}
-          <p style={{
-            fontSize: 'clamp(1rem, 1.8vw, 1.15rem)',
-            color: 'rgba(255,255,255,0.85)',
-            lineHeight: 1.7,
-            marginBottom: '2.25rem',
-            maxWidth: '620px',
-          }}>
-            {slide.subtitle}
-          </p>
-
-          {/* CTA Buttons */}
-          <div className="hero-cta-container" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => onNavigate('admision')}
-              className="btn btn-lg hero-cta-btn"
-              style={{
-                background: slide.accent,
-                color: '#ffffff',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.6rem',
-                boxShadow: `0 8px 24px -4px ${slide.accent}60`,
-                fontWeight: 800,
-              }}
-            >
-              <GraduationCap size={18} />
-              <span>Postular a Convocatoria 2026</span>
-              <ArrowRight size={16} />
-            </button>
-
-            <button
-              onClick={() => onNavigate('programas')}
-              className="btn btn-lg hero-cta-btn"
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                color: '#ffffff',
-                border: '1.5px solid rgba(255,255,255,0.35)',
-                backdropFilter: 'blur(8px)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.6rem',
-              }}
-            >
-              <Layers size={16} />
-              <span>Ver Programas Académicos</span>
-            </button>
-          </div>
         </div>
 
-        {/* ── Right Flank Logos (Carrera de Estadística & Maestría/Posgrado) - Puros logos, sin recuadros ni textos ── */}
-        <div className="hero-flank-logos">
-          <img
-            src={logoEstadistica}
-            alt="Carrera de Estadística UMSA"
-            title="Carrera de Estadística - UMSA FCPN"
-            className="hero-flank-logo-img"
-          />
-          <img
-            src={logoMaestriaDatos}
-            alt="Unidad de Posgrado en Estadística"
-            title="Unidad de Posgrado de Estadística - UMSA"
-            className="hero-flank-logo-img"
-          />
+        {/* ── Buscador por Filtros ── */}
+        <div className="emlyon-homepage-filter-banner-block animate-fade-in">
+          <div className="emlyon-homepage-filter-banner-block-title">
+            Encuentra tu programa
+          </div>
+
+          <form
+            onSubmit={handleSearchSubmit}
+            className="emlyon-homepage-filter-banner-form"
+            noValidate
+          >
+            {/* 1. Nivel del Programa */}
+            <div className="filter-input-group">
+              <GraduationCap size={18} className="filter-input-icon" />
+              <select
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
+                className="banner-filter-select"
+                aria-label="Seleccionar nivel académico"
+              >
+                <option value="">Nivel académico...</option>
+                <option value="maestria">Maestrías (M.Sc.)</option>
+                <option value="diplomado">Diplomados</option>
+              </select>
+            </div>
+
+            {/* 2. Especialidad / Área — conectado a BD */}
+            <div className="filter-input-group">
+              <BookOpen size={18} className="filter-input-icon" />
+              <select
+                value={selectedArea}
+                onChange={(e) => setSelectedArea(e.target.value)}
+                className="banner-filter-select"
+                aria-label="Seleccionar especialidad o área"
+              >
+                <option value="">Especialidad / Área...</option>
+                {areas.length > 0 ? (
+                  areas.map((area) => (
+                    <option key={area} value={area}>{area}</option>
+                  ))
+                ) : (
+                  /* Fallback estático si la BD no responde */
+                  <>
+                    <option value="Ciencia de Datos">Ciencia de Datos &amp; IA</option>
+                    <option value="Estadística Aplicada">Estadística Aplicada &amp; Modelos</option>
+                    <option value="Bioestadística">Bioestadística &amp; Salud Pública</option>
+                    <option value="Finanzas">Finanzas Cuantitativas &amp; Actuaria</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            {/* 3. Botón de Búsqueda */}
+            <button
+              type="submit"
+              className="emlyon-homepage-filter-banner-button"
+            >
+              <span>Ver programas</span>
+              <ArrowRight size={17} />
+            </button>
+          </form>
         </div>
 
       </div>
 
-      {/* ── Arrow Navigation ── */}
+      {/* ── Flechas de Navegación del Carrusel ── */}
       <button
         onClick={prev}
-        aria-label="Anterior"
-        className="hero-arrow-btn"
+        aria-label="Slide anterior"
         style={{
           position: 'absolute',
-          left: '1rem',
+          left: '1.25rem',
           top: '50%',
           transform: 'translateY(-50%)',
-          zIndex: 5,
-          width: '42px',
-          height: '42px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.12)',
-          border: '1.5px solid rgba(255,255,255,0.3)',
-          backdropFilter: 'blur(8px)',
+          zIndex: 4,
+          width: '38px',
+          height: '38px',
+          borderRadius: '4px',
+          background: 'rgba(0, 0, 0, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
+          backdropFilter: 'blur(4px)',
           transition: 'background 0.2s ease',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)')}
       >
         <ChevronLeft size={20} />
       </button>
 
       <button
         onClick={next}
-        aria-label="Siguiente"
-        className="hero-arrow-btn"
+        aria-label="Slide siguiente"
         style={{
           position: 'absolute',
-          right: '1rem',
+          right: '1.25rem',
           top: '50%',
           transform: 'translateY(-50%)',
-          zIndex: 5,
-          width: '42px',
-          height: '42px',
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.12)',
-          border: '1.5px solid rgba(255,255,255,0.3)',
-          backdropFilter: 'blur(8px)',
+          zIndex: 4,
+          width: '38px',
+          height: '38px',
+          borderRadius: '4px',
+          background: 'rgba(0, 0, 0, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
           color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
+          backdropFilter: 'blur(4px)',
           transition: 'background 0.2s ease',
         }}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)')}
+        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)')}
       >
         <ChevronRight size={20} />
       </button>
 
-      {/* ── Dot Indicators ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: '1.25rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 5,
-        display: 'flex',
-        gap: '0.5rem',
-        alignItems: 'center',
-      }}>
+      {/* ── Indicadores de Slide ── */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '1rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 4,
+          display: 'flex',
+          gap: '0.4rem',
+        }}
+      >
         {SLIDES.map((_, idx) => (
           <button
             key={idx}
-            onClick={() => goTo(idx)}
-            aria-label={`Slide ${idx + 1}`}
+            onClick={() => setCurrent(idx)}
+            aria-label={`Ir al slide ${idx + 1}`}
             style={{
-              width: idx === current ? '28px' : '8px',
-              height: '8px',
-              borderRadius: '99px',
-              background: idx === current ? slide.accent : 'rgba(255,255,255,0.4)',
+              width: idx === current ? '22px' : '7px',
+              height: '5px',
+              borderRadius: '2px',
+              background: idx === current ? 'var(--color-green-inst)' : 'rgba(255, 255, 255, 0.45)',
               border: 'none',
               cursor: 'pointer',
-              transition: 'all 0.3s ease',
+              transition: 'all 0.25s ease',
               padding: 0,
             }}
           />
         ))}
       </div>
-
-      {/* ── Slide counter ── */}
-      <div 
-        className="hero-slide-counter"
-        style={{
-          position: 'absolute',
-          bottom: '1.25rem',
-          right: '1.5rem',
-          zIndex: 5,
-          color: 'rgba(255,255,255,0.5)',
-          fontSize: '0.78rem',
-          fontWeight: 700,
-          fontFamily: 'var(--font-family-mono)',
-          letterSpacing: '0.05em',
-        }}
-      >
-        {String(current + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
-      </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          .hero-cta-container {
-            flex-direction: column !important;
-            width: 100% !important;
-          }
-          .hero-cta-btn {
-            width: 100% !important;
-            font-size: 0.92rem !important;
-            padding: 0.75rem 1rem !important;
-          }
-          .hero-arrow-btn {
-            display: none !important;
-          }
-          .hero-slide-counter {
-            display: none !important;
-          }
-        }
-      `}</style>
     </section>
   );
 };
