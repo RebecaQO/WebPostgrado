@@ -2,9 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
   GraduationCap, 
   BookOpen, 
-  ArrowRight, 
-  ChevronLeft, 
-  ChevronRight 
+  ArrowRight 
 } from 'lucide-react';
 import { apiUrl } from '../../utils/api';
 
@@ -25,10 +23,6 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
   const next = useCallback(() => {
     setCurrent((prev) => (prev + 1) % SLIDES.length);
   }, []);
-
-  const prev = () => {
-    setCurrent((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
-  };
 
   useEffect(() => {
     const timer = setInterval(next, 6000);
@@ -174,94 +168,6 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
           </form>
         </div>
 
-      </div>
-
-      {/* ── Flechas de Navegación del Carrusel ── */}
-      <button
-        onClick={prev}
-        aria-label="Slide anterior"
-        style={{
-          position: 'absolute',
-          left: '1.25rem',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 4,
-          width: '38px',
-          height: '38px',
-          borderRadius: '4px',
-          background: 'rgba(0, 0, 0, 0.5)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          backdropFilter: 'blur(4px)',
-          transition: 'background 0.2s ease',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)')}
-      >
-        <ChevronLeft size={20} />
-      </button>
-
-      <button
-        onClick={next}
-        aria-label="Slide siguiente"
-        style={{
-          position: 'absolute',
-          right: '1.25rem',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          zIndex: 4,
-          width: '38px',
-          height: '38px',
-          borderRadius: '4px',
-          background: 'rgba(0, 0, 0, 0.5)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-          color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          backdropFilter: 'blur(4px)',
-          transition: 'background 0.2s ease',
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.75)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0, 0, 0, 0.5)')}
-      >
-        <ChevronRight size={20} />
-      </button>
-
-      {/* ── Indicadores de Slide ── */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '1rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 4,
-          display: 'flex',
-          gap: '0.4rem',
-        }}
-      >
-        {SLIDES.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => setCurrent(idx)}
-            aria-label={`Ir al slide ${idx + 1}`}
-            style={{
-              width: idx === current ? '22px' : '7px',
-              height: '5px',
-              borderRadius: '2px',
-              background: idx === current ? 'var(--color-green-inst)' : 'rgba(255, 255, 255, 0.45)',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.25s ease',
-              padding: 0,
-            }}
-          />
-        ))}
       </div>
     </section>
   );

@@ -85,30 +85,6 @@ export const Navbar = ({ currentTab, setCurrentTab, onOpenProgramDetail }) => {
               background: '#ffffff'
             }}
           />
-
-          <div className="navbar-brand-text">
-            <div style={{
-              fontSize: 'clamp(0.82rem, 3.2vw, 1.05rem)',
-              fontWeight: 800,
-              fontFamily: 'var(--font-family-heading)',
-              color: 'var(--color-text-main)',
-              lineHeight: 1.15,
-              letterSpacing: '-0.01em',
-              whiteSpace: 'nowrap'
-            }}>
-              CARRERA DE ESTADÍSTICA
-            </div>
-            <div style={{
-              fontSize: 'clamp(0.62rem, 2.1vw, 0.72rem)',
-              color: 'var(--color-green-inst)',
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              whiteSpace: 'nowrap'
-            }}>
-              Unidad de Posgrado · FCPN UMSA
-            </div>
-          </div>
         </div>
 
         {/* Desktop Navigation */}

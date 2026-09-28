@@ -267,7 +267,7 @@ def get_programa_detalle_completo(program_id):
             {"id_prog": program_id}
         ).mappings().first()
 
-    # Construir estructura de malla modular (sin mostrar docentes)
+    # Construir estructura de malla modular
     modules_by_name = {}
     for r in mod_rows:
         mod_name = r["nombre_mod"]
@@ -282,7 +282,8 @@ def get_programa_detalle_completo(program_id):
                 "desc": r["descripcion"] or "Contenido curricular de especialidad estadística y computacional.",
                 "type": r["tipo"] or "Teórico-Práctica",
                 "software": r["software_requerido"] or "R, Python",
-                "prerequisites": r["prerequisitos"] or "Ninguno"
+                "prerequisites": r["prerequisitos"] or "Ninguno",
+                "docentes": r["docentes"] or None
             })
 
     # Solo incluimos módulos que existan en la Base de Datos

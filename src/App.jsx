@@ -71,6 +71,7 @@ const MainApp = () => {
             {/* 3 Convocatorias Principales Vigentes desde la BD */}
             <FeaturedPrograms
               onSelectProgram={(prog) => setSelectedProgramModal(prog)}
+              onNavigateToAdmission={handleNavigateToAdmission}
             />
             <KpiSection />
             <FAQSection />
