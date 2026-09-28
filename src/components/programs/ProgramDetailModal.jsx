@@ -89,7 +89,6 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
     { id: 'perfil', label: 'Perfil del Graduado', icon: GraduationCap },
     { id: 'malla', label: 'Contenido', icon: BookOpen },
     { id: 'docentes', label: 'Equipo Docente', icon: Users },
-    { id: 'contacto', label: 'Escríbenos', icon: MessageCircle },
   ];
 
   return (
@@ -97,7 +96,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
       <div 
         className="modal-content modal-content-xl"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '920px', borderRadius: '12px', overflow: 'hidden' }}
+        style={{ maxWidth: '1060px', borderRadius: '12px', overflow: 'hidden' }}
       >
         {/* ══════ HEADER LIMPIO ══════ */}
         <div style={{
@@ -147,7 +146,8 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
             margin: 0,
             lineHeight: 1.25,
             paddingRight: '2rem',
-            fontFamily: 'var(--font-family-heading)'
+            fontFamily: 'var(--font-family-heading)',
+            color: '#ffffff'
           }}>
             {prog.title}
           </h2>
@@ -222,7 +222,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
         {/* ══════ BODY ══════ */}
         <div style={{
           padding: '1.75rem 2rem',
-          maxHeight: '55vh',
+          maxHeight: '65vh',
           overflowY: 'auto',
           background: '#fafbfc'
         }}>
@@ -442,27 +442,30 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                   La información del equipo docente estará disponible próximamente.
                 </div>
               ) : (
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                  gap: '1rem'
-                }}>
+                <div 
+                  className="docentes-grid-wrapper"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+                    gap: '1.25rem'
+                  }}
+                >
                   {docentes.map((doc) => (
                     <div
                       key={doc.id}
                       style={{
                         background: '#ffffff',
-                        borderRadius: '10px',
-                        padding: '1.25rem',
+                        borderRadius: '12px',
+                        padding: '1.5rem 1.75rem',
                         border: '1px solid #e2e8f0',
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.85rem',
+                        alignItems: 'flex-start',
+                        gap: '1.25rem',
                         transition: 'box-shadow 0.2s ease, transform 0.2s ease'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.boxShadow = '0 6px 20px -4px rgba(0,0,0,0.1)';
-                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 28px -4px rgba(0,0,0,0.12)';
+                        e.currentTarget.style.transform = 'translateY(-3px)';
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.boxShadow = 'none';
@@ -470,47 +473,68 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                       }}
                     >
                       <div style={{
-                        width: '52px',
-                        height: '52px',
+                        width: '80px',
+                        height: '80px',
                         borderRadius: '50%',
                         overflow: 'hidden',
                         flexShrink: 0,
-                        border: `2px solid ${themeColor}`,
-                        background: themeLightBg
+                        border: `3px solid ${themeColor}`,
+                        background: themeLightBg,
+                        boxShadow: `0 4px 12px ${isMaster ? 'rgba(30,95,53,0.15)' : 'rgba(30,58,95,0.15)'}`
                       }}>
                         <img
                           src={doc.foto_url}
                           alt={doc.nombre_completo}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => {
-                            e.currentTarget.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 52 52'><rect fill='${themeLightBg}' width='52' height='52'/><text x='26' y='30' text-anchor='middle' fill='${themeColor}' font-size='20' font-weight='700'>${(doc.nombre || 'D')[0]}</text></svg>`)}`;
+                            e.currentTarget.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><rect fill='${themeLightBg}' width='80' height='80'/><text x='40' y='48' text-anchor='middle' fill='${themeColor}' font-size='30' font-weight='700'>${(doc.nombre || 'D')[0]}</text></svg>`)}`;
                           }}
                         />
                       </div>
-                      <div style={{ minWidth: 0 }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{
-                          fontSize: '0.88rem',
-                          fontWeight: 700,
+                          fontSize: '1.05rem',
+                          fontWeight: 800,
                           color: '#1e293b',
                           lineHeight: 1.3,
-                          marginBottom: '0.2rem'
+                          marginBottom: '0.35rem'
                         }}>
                           {doc.nombre_completo}
                         </div>
                         <div style={{
-                          fontSize: '0.75rem',
+                          fontSize: '0.85rem',
                           color: themeColor,
-                          fontWeight: 600,
-                          marginBottom: '0.15rem'
+                          fontWeight: 700,
+                          marginBottom: '0.4rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.35rem'
                         }}>
+                          <Award size={14} />
                           {doc.titulo || 'Docente'}
                         </div>
-                        <div style={{
-                          fontSize: '0.72rem',
-                          color: '#94a3b8'
-                        }}>
-                          {doc.especialidad}
-                        </div>
+                        {doc.especialidad && (
+                          <div style={{
+                            fontSize: '0.82rem',
+                            color: '#64748b',
+                            lineHeight: 1.55,
+                            marginBottom: '0.35rem'
+                          }}>
+                            {doc.especialidad}
+                          </div>
+                        )}
+                        {doc.email && (
+                          <div style={{
+                            fontSize: '0.78rem',
+                            color: '#94a3b8',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3rem'
+                          }}>
+                            <MessageCircle size={12} />
+                            {doc.email}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -519,92 +543,7 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
             </div>
           )}
 
-          {/* ── TAB: ESCRÍBENOS ── */}
-          {activeTab === 'contacto' && (
-            <div className="animate-fade-in" style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '1.5rem',
-              padding: '1.5rem 0'
-            }}>
-              <div style={{
-                width: '72px',
-                height: '72px',
-                borderRadius: '50%',
-                background: '#25D366',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 8px 24px rgba(37, 211, 102, 0.3)'
-              }}>
-                <MessageCircle size={32} color="#ffffff" />
-              </div>
 
-              <div style={{ textAlign: 'center', maxWidth: '420px' }}>
-                <h3 style={{
-                  fontSize: '1.15rem',
-                  fontWeight: 800,
-                  color: '#1e293b',
-                  margin: '0 0 0.5rem 0'
-                }}>
-                  ¿Tienes preguntas?
-                </h3>
-                <p style={{
-                  fontSize: '0.88rem',
-                  color: '#64748b',
-                  lineHeight: 1.65,
-                  margin: 0
-                }}>
-                  Nuestro equipo de admisiones está listo para ayudarte. 
-                  Escríbenos por WhatsApp y resolveremos todas tus dudas sobre 
-                  el programa <strong style={{ color: '#334155' }}>{prog.title}</strong>.
-                </p>
-              </div>
-
-              <a
-                href={`https://wa.me/59176543210?text=${encodeURIComponent(`Hola, me interesa obtener más información sobre el programa: ${prog.title}. ¿Podrían ayudarme?`)}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  background: '#25D366',
-                  color: '#ffffff',
-                  padding: '0.85rem 2rem',
-                  borderRadius: '8px',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  boxShadow: '0 6px 18px rgba(37, 211, 102, 0.35)',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#1da855';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 10px 24px rgba(37, 211, 102, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#25D366';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 18px rgba(37, 211, 102, 0.35)';
-                }}
-              >
-                <MessageCircle size={18} />
-                <span>Escríbenos por WhatsApp</span>
-              </a>
-
-              <div style={{
-                fontSize: '0.78rem',
-                color: '#94a3b8',
-                textAlign: 'center',
-                lineHeight: 1.5
-              }}>
-                Respuesta promedio: menos de 24 horas
-              </div>
-            </div>
-          )}
 
         </div>
 
@@ -661,7 +600,13 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
         @media (max-width: 640px) {
           .modal-content-xl {
             margin: 0.5rem !important;
-            max-height: 95vh !important;
+            max-height: 94vh !important;
+            width: calc(100vw - 1rem) !important;
+          }
+        }
+        @media (max-width: 500px) {
+          .docentes-grid-wrapper {
+            grid-template-columns: 1fr !important;
           }
         }
       `}</style>
@@ -759,19 +704,7 @@ const ModuleAccordion = ({ semester, themeColor, themeLightBg }) => {
                 </p>
               )}
 
-              {mod.docentes && (
-                <div style={{
-                  fontSize: '0.75rem',
-                  color: '#94a3b8',
-                  marginTop: '0.35rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem'
-                }}>
-                  <Users size={11} />
-                  <span>{mod.docentes}</span>
-                </div>
-              )}
+
             </div>
           ))}
         </div>

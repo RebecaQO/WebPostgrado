@@ -49,6 +49,9 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
     nivel: true
   });
 
+  // Mobile filters collapsible state
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const toggleAccordion = (key) => {
     setAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
@@ -392,24 +395,62 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
             position: 'sticky',
             top: '85px'
           }}>
-            {/* Header del Sidebar */}
-            <div style={{
-              padding: '1.2rem 1.4rem',
-              borderBottom: '1px solid #f1f5f9',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <h2 style={{
-                fontSize: '1.28rem',
-                fontWeight: 800,
-                color: '#0f172a',
-                margin: 0,
-                fontFamily: 'var(--font-family-heading)'
+            {/* Header del Sidebar (plegable en pantallas pequeñas) */}
+            <div 
+              className="programs-sidebar-header"
+              onClick={() => setMobileFiltersOpen((prev) => !prev)}
+              style={{
+                padding: '1.1rem 1.4rem',
+                borderBottom: mobileFiltersOpen ? '1px solid #f1f5f9' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <Filter size={18} color="var(--color-green-inst)" />
+                <h2 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  margin: 0,
+                  fontFamily: 'var(--font-family-heading)'
+                }}>
+                  Filtros
+                </h2>
+                {hasActiveFilters && (
+                  <span style={{
+                    background: 'var(--color-green-inst)',
+                    color: '#ffffff',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '999px',
+                    marginLeft: '0.2rem'
+                  }}>
+                    Activos
+                  </span>
+                )}
+              </div>
+
+              {/* Botón / Indicador colapsable visible en móviles */}
+              <div className="programs-sidebar-toggle-btn" style={{
+                display: 'none',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                color: 'var(--color-green-inst)'
               }}>
-                Filtros
-              </h2>
+                <span>{mobileFiltersOpen ? 'Ocultar' : 'Mostrar'}</span>
+                {mobileFiltersOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              </div>
             </div>
+
+            {/* Contenedor del contenido de filtros */}
+            <div className={`programs-sidebar-content ${mobileFiltersOpen ? 'is-open' : ''}`}>
 
             {/* Búsqueda por palabras clave */}
             <div style={{
@@ -679,6 +720,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                 )}
               </div>
             )}
+            </div>
           </aside>
 
           {/* ══════════ COLUMNA DERECHA: GRILLA DE TARJETAS ══════════ */}
@@ -1021,6 +1063,43 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
         @media (max-width: 1024px) {
           .programs-catalog-grid-wrapper {
             grid-template-columns: 1fr !important;
+          }
+
+          .programs-sidebar-toggle-btn {
+            display: flex !important;
+          }
+
+          .programs-sidebar-header {
+            cursor: pointer;
+            padding: 1.15rem 1.25rem !important;
+            border-radius: 6px;
+            background: #ffffff;
+            transition: background 0.15s ease;
+          }
+
+          .programs-sidebar-header:hover {
+            background: #f8fafc;
+          }
+
+          .programs-sidebar-content {
+            display: none;
+          }
+
+          .programs-sidebar-content.is-open {
+            display: block;
+            border-top: 1px solid #f1f5f9;
+            animation: fadeInFilters 0.2s ease-out;
+          }
+
+          @keyframes fadeInFilters {
+            from {
+              opacity: 0;
+              transform: translateY(-4px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
         }
       `}</style>
