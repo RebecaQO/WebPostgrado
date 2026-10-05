@@ -2,24 +2,32 @@ import React, { useState, useEffect } from 'react';
 import { facultyData, institutionTimeline } from '../../data/facultyData';
 import { 
   Building2, 
-  ShieldCheck, 
   Target, 
   Eye, 
-  BookOpen, 
-  Award, 
-  History, 
   Users, 
-  GraduationCap, 
+  Microscope, 
+  Lightbulb, 
+  Compass, 
+  History,
+  GraduationCap,
+  Sparkles,
   ExternalLink,
-  BookMarked,
-  Microscope,
-  Compass,
-  Lightbulb
+  ChevronDown
 } from 'lucide-react';
+import { useScrollReveal } from '../../utils/reveal';
+
+import slide1 from '../../assets/images/carrusel/slide1.jpg';
+import slide2 from '../../assets/images/carrusel/slide2.jpg';
+import slide3 from '../../assets/images/carrusel/slide3.jpg';
+import slide4 from '../../assets/images/carrusel/slide4.jpg';
 
 export const InstitutionView = () => {
   const [docentes, setDocentes] = useState([]);
   const [loadingDocentes, setLoadingDocentes] = useState(true);
+  const [openAccordion, setOpenAccordion] = useState(0);
+
+  // Inicializar observador de scroll para [data-reveal]
+  useScrollReveal();
 
   useEffect(() => {
     const fetchDocentes = async () => {
@@ -46,224 +54,185 @@ export const InstitutionView = () => {
     fetchDocentes();
   }, []);
 
+  const toggleAccordion = (index) => {
+    setOpenAccordion((prev) => (prev === index ? -1 : index));
+  };
+
   return (
-    <div className="section-spacing animate-fade-in" style={{ background: '#f8fafc' }}>
-      <div className="container">
-        {/* Section Header */}
-        <div className="section-header">
-          <div className="section-tag">
-            <Building2 size={14} />
-            <span>NUESTRA INSTITUCIÓN</span>
-          </div>
-          <h1 className="section-title">
-            Excelencia Académica, Investigación & Rigor Estadístico
-          </h1>
-          <p className="section-subtitle">
-            Unidad de Posgrado e Investigación — Carrera de Estadística, Facultad de Ciencias Puras y Naturales, Universidad Mayor de San Andrés.
-          </p>
-        </div>
-
-        {/* Misión y Visión Cards */}
-        <div className="grid-2" style={{ marginBottom: '4.5rem' }}>
-          <div className="glass-card" style={{ borderLeft: '4px solid var(--color-green-inst)', background: '#ffffff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--color-green-inst-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Target size={22} color="var(--color-green-inst)" />
-              </div>
-              <h3 style={{ margin: 0, fontSize: '1.35rem', color: 'var(--color-umsa-blue-dark)' }}>Misión Académica</h3>
-            </div>
-            <p style={{ lineHeight: '1.7', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
-              Formar investigadores y profesionales de cuarto nivel con sólida fundamentación matemática y estocástica, capaces de formular modelos probabilísticos, diseñar experimentos complejos y liderar la toma de decisiones basada en datos para resolver problemáticas prioritarias del desarrollo científico, social, ambiental y productivo del Estado Plurinacional de Bolivia.
+    <div className="institution-page" style={{ paddingBottom: 'var(--space-xl)' }}>
+      
+      {/* ── 1. Hero Institucional (Fluido, humano, no rígido) ── */}
+      <section className="section-spacing" style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="container" data-reveal>
+          <div style={{ maxWidth: '780px', margin: '0 auto', textAlign: 'center' }}>
+            <span className="eyebrow">Nuestra Institución</span>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-h1)', margin: 'var(--space-2xs) 0 var(--space-xs) 0', color: '#0f172a', textWrap: 'balance' }}>
+              Excelencia Académica, Investigación &amp; Rigor Estadístico
+            </h1>
+            <p className="lead" style={{ color: '#475569', margin: '0 0 var(--space-md) 0' }}>
+              Unidad de Posgrado e Investigación de la Carrera de Estadística — Facultad de Ciencias Puras y Naturales, Universidad Mayor de San Andrés.
             </p>
-          </div>
-
-          <div className="glass-card" style={{ borderLeft: '4px solid #0284c7', background: '#ffffff' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
-              <div style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                background: '#f0f9ff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Eye size={22} color="#0284c7" />
-              </div>
-              <h3 style={{ margin: 0, fontSize: '1.35rem', color: 'var(--color-umsa-blue-dark)' }}>Visión Estratégica 2030</h3>
-            </div>
-            <p style={{ lineHeight: '1.7', fontSize: '0.95rem', color: 'var(--color-text-muted)' }}>
-              Consolidarse como el centro de posgrado e investigación de referencia internacional en Estadística y Ciencia de Datos en la región andina, acreditado con los más altos estándares del Sistema de la Universidad Boliviana (CEUB), impulsando la innovación analítica y la generación de conocimiento transferible.
-            </p>
-          </div>
-        </div>
-
-        {/* ── ENTIDADES INSTITUCIONALES (Dirección, IETA, Club Científico) ── */}
-        <div style={{ marginBottom: '5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div className="section-tag">
-              <Compass size={14} />
-              <span>ESTRUCTURA INSTITUCIONAL & CIENTÍFICA</span>
-            </div>
-            <h2>Unidades Académicas y Semilleros de Investigación</h2>
-            <p className="section-subtitle">
-              Conexión directa entre la gestión académica, la investigación de frontera y la comunidad estudiantil de posgrado.
-            </p>
-          </div>
-
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2rem'
-          }}>
-            {/* 1. Dirección de la Carrera */}
-            <div className="glass-card" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'var(--color-green-inst-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Building2 size={24} color="var(--color-green-inst)" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-umsa-blue-dark)', margin: 0, fontWeight: 800 }}>
-                    Dirección de la Carrera
-                  </h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)' }}>FCPN · Campus Cota Cota Calle 27</span>
-                </div>
-              </div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-                Órgano de conducción y administración académica de la Carrera de Estadística y sus programas de postgrado e investigación. Responsable de convenios interinstitucionales y homologaciones curriculares ante el CEUB.
-              </p>
-              <div style={{ fontSize: '0.825rem', color: 'var(--color-text-main)', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
-                📍 <strong>Ubicación:</strong> Edificio Carrera de Estadística, 2do Piso, Campus Cota Cota.
-              </div>
-            </div>
-
-            {/* 2. IETA */}
-            <div className="glass-card" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'var(--color-blue-steel-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Microscope size={24} color="var(--color-blue-steel)" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-umsa-blue-dark)', margin: 0, fontWeight: 800 }}>
-                    IETA
-                  </h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)' }}>Instituto de Estadística Teórica y Aplicada</span>
-                </div>
-              </div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-                Instituto de investigación científica dedicado a la generación de modelos probabilísticos, bioestadística, series temporales y asesoramiento analítico a instituciones gubernamentales y productivas de Bolivia.
-              </p>
-              <div style={{ fontSize: '0.825rem', color: 'var(--color-text-main)', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
-                🔬 <strong>Líneas:</strong> MCMC Bayesiano, Muestreo Complejo, Aprendizaje Estadístico.
-              </div>
-            </div>
-
-            {/* 3. Club Científico */}
-            <div className="glass-card" style={{ background: '#ffffff', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-lg)', padding: '2rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: 'rgba(242, 104, 28, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Lightbulb size={24} color="var(--color-accent-orange)" />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-umsa-blue-dark)', margin: 0, fontWeight: 800 }}>
-                    Club Científico
-                  </h3>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)' }}>Semillero de Jóvenes Investigadores</span>
-                </div>
-              </div>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-                Comunidad activa de estudiantes y posgraduantes dedicada a hackathons de datos, grupos de lectura científica, talleres de programación en R/Python y difusión del conocimiento cuantitativo.
-              </p>
-              <div style={{ fontSize: '0.825rem', color: 'var(--color-text-main)', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
-                💡 <strong>Actividades:</strong> Coloquios estadísticos, datathons y divulgación.
-              </div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <ul className="pill-list pill-list--green" style={{ justifyContent: 'center' }}>
+                <li>Acreditación CEUB</li>
+                <li>Modelación Estocástica</li>
+                <li>Ciencia de Datos &amp; IA</li>
+                <li>Bioestadística</li>
+                <li>Inferencia Causal</li>
+              </ul>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Reseña Histórica & Timeline */}
-        <div style={{ marginBottom: '5rem' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <div className="section-tag">
-              <History size={14} />
-              <span>TRAYECTORIA HISTÓRICA</span>
+      <div className="container" style={{ marginTop: 'var(--space-lg)' }}>
+        
+        {/* ── 2. Split 1: Misión Académica y Compromiso Social (Texto + Imagen) ── */}
+        <section className="split" data-reveal aria-labelledby="mision-title">
+          <div className="split__media">
+            <img 
+              src={slide1} 
+              alt="Campus Universitario Cota Cota - Facultad de Ciencias Puras y Naturales UMSA" 
+              loading="lazy" 
+              decoding="async" 
+            />
+          </div>
+          <div className="split__content">
+            <span className="eyebrow">Misión &amp; Compromiso</span>
+            <h2 id="mision-title">Formación de alto nivel para los desafíos cuantitativos de Bolivia</h2>
+            <p>
+              Formamos investigadores y profesionales de cuarto nivel con sólida fundamentación matemática y estocástica, capaces de formular modelos probabilísticos, diseñar experimentos complejos y liderar la toma de decisiones basada en evidencia para resolver problemáticas del desarrollo científico, social, ambiental y productivo.
+            </p>
+            <ul className="pill-list" style={{ marginTop: 'var(--space-2xs)' }}>
+              <li>Fundamentación Matemática</li>
+              <li>Toma de Decisiones basada en Datos</li>
+              <li>Impacto Productivo</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* ── 3. Split 2: Investigación & IETA (Alterno data-reverse) ── */}
+        <section className="split" data-reverse data-reveal aria-labelledby="ieta-title">
+          <div className="split__media">
+            <img 
+              src={slide3} 
+              alt="Laboratorio analítico e investigación en el Instituto de Estadística Teórica y Aplicada" 
+              loading="lazy" 
+              decoding="async" 
+            />
+          </div>
+          <div className="split__content">
+            <span className="eyebrow eyebrow--blue">Investigación de Frontera</span>
+            <h2 id="ieta-title">Instituto de Estadística Teórica y Aplicada (IETA)</h2>
+            <p>
+              El IETA es el motor científico de nuestra unidad, generando modelos analíticos aplicados a salud pública, econometría, cambio climático y optimización industrial. Desarrolla investigación de frontera en métodos Markov Chain Monte Carlo (MCMC), estadística bayesiana y muestreo en poblaciones complejas.
+            </p>
+            <ul className="pill-list" style={{ marginTop: 'var(--space-2xs)' }}>
+              <li>MCMC Bayesiano</li>
+              <li>Muestreo Complejo</li>
+              <li>Series Temporales</li>
+              <li>Modelos Epidemiológicos</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* ── 4. Callout Lateral: Semillero y Club Científico ── */}
+        <section className="callout" data-reveal style={{ marginBlock: 'var(--space-xl)' }} aria-labelledby="club-title">
+          <div className="callout__media">
+            <img 
+              src={slide2} 
+              alt="Estudiantes y posgraduantes en talleres y hackathons de datos" 
+              loading="lazy" 
+              decoding="async" 
+            />
+          </div>
+          <div className="callout__body">
+            <span className="eyebrow">Comunidad &amp; Talento</span>
+            <h2 id="club-title">Club Científico de Estadística</h2>
+            <p>
+              Semillero activo de jóvenes investigadores y estudiantes de posgrado dedicado a datathons, coloquios de investigación, lectura crítica de papers y talleres intensivos de programación en R, Python y Julia.
+            </p>
+            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', marginTop: 'var(--space-2xs)' }}>
+              <span className="callout__link">Talleres de Programación &amp; Hackathons</span>
             </div>
-            <h2>Más de Cinco Décadas al Servicio de la Ciencia</h2>
+          </div>
+        </section>
+
+        {/* ── 5. Trayectoria Histórica (Acordeón accesible y suave) ── */}
+        <section style={{ marginBlock: 'var(--space-xl)' }} data-reveal aria-labelledby="history-title">
+          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto var(--space-md) auto' }}>
+            <span className="eyebrow">Trayectoria</span>
+            <h2 id="history-title" style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-h2)', margin: 'var(--space-2xs) 0 0 0', color: '#0f172a' }}>
+              Más de Cinco Décadas al Servicio de la Ciencia
+            </h2>
+            <p style={{ color: '#64748b', fontSize: 'var(--fs-body)', margin: 'var(--space-2xs) 0 0 0' }}>
+              Evolución y consolidación de la formación estocástica en la Universidad Mayor de San Andrés.
+            </p>
           </div>
 
-          <div style={{
-            position: 'relative',
-            maxWidth: '850px',
-            margin: '0 auto',
-            paddingLeft: '2rem',
-            borderLeft: '3px solid var(--color-green-inst)'
-          }}>
-            {institutionTimeline.map((item, idx) => (
-              <div key={idx} style={{ position: 'relative', marginBottom: '2.5rem' }}>
-                {/* Node point */}
-                <div style={{
-                  position: 'absolute',
-                  left: '-2.72rem',
-                  top: '0.2rem',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  background: '#ffffff',
-                  border: '3px solid var(--color-green-inst)',
-                  boxShadow: '0 0 10px rgba(38, 115, 66, 0.4)'
-                }} />
-
-                <div className="glass-card" style={{ padding: '1.5rem', background: '#ffffff' }}>
-                  <div style={{
-                    display: 'inline-block',
-                    padding: '0.25rem 0.75rem',
-                    background: 'var(--color-green-inst)',
-                    color: '#ffffff',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
-                    marginBottom: '0.5rem',
-                    fontFamily: 'var(--font-family-mono)'
-                  }}>
-                    {item.year}
+          <div className="accordion container--narrow" data-accordion>
+            {institutionTimeline.map((item, idx) => {
+              const isOpen = openAccordion === idx;
+              return (
+                <div key={idx} className="accordion__item">
+                  <h3 className="accordion__header">
+                    <button
+                      type="button"
+                      className="accordion__trigger"
+                      aria-expanded={isOpen}
+                      aria-controls={`panel-history-${idx}`}
+                      id={`trigger-history-${idx}`}
+                      onClick={() => toggleAccordion(idx)}
+                    >
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{ 
+                          background: 'rgba(38, 115, 66, 0.1)', 
+                          color: 'var(--color-green-inst, #006400)', 
+                          padding: '0.2rem 0.65rem', 
+                          borderRadius: 'var(--radius-pill)', 
+                          fontSize: '0.85rem',
+                          fontWeight: 800,
+                          fontFamily: 'monospace'
+                        }}>
+                          {item.year}
+                        </span>
+                        <span>{item.title}</span>
+                      </span>
+                      <span className="accordion__icon" aria-hidden="true" />
+                    </button>
+                  </h3>
+                  <div
+                    id={`panel-history-${idx}`}
+                    role="region"
+                    aria-labelledby={`trigger-history-${idx}`}
+                    className={`accordion__panel ${isOpen ? 'is-open' : ''}`}
+                  >
+                    <div className="accordion__body">
+                      <p>{item.desc}</p>
+                    </div>
                   </div>
-                  <h4 style={{ color: 'var(--color-umsa-blue-dark)', fontSize: '1.2rem', marginBottom: '0.4rem' }}>
-                    {item.title}
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '0.925rem', lineHeight: 1.6, color: 'var(--color-text-muted)' }}>
-                    {item.desc}
-                  </p>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
+        </section>
 
-        {/* ── PLANTEL DOCENTE E INVESTIGADORES (Desde la BD) ── */}
-        <div>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div className="section-tag">
-              <Users size={14} />
-              <span>NUESTRO PLANTEL DOCENTE</span>
-            </div>
-            <h2>Claustro Docente e Investigadores</h2>
-            <p className="section-subtitle">
-              Profesores con grado de Doctorado (Ph.D.) y Maestría (M.Sc.) de universidades de renombre internacional, administrados activamente en la base de datos de posgrado.
+        {/* ── 6. Claustro Docente e Investigadores (Grilla Reutilizable) ── */}
+        <section style={{ marginBlock: 'var(--space-xl)' }} data-reveal aria-labelledby="faculty-title">
+          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto var(--space-md) auto' }}>
+            <span className="eyebrow">Claustro Académico</span>
+            <h2 id="faculty-title" style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--fs-h2)', margin: 'var(--space-2xs) 0 0 0', color: '#0f172a' }}>
+              Docentes e Investigadores de Posgrado
+            </h2>
+            <p style={{ color: '#64748b', fontSize: 'var(--fs-body)', margin: 'var(--space-2xs) 0 0 0' }}>
+              Académicos con grado de Doctorado (Ph.D.) y Maestría (M.Sc.) vinculados activamente a la producción científica nacional e internacional.
             </p>
           </div>
 
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 'var(--space-md)'
           }}>
             {docentes.map((doc) => {
               const fullName = doc.nombre_completo || doc.name || `${doc.nombre || ''} ${doc.apellido || ''}`;
@@ -278,19 +247,15 @@ export const InstitutionView = () => {
               const linkedinUrl = doc.linkedin || doc.links?.linkedin || 'https://linkedin.com';
 
               return (
-                <div
+                <article
                   key={doc.id}
-                  className="glass-card"
+                  className="stat"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    background: '#ffffff',
-                    border: '1.5px solid var(--color-border)',
-                    boxShadow: 'var(--shadow-sm)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: '2rem 1.5rem'
+                    padding: 'var(--space-md)'
                   }}
                 >
                   <img
@@ -300,54 +265,52 @@ export const InstitutionView = () => {
                       e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
                     }}
                     style={{
-                      width: '104px',
-                      height: '104px',
+                      width: '92px',
+                      height: '92px',
                       borderRadius: '50%',
                       objectFit: 'cover',
-                      border: '3px solid var(--color-green-inst)',
-                      boxShadow: '0 4px 14px rgba(38, 115, 66, 0.25)',
-                      marginBottom: '1.25rem',
+                      border: '2px solid var(--color-green-inst, #006400)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
+                      marginBottom: 'var(--space-2xs)',
                       background: '#f1f5f9'
                     }}
                   />
 
-                  <h3 style={{ fontSize: '1.15rem', color: 'var(--color-umsa-blue-dark)', marginBottom: '0.25rem', fontWeight: 800 }}>
+                  <h3 style={{ fontSize: '1.15rem', color: '#0f172a', margin: '0 0 0.2rem 0', fontWeight: 800 }}>
                     {fullName}
                   </h3>
 
                   <div style={{
-                    fontSize: '0.825rem',
-                    color: 'var(--color-green-inst)',
-                    fontWeight: 800,
-                    marginBottom: '0.35rem'
+                    fontSize: '0.82rem',
+                    color: 'var(--color-green-inst, #006400)',
+                    fontWeight: 700,
+                    marginBottom: '0.2rem'
                   }}>
                     {degree}
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', color: 'var(--color-text-subtle)', marginBottom: '1rem' }}>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: 'var(--space-2xs)' }}>
                     {specialty}
                   </div>
 
-                  {/* Bio brief */}
                   <p style={{
-                    fontSize: '0.825rem',
-                    color: 'var(--color-text-muted)',
-                    lineHeight: 1.5,
-                    marginBottom: '1.25rem',
-                    textAlign: 'center',
+                    fontSize: '0.84rem',
+                    color: '#475569',
+                    lineHeight: 1.55,
+                    margin: '0 0 var(--space-sm) 0',
                     flex: 1
                   }}>
                     {bio}
                   </p>
 
-                  {/* Academic Profile Links */}
+                  {/* Enlaces a Perfiles Académicos */}
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.4rem',
+                    gap: '0.35rem',
                     flexWrap: 'wrap',
                     justifyContent: 'center',
-                    paddingTop: '1rem',
+                    paddingTop: 'var(--space-2xs)',
                     borderTop: '1px solid #f1f5f9',
                     width: '100%'
                   }}>
@@ -355,9 +318,7 @@ export const InstitutionView = () => {
                       href={scholarUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }}
-                      title="Google Scholar"
+                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', borderRadius: 'var(--radius-pill)', background: '#f1f5f9', color: '#334155', fontWeight: 600 }}
                     >
                       Scholar
                     </a>
@@ -365,9 +326,7 @@ export const InstitutionView = () => {
                       href={orcidUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }}
-                      title="ORCID"
+                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', borderRadius: 'var(--radius-pill)', background: '#f1f5f9', color: '#334155', fontWeight: 600 }}
                     >
                       ORCID
                     </a>
@@ -375,9 +334,7 @@ export const InstitutionView = () => {
                       href={researchgateUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }}
-                      title="ResearchGate"
+                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', borderRadius: 'var(--radius-pill)', background: '#f1f5f9', color: '#334155', fontWeight: 600 }}
                     >
                       ResearchGate
                     </a>
@@ -385,18 +342,17 @@ export const InstitutionView = () => {
                       href={linkedinUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="btn btn-secondary btn-sm"
-                      style={{ fontSize: '0.72rem', padding: '0.3rem 0.5rem' }}
-                      title="LinkedIn"
+                      style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', borderRadius: 'var(--radius-pill)', background: '#f1f5f9', color: '#334155', fontWeight: 600 }}
                     >
                       LinkedIn
                     </a>
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
-        </div>
+        </section>
+
       </div>
     </div>
   );

@@ -15,6 +15,9 @@ import slide2 from '../../assets/images/carrusel/slide2.jpg';
 import slide3 from '../../assets/images/carrusel/slide3.jpg';
 import slide4 from '../../assets/images/carrusel/slide4.jpg';
 
+import bannerCiencia from '../../assets/images/banner/banner_ciencia.jpeg';
+import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+
 const CARD_IMAGES = [slide1, slide2, slide3, slide4];
 
 export const FeaturedPrograms = ({ onSelectProgram }) => {
@@ -91,10 +94,33 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
   return (
     <section style={{
       position: 'relative',
-      padding: '3.5rem 0 4rem',
-      background: '#f1f5f9',
+      padding: 'clamp(3rem, 6vw, 5rem) 0',
+      background: 'linear-gradient(180deg, #f1f5f9 0%, #e8f0f4 100%)',
+      overflow: 'hidden',
     }}>
+      {/* Decoración de fondo */}
+      <div aria-hidden="true" style={{
+        position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-50%)',
+        width: '700px', height: '700px', borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(38,115,66,0.05) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
       <div className="container">
+        {/* Section header */}
+        <div className="section-header" data-reveal>
+          <div className="section-tag">
+            <GraduationCap size={13} />
+            <span>Convocatorias Vigentes</span>
+          </div>
+          <h2 className="section-title">
+            Programas <span className="highlight">Académicos Activos</span>
+          </h2>
+          <p className="section-subtitle">
+            Maestrías y Diplomados de la Facultad de Ciencias Puras y Naturales – UMSA con inscripciones abiertas.
+          </p>
+        </div>
+
         {loading ? (
           <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-green-inst)', fontWeight: 600 }}>
             Cargando convocatorias vigentes...
@@ -105,6 +131,7 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
             gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
             gap: '1.5rem',
           }}>
+
             {programs.map((prog, idx) => {
               const master    = isMaestria(prog);
               const styleInfo = getCardStyle(master, idx);
@@ -136,7 +163,11 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                   {/* ── Banner con Imagen superior de la tarjeta e insignia de diferenciación ── */}
                   <div style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden' }}>
                     <img
-                      src={prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length]}
+                      src={
+                        (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
+                          ? cienciaBanner
+                          : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length])
+                      }
                       alt={prog.title}
                       style={{
                         width: '100%',
@@ -237,8 +268,10 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                     gap: '0.65rem',
                     padding: '1.1rem 1.5rem 1.35rem',
                   }}>
-                    <button
-                      onClick={() => onSelectProgram(prog)}
+                    <a
+                      href={`#programa/${prog.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       style={{
                         background: 'rgba(255,255,255,0.12)',
                         color: '#ffffff',
@@ -254,22 +287,24 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                         gap: '0.4rem',
                         transition: 'background 0.18s ease',
                         backdropFilter: 'blur(4px)',
+                        textDecoration: 'none'
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.22)'}
                       onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+                      title="Abrir detalles del programa en una nueva pestaña"
                     >
                       <FileText size={15} />
                       <span>Más info</span>
-                    </button>
+                    </a>
 
-                    {/* Derivar exclusivamente a WhatsApp */}
+                    {/* Derivar a WhatsApp */}
                     <a
                       href={`https://wa.me/59176543210?text=${encodeURIComponent(`Hola, deseo más información y consultar sobre la postulación al programa: ${prog.title}`)}`}
                       target="_blank"
                       rel="noreferrer"
                       style={{
                         background: '#25D366',
-                        color: '#ffffff',
+                        color: '#FFFFFF',
                         border: 'none',
                         borderRadius: '6px',
                         padding: '0.6rem 0.85rem',
@@ -281,11 +316,11 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                         justifyContent: 'center',
                         gap: '0.45rem',
                         textDecoration: 'none',
-                        boxShadow: '0 4px 14px rgba(37, 211, 102, 0.35)',
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
                         transition: 'background 0.18s ease, transform 0.15s ease',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = '#1da855';
+                        e.currentTarget.style.background = '#20BA5A';
                         e.currentTarget.style.transform = 'translateY(-1px)';
                       }}
                       onMouseLeave={(e) => {
@@ -293,7 +328,7 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                         e.currentTarget.style.transform = 'translateY(0)';
                       }}
                     >
-                      <MessageCircle size={16} />
+                      <MessageCircle size={16} color="#FFFFFF" strokeWidth={2.2} />
                       <span>WhatsApp</span>
                     </a>
                   </div>

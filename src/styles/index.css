@@ -1,4 +1,5 @@
 @import './variables.css';
+@import './structural-system.css';
 
 /* Reset and Box Sizing */
 *, *::before, *::after {
@@ -76,49 +77,90 @@ button, input, select, textarea {
   background: var(--color-green-inst);
 }
 
-/* Layout Utilities */
+/* Layout Utilities — single source of truth */
 .container {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
+  width: min(100% - 2rem, 1200px);
+  margin-inline: auto;
 }
 
 .section-spacing {
-  padding: 5rem 0;
+  padding: clamp(2.5rem, 5vw, 4.5rem) 0;
 }
 
+/* ── Section Header — Premium Dinámico ── */
 .section-header {
   text-align: center;
-  max-width: 780px;
-  margin: 0 auto 3.5rem auto;
+  max-width: 720px;
+  margin: 0 auto clamp(2rem, 3.5vw, 3rem) auto;
 }
 
-.section-tag {
+.section-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 1rem;
-  background: var(--color-green-inst-subtle);
-  border: 1px solid var(--color-green-inst-border);
-  border-radius: var(--radius-full);
-  color: var(--color-green-inst);
-  font-size: 0.825rem;
+  gap: 0.45rem;
+  font-size: 0.7rem;
   font-weight: 800;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 6px rgba(0, 100, 0, 0.1);
+  color: var(--color-green-inst);
+  margin-bottom: 0.65rem;
+  position: relative;
 }
 
+.section-eyebrow::before,
+.section-eyebrow::after {
+  content: '';
+  display: inline-block;
+  width: 18px;
+  height: 1.5px;
+  background: currentColor;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+
+/* Título de sección con gradiente dinámico */
 .section-title {
-  margin-bottom: 1rem;
+  font-family: var(--font-family-heading);
+  font-size: clamp(1.65rem, 3.2vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.18;
+  color: #1a2e20;
+  margin-bottom: 0.85rem;
+  letter-spacing: -0.025em;
+}
+
+.section-title .highlight {
+  background: linear-gradient(90deg, #267342 0%, #48bb78 55%, #4f7e9f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .section-subtitle {
-  font-size: 1.075rem;
+  font-size: clamp(0.9rem, 1.4vw, 1.05rem);
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.65;
+  max-width: 54ch;
+  margin-inline: auto;
+}
+
+/* Etiqueta de sección (chip) */
+.section-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.3rem 0.9rem;
+  background: linear-gradient(135deg, rgba(38,115,66,0.1) 0%, rgba(79,126,159,0.08) 100%);
+  border: 1px solid rgba(38,115,66,0.2);
+  border-radius: var(--radius-full);
+  color: var(--color-green-inst);
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 8px rgba(38,115,66,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+  backdrop-filter: blur(4px);
 }
 
 /* Code / Stat Font */

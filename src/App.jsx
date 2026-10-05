@@ -6,14 +6,18 @@ import { Footer } from './components/layout/Footer';
 import { LoginModal } from './components/auth/LoginModal';
 
 import { HeroSection } from './components/home/HeroSection';
+import { PromotionalBannerSection } from './components/home/PromotionalBannerSection';
 import { FeaturedPrograms } from './components/home/FeaturedPrograms';
 import { KpiSection } from './components/home/KpiSection';
+import { ImpactSection } from './components/home/ImpactSection';
 import { FAQSection } from './components/home/FAQSection';
 import { EventsSection } from './components/home/EventsSection';
+import { MasterBannerPopup } from './components/common/MasterBannerPopup';
 
 import { InstitutionView } from './components/institution/InstitutionView';
 import { ProgramsView } from './components/programs/ProgramsView';
 import { ProgramDetailModal } from './components/programs/ProgramDetailModal';
+import { ProgramDetailView } from './components/programs/ProgramDetailView';
 import { AdmissionView } from './components/admission/AdmissionView';
 import { RegulationsView } from './components/regulations/RegulationsView';
 import { NewsView } from './components/news/NewsView';
@@ -27,10 +31,32 @@ import './styles/components.css';
 const MainApp = () => {
   const [currentTab, setCurrentTab] = useState('inicio');
   const [selectedProgramModal, setSelectedProgramModal] = useState(null);
+  const [selectedProgramDetailId, setSelectedProgramDetailId] = useState(null);
   const [targetProgramForAdmission, setTargetProgramForAdmission] = useState(null);
   const [programFilterState, setProgramFilterState] = useState(null);
 
   const { currentUser } = useAuth();
+
+  // Escuchar cambios de hash para soportar apertura en nueva pestaña (#programa/:id)
+  React.useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#programa/') || hash.startsWith('#/programa/')) {
+        const id = hash.replace(/^#\/?programa\//, '');
+        if (id) {
+          setSelectedProgramDetailId(decodeURIComponent(id));
+          setCurrentTab('programa-detalle');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else if (hash === '#programas' || hash === '#/programas') {
+        setCurrentTab('programas');
+      }
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   const handleNavigateToAdmission = (programId = null) => {
     if (programId) {
@@ -50,17 +76,33 @@ const MainApp = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleOpenProgramDetail = (prog) => {
+    const progId = prog?.id || prog?.code || prog;
+    setSelectedProgramDetailId(progId);
+    setCurrentTab('programa-detalle');
+    window.location.hash = `programa/${progId}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="page-shell">
+      {/* Skip Link accesible para lectores y teclado */}
+      <a className="skip-link" href="#main">Saltar al contenido</a>
+
       {/* Main Glass Sticky Navbar */}
       <Navbar
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        onOpenProgramDetail={(prog) => setSelectedProgramModal(prog)}
+        currentTab={currentTab === 'programa-detalle' ? 'programas' : currentTab}
+        setCurrentTab={(tab) => {
+          if (window.location.hash.startsWith('#programa/')) {
+            window.location.hash = tab === 'programas' ? '#programas' : '';
+          }
+          setCurrentTab(tab);
+        }}
+        onOpenProgramDetail={handleOpenProgramDetail}
       />
 
       {/* Main Content Router */}
-      <main style={{ flex: 1 }}>
+      <main id="main" className="site-main">
         {/* INICIO TAB */}
         {currentTab === 'inicio' && (
           <div className="animate-fade-in">
@@ -68,12 +110,26 @@ const MainApp = () => {
               onNavigate={setCurrentTab}
               onFilterPrograms={handleFilterPrograms}
             />
+            {/* Banner de la Maestría Actual con Redirección Directa al Programa */}
+            <PromotionalBannerSection
+              onSelectProgram={handleOpenProgramDetail}
+            />
             {/* 3 Convocatorias Principales Vigentes desde la BD */}
             <FeaturedPrograms
-              onSelectProgram={(prog) => setSelectedProgramModal(prog)}
+              onSelectProgram={handleOpenProgramDetail}
               onNavigateToAdmission={handleNavigateToAdmission}
             />
             <KpiSection />
+            <ImpactSection
+              onExplorePrograms={() => {
+                setCurrentTab('programas');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              onAboutInstitution={() => {
+                setCurrentTab('institucion');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
             <FAQSection />
           </div>
         )}
@@ -86,6 +142,20 @@ const MainApp = () => {
           <ProgramsView
             onNavigateToAdmission={handleNavigateToAdmission}
             initialFilter={programFilterState}
+            onSelectProgram={handleOpenProgramDetail}
+          />
+        )}
+
+        {/* DETALLE COMPLETO DE PROGRAMA (Pestaña individual con sub-pestañas y descarga directa) */}
+        {currentTab === 'programa-detalle' && (
+          <ProgramDetailView
+            programId={selectedProgramDetailId}
+            onBack={() => {
+              window.location.hash = 'programas';
+              setCurrentTab('programas');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onNavigateToAdmission={handleNavigateToAdmission}
           />
         )}
 
@@ -108,12 +178,17 @@ const MainApp = () => {
       </main>
 
       {/* Global Institutional Footer */}
-      <Footer onNavigate={setCurrentTab} />
+      <Footer onNavigate={(tab) => {
+        if (window.location.hash.startsWith('#programa/')) {
+          window.location.hash = '';
+        }
+        setCurrentTab(tab);
+      }} />
 
       {/* Auth Login Modal */}
       <LoginModal onLoginSuccess={handleLoginSuccess} />
 
-      {/* Program Detail Modal */}
+      {/* Program Detail Modal (Fallback) */}
       {selectedProgramModal && (
         <ProgramDetailModal
           program={selectedProgramModal}
@@ -124,6 +199,9 @@ const MainApp = () => {
           }}
         />
       )}
+
+      {/* Promotional Master's Banner Popup */}
+      <MasterBannerPopup onNavigateToProgram={handleOpenProgramDetail} />
     </div>
   );
 };

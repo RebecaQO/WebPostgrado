@@ -22,9 +22,12 @@ import slide2 from '../../assets/images/carrusel/slide2.jpg';
 import slide3 from '../../assets/images/carrusel/slide3.jpg';
 import slide4 from '../../assets/images/carrusel/slide4.jpg';
 
+import bannerCiencia from '../../assets/images/banner/banner_ciencia.jpeg';
+import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+
 const CARD_IMAGES = [slide1, slide2, slide3, slide4];
 
-export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) => {
+export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSelectProgram }) => {
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedProgram, setSelectedProgram] = useState(null);
@@ -779,7 +782,9 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                 gap: '1.75rem'
               }}>
                 {filteredPrograms.map((prog, idx) => {
-                  const cardImg = prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length];
+                  const cardImg = (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
+                    ? cienciaBanner
+                    : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length]);
                   const isMaster = (prog.type || '').toLowerCase().includes('maestr') ||
                     prog.typeFilter === 'maestria' ||
                     prog.typeFilter === 'terminal' ||
@@ -961,8 +966,10 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                         borderTop: '1px solid #f1f5f9',
                         background: '#ffffff'
                       }}>
-                        <button
-                          onClick={() => setSelectedProgram(prog)}
+                        <a
+                          href={`#programa/${prog.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="btn btn-secondary btn-sm"
                           style={{
                             borderRadius: '4px',
@@ -972,12 +979,14 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                             gap: '0.35rem',
                             fontSize: '0.82rem',
                             fontWeight: 700,
-                            padding: '0.55rem 0.65rem'
+                            padding: '0.55rem 0.65rem',
+                            textDecoration: 'none'
                           }}
+                          title="Abrir detalles del programa en una nueva pestaña"
                         >
                           <FileText size={14} color="var(--color-green-inst)" />
                           <span>Más info</span>
-                        </button>
+                        </a>
 
                         {/* Botón de Postular con tono institucional #1e5f35 */}
                         <a
@@ -1023,17 +1032,21 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null }) =>
                           className="btn btn-sm"
                           style={{
                             background: '#25D366',
-                            color: '#ffffff',
+                            color: '#FFFFFF',
                             border: 'none',
                             borderRadius: '4px',
                             justifyContent: 'center',
                             display: 'flex',
                             alignItems: 'center',
                             padding: '0.55rem 0.65rem',
-                            textDecoration: 'none'
+                            textDecoration: 'none',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+                            transition: 'background 0.18s ease'
                           }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = '#20BA5A'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = '#25D366'}
                         >
-                          <MessageCircle size={15} />
+                          <MessageCircle size={16} color="#FFFFFF" strokeWidth={2.2} />
                         </a>
                       </div>
                     </div>
