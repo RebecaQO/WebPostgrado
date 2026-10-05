@@ -72,13 +72,13 @@ const FAQItem = ({ faq, isOpen, onToggle, index }) => {
     <div
       style={{
         background: '#ffffff',
-        borderRadius: '14px',
+        borderRadius: '6px',
         overflow: 'hidden',
-        border: `1px solid ${isOpen ? catStyle.dot + '40' : '#e5eae3'}`,
+        border: `1px solid ${isOpen ? catStyle.dot + '50' : '#e2e8f0'}`,
         boxShadow: isOpen
-          ? `0 8px 28px -6px ${catStyle.dot}22`
-          : '0 2px 8px -2px rgba(0,0,0,0.05)',
-        transition: 'all 0.28s cubic-bezier(0.22, 1, 0.36, 1)',
+          ? `0 8px 24px -4px ${catStyle.dot}18`
+          : '0 2px 6px -2px rgba(0,0,0,0.04)',
+        transition: 'all 0.22s ease',
       }}
     >
       <button
@@ -94,24 +94,25 @@ const FAQItem = ({ faq, isOpen, onToggle, index }) => {
           gap: '0.9rem',
           cursor: 'pointer',
           textAlign: 'left',
-          transition: 'background 0.25s ease',
+          transition: 'background 0.2s ease',
         }}
       >
-        {/* Icon circle */}
+        {/* Icon square */}
         <span style={{
           flexShrink: 0,
           width: '36px',
           height: '36px',
-          borderRadius: '10px',
+          borderRadius: '4px',
           background: catStyle.bg,
+          border: `1px solid ${catStyle.dot}30`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: '2px',
-          transition: 'transform 0.22s ease',
-          transform: isOpen ? 'scale(1.08)' : 'scale(1)',
+          transition: 'transform 0.2s ease',
+          transform: isOpen ? 'scale(1.05)' : 'scale(1)',
         }}>
-          <Icon size={16} color={catStyle.text} strokeWidth={2.2} />
+          <Icon size={17} color={catStyle.text} strokeWidth={2.2} />
         </span>
 
         <div style={{ flex: 1 }}>

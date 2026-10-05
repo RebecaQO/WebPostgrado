@@ -161,41 +161,63 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
           }}>en Estadística</span>
         </h1>
 
-        {/* Lead */}
-        <p className="lead" style={{ color: 'rgba(220, 232, 245, 0.92)' }}>
-          Formación de cuarto nivel e investigación cuantitativa aplicada a ciencias sociales, salud, economía y ciencia de datos.
-        </p>
-
-        {/* ── Buscador de Programas ── */}
-        <div style={{
-          background: 'rgba(255,255,255,0.97)',
-          backdropFilter: 'blur(16px)',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-xs)',
-          boxShadow: '0 20px 55px -10px rgba(0,0,0,0.45)',
-          maxWidth: '700px',
-          margin: '0 auto',
-        }}>
+        {/* ── Buscador de Programas en Horizontal Lado a Lado ── */}
+        <div
+          className="hero-search-bar-container"
+          style={{
+            background: 'rgba(255, 255, 255, 0.98)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: '6px',
+            padding: '0.45rem 0.55rem',
+            boxShadow: '0 20px 50px -10px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.25)',
+            maxWidth: '840px',
+            width: '100%',
+            margin: 'var(--space-md) auto 0 auto',
+          }}
+        >
           <form
             onSubmit={handleSearchSubmit}
+            className="hero-search-form"
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr)) auto',
-              gap: 'var(--space-2xs)',
+              display: 'flex',
+              flexDirection: 'row',
               alignItems: 'center',
+              gap: '0.5rem',
+              width: '100%',
             }}
             noValidate
           >
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              background: '#f0f7f2', border: '1px solid #c6dec9',
-              borderRadius: 'var(--radius-pill)', padding: '0.5rem 1rem',
-            }}>
-              <GraduationCap size={17} color="var(--color-green-inst, #267342)" />
+            {/* Filtro 1: Nivel Académico */}
+            <div
+              className="hero-filter-item"
+              style={{
+                flex: '1 1 0%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                borderRadius: '4px',
+                padding: '0.65rem 1rem',
+                minWidth: 0,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <GraduationCap size={18} color="var(--color-green-inst, #267342)" style={{ flexShrink: 0 }} />
               <select
                 value={selectedLevel}
                 onChange={(e) => setSelectedLevel(e.target.value)}
-                style={{ width: '100%', background: 'transparent', border: 'none', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', cursor: 'pointer' }}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  cursor: 'pointer',
+                  textOverflow: 'ellipsis',
+                }}
                 aria-label="Filtrar por nivel académico"
               >
                 <option value="">Nivel académico...</option>
@@ -204,16 +226,37 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
               </select>
             </div>
 
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '0.5rem',
-              background: '#f0f5fa', border: '1px solid #c6d5e6',
-              borderRadius: 'var(--radius-pill)', padding: '0.5rem 1rem',
-            }}>
-              <BookOpen size={17} color="var(--color-blue-steel, #4f7e9f)" />
+            {/* Filtro 2: Especialidad o Área */}
+            <div
+              className="hero-filter-item"
+              style={{
+                flex: '1.2 1 0%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                borderRadius: '4px',
+                padding: '0.65rem 1rem',
+                minWidth: 0,
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <BookOpen size={18} color="var(--color-blue-steel, #4f7e9f)" style={{ flexShrink: 0 }} />
               <select
                 value={selectedArea}
                 onChange={(e) => setSelectedArea(e.target.value)}
-                style={{ width: '100%', background: 'transparent', border: 'none', fontSize: '0.85rem', fontWeight: 600, color: '#1e293b', cursor: 'pointer' }}
+                style={{
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  cursor: 'pointer',
+                  textOverflow: 'ellipsis',
+                }}
                 aria-label="Filtrar por especialidad o área"
               >
                 <option value="">Especialidad o área...</option>
@@ -230,31 +273,51 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
               </select>
             </div>
 
+            {/* Botón Buscar */}
             <button
               type="submit"
               className="btn btn--primary"
-              style={{ padding: '0.6rem 1.3rem', fontSize: '0.88rem', whiteSpace: 'nowrap' }}
+              style={{
+                padding: '0.72rem 1.6rem',
+                fontSize: '0.9rem',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+                borderRadius: '4px',
+                flexShrink: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 14px rgba(38, 115, 66, 0.35)',
+              }}
             >
-              <Search size={15} />
+              <Search size={16} />
               <span>Buscar</span>
             </button>
           </form>
-        </div>
 
-        {/* Tags temáticas */}
-        <div style={{ marginTop: 'var(--space-md)', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {['Análisis de Datos & IA', 'Bioestadística & Salud', 'Inferencia Causal', 'Econometría'].map(tag => (
-            <span key={tag} style={{
-              background: 'rgba(255,255,255,0.12)',
-              color: '#ffffff',
-              border: '1px solid rgba(255,255,255,0.22)',
-              borderRadius: 'var(--radius-pill)',
-              padding: '0.3rem 0.9rem',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              backdropFilter: 'blur(4px)',
-            }}>{tag}</span>
-          ))}
+          <style>{`
+            @media (max-width: 640px) {
+              .hero-search-bar-container {
+                border-radius: 6px !important;
+                padding: 0.75rem !important;
+              }
+              .hero-search-form {
+                flex-direction: column !important;
+                gap: 0.6rem !important;
+              }
+              .hero-filter-item {
+                width: 100% !important;
+                border-radius: 4px !important;
+              }
+              .hero-search-form button {
+                width: 100% !important;
+                justify-content: center !important;
+                border-radius: 4px !important;
+              }
+            }
+          `}</style>
         </div>
 
         {/* Slide indicators */}

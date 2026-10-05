@@ -206,6 +206,299 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
     }
   };
 
+  const renderProgramCard = (prog, idx, isSuggested = false) => {
+    const cardImg = (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
+      ? cienciaBanner
+      : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length]);
+    const isMaster = (prog.type || '').toLowerCase().includes('maestr') ||
+      prog.typeFilter === 'maestria' ||
+      prog.typeFilter === 'terminal' ||
+      prog.typeFilter === 'autofinanciada' ||
+      (prog.title || '').toLowerCase().includes('maestr');
+    const categoryLabel = isMaster ? 'PROGRAMA DE MAESTRÍA (M.SC.)' : 'DIPLOMADO DE ESPECIALIZACIÓN';
+    const themeColor = isMaster ? '#1e5f35' : '#1e3a5f';
+
+    return (
+      <div
+        key={`${prog.id || idx}-${isSuggested ? 'sug' : 'main'}`}
+        style={{
+          background: '#ffffff',
+          borderRadius: '6px',
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0',
+          borderTop: `4px solid ${themeColor}`,
+          boxShadow: '0 4px 18px -4px rgba(0, 0, 0, 0.08)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-3px)';
+          e.currentTarget.style.boxShadow = '0 12px 28px -6px rgba(0, 0, 0, 0.14)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 18px -4px rgba(0, 0, 0, 0.08)';
+        }}
+      >
+        <div>
+          {/* ── Imagen Superior de la Tarjeta con Insignia de Nivel ── */}
+          <div style={{ position: 'relative', width: '100%', height: '190px', overflow: 'hidden' }}>
+            <img
+              src={cardImg}
+              alt={prog.title}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block'
+              }}
+            />
+            {/* Badge de Nivel: Verde para Maestría | Azul para Diplomado */}
+            <div style={{
+              position: 'absolute',
+              top: '12px',
+              left: '12px',
+              background: themeColor,
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.68rem',
+              letterSpacing: '0.06em',
+              padding: '0.28rem 0.7rem',
+              borderRadius: '4px',
+              textTransform: 'uppercase',
+              boxShadow: '0 3px 8px rgba(0,0,0,0.28)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem'
+            }}>
+              {isMaster ? <GraduationCap size={13} /> : <Award size={13} />}
+              <span>{isMaster ? 'MAESTRÍA' : 'DIPLOMADO'}</span>
+            </div>
+
+            {isSuggested && (
+              <div style={{
+                position: 'absolute',
+                top: '12px',
+                right: '12px',
+                background: 'rgba(15, 23, 42, 0.88)',
+                backdropFilter: 'blur(4px)',
+                color: '#4ade80',
+                fontWeight: 800,
+                fontSize: '0.65rem',
+                letterSpacing: '0.05em',
+                padding: '0.25rem 0.6rem',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                border: '1px solid rgba(74, 222, 128, 0.35)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
+              }}>
+                Oferta disponible
+              </div>
+            )}
+          </div>
+
+          {/* ── Cuerpo de la Tarjeta ── */}
+          <div style={{ padding: '1.35rem 1.4rem 1rem' }}>
+            
+            {/* Pastilla Institucional de Categoría */}
+            <span style={{
+              display: 'inline-block',
+              background: themeColor,
+              color: '#ffffff',
+              fontSize: '0.68rem',
+              fontWeight: 800,
+              letterSpacing: '0.05em',
+              padding: '0.25rem 0.7rem',
+              borderRadius: '4px',
+              textTransform: 'uppercase',
+              marginBottom: '0.8rem',
+              boxShadow: isMaster ? '0 2px 6px rgba(30,95,53,0.22)' : '0 2px 6px rgba(30,58,95,0.22)'
+            }}>
+              {categoryLabel}
+            </span>
+
+            {/* Título del Programa */}
+            <h3 style={{
+              fontSize: '1.22rem',
+              fontWeight: 800,
+              color: '#0f172a',
+              lineHeight: 1.3,
+              marginBottom: '0.75rem',
+              fontFamily: 'var(--font-family-heading)',
+              minHeight: '3.1rem'
+            }}>
+              {prog.title}
+            </h3>
+
+            {/* Modalidad del programa */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              color: themeColor,
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              marginBottom: '0.9rem'
+            }}>
+              <Layers size={15} color={themeColor} style={{ flexShrink: 0 }} />
+              <span>Modalidad: {prog.modality || 'Híbrida'}</span>
+            </div>
+
+            {/* Descripción resumida */}
+            <p style={{
+              fontSize: '0.85rem',
+              color: '#475569',
+              lineHeight: 1.6,
+              margin: '0 0 1.1rem 0',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden'
+            }}>
+              {prog.description}
+            </p>
+
+            {/* Metadata tags */}
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '0.45rem',
+              marginBottom: '0.5rem'
+            }}>
+              {prog.duration && (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  background: '#f1f5f9',
+                  color: '#334155',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '0.22rem 0.55rem',
+                  borderRadius: '4px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Clock size={11} color="#64748b" /> {prog.duration}
+                </span>
+              )}
+              {prog.degree && (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  background: '#f1f5f9',
+                  color: '#334155',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '0.22rem 0.55rem',
+                  borderRadius: '4px',
+                  border: '1px solid #e2e8f0'
+                }}>
+                  <Award size={11} color="#0284c7" /> {prog.degree}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Acciones de la Tarjeta con Botón de Postular ── */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr auto',
+          gap: '0.55rem',
+          padding: '1rem 1.4rem 1.25rem',
+          borderTop: '1px solid #f1f5f9',
+          background: '#ffffff'
+        }}>
+          <a
+            href={`#programa/${prog.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-secondary btn-sm"
+            style={{
+              borderRadius: '4px',
+              justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              padding: '0.55rem 0.65rem',
+              textDecoration: 'none'
+            }}
+            title="Abrir detalles del programa en una nueva pestaña"
+          >
+            <FileText size={14} color="var(--color-green-inst)" />
+            <span>Más info</span>
+          </a>
+
+          {/* Botón de Postular con tono institucional #1e5f35 */}
+          <a
+            href={prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms/d/e/1FAIpQLSd_posgrado_estadistica_umsa_postulacion_2026/viewform'}
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-sm"
+            style={{
+              background: '#1e5f35',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '4px',
+              justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              textDecoration: 'none',
+              boxShadow: '0 3px 10px rgba(30, 95, 53, 0.35)',
+              padding: '0.55rem 0.75rem',
+              transition: 'background 0.2s ease, transform 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#164627';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#1e5f35';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <span>Postular</span>
+            <ArrowRight size={13} />
+          </a>
+
+          {/* WhatsApp directo */}
+          <a
+            href={`https://wa.me/59176543210?text=${encodeURIComponent(`Hola, deseo más información sobre el programa: ${prog.title}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            title="Consultar por WhatsApp"
+            className="btn btn-sm"
+            style={{
+              background: '#25D366',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: '4px',
+              justifyContent: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.55rem 0.65rem',
+              textDecoration: 'none',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
+              transition: 'background 0.18s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = '#20BA5A'}
+            onMouseLeave={(e) => e.currentTarget.style.background = '#25D366'}
+          >
+            <MessageCircle size={16} color="#FFFFFF" strokeWidth={2.2} />
+          </a>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="section-spacing animate-fade-in" style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '5rem' }}>
       <div className="container" style={{ maxWidth: '1240px' }}>
@@ -741,39 +1034,151 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
                 Cargando programas de posgrado desde la base de datos...
               </div>
             ) : filteredPrograms.length === 0 ? (
-              <div style={{
-                textAlign: 'center',
-                padding: '4rem 2rem',
-                background: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <Filter size={42} color="var(--color-green-inst)" style={{ marginBottom: '1rem' }} />
-                <h3 style={{ color: '#0f172a', fontWeight: 800, marginBottom: '0.5rem' }}>
-                  No se encontraron programas con los filtros seleccionados
-                </h3>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  Prueba modificando las palabras clave o restableciendo los selectores de búsqueda.
-                </p>
-                <button
-                  onClick={handleResetFilters}
-                  style={{
-                    background: 'var(--color-green-inst)',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '0.65rem 1.4rem',
-                    fontSize: '0.85rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(38, 115, 66, 0.25)',
-                    transition: 'background 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-green-inst-hover)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-green-inst)'}
-                >
-                  Restablecer todos los filtros
-                </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {/* ── Banner compacto y estilizado de no coincidencia ── */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                  padding: '0.9rem 1.25rem',
+                  background: '#ffffff',
+                  borderRadius: '6px',
+                  border: '1px solid #e2e8f0',
+                  borderLeft: '4px solid var(--color-green-inst)',
+                  boxShadow: '0 2px 10px -2px rgba(0, 0, 0, 0.05)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flex: '1 1 300px' }}>
+                    <div style={{
+                      width: '38px',
+                      height: '38px',
+                      borderRadius: '4px',
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <Filter size={18} color="var(--color-green-inst)" />
+                    </div>
+                    <div>
+                      <h4 style={{
+                        color: '#0f172a',
+                        fontWeight: 800,
+                        fontSize: '0.96rem',
+                        margin: '0 0 0.15rem 0',
+                        fontFamily: 'var(--font-family-heading)'
+                      }}>
+                        No se encontraron programas con los filtros seleccionados
+                      </h4>
+                      <p style={{
+                        color: '#64748b',
+                        fontSize: '0.82rem',
+                        margin: 0,
+                        lineHeight: 1.4
+                      }}>
+                        Prueba ajustando tus filtros o revisa a continuación toda nuestra oferta académica vigente:
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleResetFilters}
+                    style={{
+                      background: 'var(--color-green-inst)',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '0.55rem 1.1rem',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 8px rgba(38, 115, 66, 0.25)',
+                      transition: 'all 0.2s ease',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      flexShrink: 0
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'var(--color-green-inst-hover)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'var(--color-green-inst)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <RotateCcw size={14} />
+                    <span>Restablecer filtros</span>
+                  </button>
+                </div>
+
+                {/* ── Oferta Opcional con los demás cursos y programas en visualización inmediata ── */}
+                {programs.length > 0 && (
+                  <div>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '0.75rem',
+                      marginBottom: '1rem',
+                      paddingBottom: '0.75rem',
+                      borderBottom: '2px solid #e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          background: '#0B192C',
+                          color: '#ffffff',
+                          fontSize: '0.7rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          padding: '0.22rem 0.55rem',
+                          borderRadius: '4px'
+                        }}>
+                          <GraduationCap size={12} color="#4ade80" />
+                          <span>Oferta Académica Opcional</span>
+                        </span>
+                        <h3 style={{
+                          fontSize: '1.2rem',
+                          fontWeight: 800,
+                          color: '#0f172a',
+                          margin: 0,
+                          fontFamily: 'var(--font-family-heading)'
+                        }}>
+                          Programas y cursos disponibles
+                        </h3>
+                      </div>
+
+                      <span style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: 'var(--color-green-inst)',
+                        background: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        padding: '0.28rem 0.65rem',
+                        borderRadius: '4px'
+                      }}>
+                        {programs.length} {programs.length === 1 ? 'programa disponible' : 'programas disponibles'}
+                      </span>
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                      gap: '1.5rem'
+                    }}>
+                      {programs.map((prog, idx) => renderProgramCard(prog, idx, true))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{
@@ -781,277 +1186,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
                 gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
                 gap: '1.75rem'
               }}>
-                {filteredPrograms.map((prog, idx) => {
-                  const cardImg = (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
-                    ? cienciaBanner
-                    : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length]);
-                  const isMaster = (prog.type || '').toLowerCase().includes('maestr') ||
-                    prog.typeFilter === 'maestria' ||
-                    prog.typeFilter === 'terminal' ||
-                    prog.typeFilter === 'autofinanciada' ||
-                    (prog.title || '').toLowerCase().includes('maestr');
-                  const categoryLabel = isMaster ? 'PROGRAMA DE MAESTRÍA (M.SC.)' : 'DIPLOMADO DE ESPECIALIZACIÓN';
-                  const themeColor = isMaster ? '#1e5f35' : '#1e3a5f';
-
-                  return (
-                    <div
-                      key={prog.id}
-                      style={{
-                        background: '#ffffff',
-                        borderRadius: '6px',
-                        overflow: 'hidden',
-                        border: '1px solid #e2e8f0',
-                        borderTop: `4px solid ${themeColor}`,
-                        boxShadow: '0 4px 18px -4px rgba(0, 0, 0, 0.08)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-3px)';
-                        e.currentTarget.style.boxShadow = '0 12px 28px -6px rgba(0, 0, 0, 0.14)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 4px 18px -4px rgba(0, 0, 0, 0.08)';
-                      }}
-                    >
-                      <div>
-                        {/* ── Imagen Superior de la Tarjeta con Insignia de Nivel ── */}
-                        <div style={{ position: 'relative', width: '100%', height: '190px', overflow: 'hidden' }}>
-                          <img
-                            src={cardImg}
-                            alt={prog.title}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                              display: 'block'
-                            }}
-                          />
-                          {/* Badge de Nivel: Verde para Maestría | Azul para Diplomado */}
-                          <div style={{
-                            position: 'absolute',
-                            top: '12px',
-                            left: '12px',
-                            background: themeColor,
-                            color: '#ffffff',
-                            fontWeight: 800,
-                            fontSize: '0.68rem',
-                            letterSpacing: '0.06em',
-                            padding: '0.28rem 0.7rem',
-                            borderRadius: '4px',
-                            textTransform: 'uppercase',
-                            boxShadow: '0 3px 8px rgba(0,0,0,0.28)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.35rem'
-                          }}>
-                            {isMaster ? <GraduationCap size={13} /> : <Award size={13} />}
-                            <span>{isMaster ? 'MAESTRÍA' : 'DIPLOMADO'}</span>
-                          </div>
-                        </div>
-
-                        {/* ── Cuerpo de la Tarjeta ── */}
-                        <div style={{ padding: '1.35rem 1.4rem 1rem' }}>
-                          
-                          {/* Pastilla Institucional de Categoría (Verde: Maestría, Azul: Diplomado) */}
-                          <span style={{
-                            display: 'inline-block',
-                            background: themeColor,
-                            color: '#ffffff',
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            letterSpacing: '0.05em',
-                            padding: '0.25rem 0.7rem',
-                            borderRadius: '99px',
-                            textTransform: 'uppercase',
-                            marginBottom: '0.8rem',
-                            boxShadow: isMaster ? '0 2px 6px rgba(30,95,53,0.22)' : '0 2px 6px rgba(30,58,95,0.22)'
-                          }}>
-                            {categoryLabel}
-                          </span>
-
-                          {/* Título del Programa */}
-                          <h3 style={{
-                            fontSize: '1.22rem',
-                            fontWeight: 800,
-                            color: '#0f172a',
-                            lineHeight: 1.3,
-                            marginBottom: '0.75rem',
-                            fontFamily: 'var(--font-family-heading)',
-                            minHeight: '3.1rem'
-                          }}>
-                            {prog.title}
-                          </h3>
-
-                          {/* Modalidad del programa */}
-                          <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.45rem',
-                            color: themeColor,
-                            fontSize: '0.85rem',
-                            fontWeight: 700,
-                            marginBottom: '0.9rem'
-                          }}>
-                            <Layers size={15} color={themeColor} style={{ flexShrink: 0 }} />
-                            <span>Modalidad: {prog.modality || 'Híbrida'}</span>
-                          </div>
-
-                          {/* Descripción resumida */}
-                          <p style={{
-                            fontSize: '0.85rem',
-                            color: '#475569',
-                            lineHeight: 1.6,
-                            margin: '0 0 1.1rem 0',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden'
-                          }}>
-                            {prog.description}
-                          </p>
-
-                          {/* Metadata pills */}
-                          <div style={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: '0.45rem',
-                            marginBottom: '0.5rem'
-                          }}>
-                            {prog.duration && (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                background: '#f1f5f9',
-                                color: '#334155',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                padding: '0.22rem 0.55rem',
-                                borderRadius: '4px',
-                                border: '1px solid #e2e8f0'
-                              }}>
-                                <Clock size={11} color="#64748b" /> {prog.duration}
-                              </span>
-                            )}
-                            {prog.degree && (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.3rem',
-                                background: '#f1f5f9',
-                                color: '#334155',
-                                fontSize: '0.72rem',
-                                fontWeight: 700,
-                                padding: '0.22rem 0.55rem',
-                                borderRadius: '4px',
-                                border: '1px solid #e2e8f0'
-                              }}>
-                                <Award size={11} color="#0284c7" /> {prog.degree}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* ── Acciones de la Tarjeta con Botón de Postular con tono #1e5f35 ── */}
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr auto',
-                        gap: '0.55rem',
-                        padding: '1rem 1.4rem 1.25rem',
-                        borderTop: '1px solid #f1f5f9',
-                        background: '#ffffff'
-                      }}>
-                        <a
-                          href={`#programa/${prog.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn btn-secondary btn-sm"
-                          style={{
-                            borderRadius: '4px',
-                            justifyContent: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            fontSize: '0.82rem',
-                            fontWeight: 700,
-                            padding: '0.55rem 0.65rem',
-                            textDecoration: 'none'
-                          }}
-                          title="Abrir detalles del programa en una nueva pestaña"
-                        >
-                          <FileText size={14} color="var(--color-green-inst)" />
-                          <span>Más info</span>
-                        </a>
-
-                        {/* Botón de Postular con tono institucional #1e5f35 */}
-                        <a
-                          href={prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms/d/e/1FAIpQLSd_posgrado_estadistica_umsa_postulacion_2026/viewform'}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-sm"
-                          style={{
-                            background: '#1e5f35',
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '4px',
-                            justifyContent: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            fontSize: '0.82rem',
-                            fontWeight: 700,
-                            textDecoration: 'none',
-                            boxShadow: '0 3px 10px rgba(30, 95, 53, 0.35)',
-                            padding: '0.55rem 0.75rem',
-                            transition: 'background 0.2s ease, transform 0.15s ease'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = '#164627';
-                            e.currentTarget.style.transform = 'translateY(-1px)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = '#1e5f35';
-                            e.currentTarget.style.transform = 'translateY(0)';
-                          }}
-                        >
-                          <span>Postular</span>
-                          <ArrowRight size={13} />
-                        </a>
-
-                        {/* WhatsApp directo */}
-                        <a
-                          href={`https://wa.me/59176543210?text=${encodeURIComponent(`Hola, deseo más información sobre el programa: ${prog.title}`)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Consultar por WhatsApp"
-                          className="btn btn-sm"
-                          style={{
-                            background: '#25D366',
-                            color: '#FFFFFF',
-                            border: 'none',
-                            borderRadius: '4px',
-                            justifyContent: 'center',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '0.55rem 0.65rem',
-                            textDecoration: 'none',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
-                            transition: 'background 0.18s ease'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#20BA5A'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = '#25D366'}
-                        >
-                          <MessageCircle size={16} color="#FFFFFF" strokeWidth={2.2} />
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })}
+                {filteredPrograms.map((prog, idx) => renderProgramCard(prog, idx, false))}
               </div>
             )}
           </div>

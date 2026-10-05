@@ -46,22 +46,54 @@ export const KpiSection = () => {
 
   return (
     <section
-      className="section-spacing"
-      style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f2 100%)' }}
+      className="section-spacing section-contrast-dark"
+      style={{
+        background: '#0B192C',
+        padding: 'clamp(3.5rem, 6vw, 5.5rem) 0',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+      }}
       aria-label="Métricas de impacto institucional"
     >
       <div className="container">
 
         <div className="section-header" data-reveal>
-          <div className="section-tag">
-            <ShieldCheck size={13} />
-            <span>Impacto Cuantitativo</span>
+          <div
+            className="eyebrow eyebrow--light"
+            style={{
+              background: 'rgba(255,255,255,0.1)',
+              color: '#93c5fd',
+              borderColor: 'rgba(255,255,255,0.2)',
+              borderRadius: '4px',
+              padding: '0.35rem 0.85rem',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              marginBottom: '0.85rem'
+            }}
+          >
+            <ShieldCheck size={14} />
+            <span>Impacto Cuantitativo &amp; Trayectoria</span>
           </div>
-          <h2 className="section-title">
-            Cinco décadas de <span className="highlight">rigor científico</span> y liderazgo
+          <h2
+            className="section-title"
+            style={{
+              color: '#ffffff',
+              fontSize: 'clamp(2.2rem, 4.5vw, 3.4rem)',
+              fontWeight: 900,
+              lineHeight: 1.12,
+              letterSpacing: '-0.03em',
+              marginBottom: '0.85rem'
+            }}
+          >
+            Cinco décadas de <span style={{ color: '#68d391' }}>rigor científico</span> y liderazgo
           </h2>
-          <p className="section-subtitle">
-            Números que reflejan el compromiso académico de la Unidad de Posgrado en Estadística – UMSA.
+          <p
+            className="section-subtitle"
+            style={{ color: 'rgba(226, 232, 240, 0.9)', fontSize: '1.05rem', maxWidth: '64ch' }}
+          >
+            Números que reflejan el compromiso académico y la excelencia de la Unidad de Posgrado en Estadística – UMSA.
           </p>
         </div>
 
@@ -70,10 +102,10 @@ export const KpiSection = () => {
           {metrics.map((item, idx) => {
             const Icon = item.icon;
             const accentColors = [
-              { bg: 'linear-gradient(135deg, #0e2d19, #1e5f35)', icon: '#68d391', text: '#68d391', border: 'rgba(104,211,145,0.3)' },
-              { bg: 'linear-gradient(135deg, #163a5f, #1e4f80)', icon: '#7ec8f7', text: '#7ec8f7', border: 'rgba(126,200,247,0.3)' },
-              { bg: 'linear-gradient(135deg, #2e1a4e, #4a2e7a)', icon: '#c084fc', text: '#c084fc', border: 'rgba(192,132,252,0.3)' },
-              { bg: 'linear-gradient(135deg, #1a3a20, #2d6338)', icon: '#86efac', text: '#86efac', border: 'rgba(134,239,172,0.3)' },
+              { bg: 'linear-gradient(145deg, #0e2d19 0%, #174a27 100%)', icon: '#68d391', text: '#68d391', border: 'rgba(104,211,145,0.3)' },
+              { bg: 'linear-gradient(145deg, #102a43 0%, #1e3e62 100%)', icon: '#93c5fd', text: '#93c5fd', border: 'rgba(147,197,253,0.3)' },
+              { bg: 'linear-gradient(145deg, #24143d 0%, #3e2268 100%)', icon: '#c084fc', text: '#c084fc', border: 'rgba(192,132,252,0.3)' },
+              { bg: 'linear-gradient(145deg, #15331c 0%, #255430 100%)', icon: '#86efac', text: '#86efac', border: 'rgba(134,239,172,0.3)' },
             ];
             const ac = accentColors[idx % accentColors.length];
 
@@ -85,17 +117,19 @@ export const KpiSection = () => {
                 style={{
                   background: ac.bg,
                   border: `1px solid ${ac.border}`,
-                  boxShadow: `0 8px 28px -6px rgba(0,0,0,0.3)`,
+                  borderRadius: '6px',
+                  boxShadow: `0 10px 30px -6px rgba(0,0,0,0.45)`,
                   position: 'relative',
                   overflow: 'hidden',
+                  padding: '1.75rem 1.4rem',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px) scale(1.02)';
-                  e.currentTarget.style.boxShadow = `0 18px 40px -8px rgba(0,0,0,0.4)`;
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = `0 18px 40px -8px rgba(0,0,0,0.55)`;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
-                  e.currentTarget.style.boxShadow = `0 8px 28px -6px rgba(0,0,0,0.3)`;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = `0 10px 30px -6px rgba(0,0,0,0.45)`;
                 }}
               >
                 {/* Decoración de fondo */}
@@ -108,14 +142,14 @@ export const KpiSection = () => {
 
                 {/* Ícono */}
                 <div style={{
-                  width: '44px', height: '44px', borderRadius: '12px',
+                  width: '44px', height: '44px', borderRadius: '4px',
                   background: `${ac.icon}20`,
                   border: `1px solid ${ac.icon}40`,
                   color: ac.icon,
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   marginBottom: 'var(--space-xs)',
                 }}>
-                  <Icon size={21} />
+                  <Icon size={22} />
                 </div>
 
                 {/* Número */}

@@ -337,6 +337,16 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
             })}
           </div>
         )}
+
+        {/* ── Botón inferior Ver Todos los Programas (Estilo 'VIEW ALL GRADUATE') ── */}
+        <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+          <a
+            href="#programas"
+            className="btn-solid-dark"
+          >
+            <span>Ver Todos los Programas de Posgrado</span>
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -345,12 +355,12 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
 const metaPillStyle = {
   display: 'inline-flex',
   alignItems: 'center',
-  gap: '0.3rem',
-  background: 'rgba(255,255,255,0.10)',
-  color: 'rgba(255,255,255,0.80)',
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  padding: '0.22rem 0.6rem',
-  borderRadius: '99px',
-  border: '1px solid rgba(255,255,255,0.14)',
+  gap: '0.35rem',
+  background: 'rgba(255,255,255,0.12)',
+  color: 'rgba(255,255,255,0.92)',
+  fontSize: '0.74rem',
+  fontWeight: 700,
+  padding: '0.25rem 0.65rem',
+  borderRadius: '4px',
+  border: '1px solid rgba(255,255,255,0.2)',
 };
