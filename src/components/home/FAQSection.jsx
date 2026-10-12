@@ -1,66 +1,66 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Plus, Minus, BookOpen, Users, Calendar, Award, Laptop, HelpCircle } from 'lucide-react';
+import { MessageCircle, Plus, Minus, BookOpen, Users, Calendar, Award, Laptop, HelpCircle, Clock, FileText, Briefcase } from 'lucide-react';
 
 const faqs = [
   {
-    icon: BookOpen,
-    category: 'Requisitos',
-    question: '¿Cuáles son los requisitos generales para postular?',
-    answer: 'Se requiere título de licenciatura en áreas afines (Estadística, Matemáticas, Economía, Ingeniería, Ciencias de la Salud u otras), fotocopia legalizada del diploma académico, hoja de vida actualizada, nota de presentación institucional y aprobar el proceso de admisión (examen de nivelación y/o entrevista académica).',
-  },
-  {
-    icon: Award,
-    category: 'Programas',
-    question: '¿Cuál es la diferencia entre una Maestría y un Diplomado?',
-    answer: 'Las Maestrías duran 4 semestres (~18 meses) y otorgan el grado M.Sc., requiriendo tesis. Los Diplomados son 6 meses de especialización intensiva con diploma de posgrado, sin tesis. Ambos están avalados por el CEUB y la UMSA.',
-  },
-  {
-    icon: Users,
-    category: 'Acreditación',
-    question: '¿Los programas están acreditados y reconocidos oficialmente?',
-    answer: 'Sí. Todos los programas están aprobados mediante Resolución del Honorable Consejo Universitario (HCU) de la UMSA y registrados en el CEUB, garantizando reconocimiento nacional. Los títulos son emitidos por la UMSA.',
-  },
-  {
     icon: Calendar,
-    category: 'Modalidad',
-    question: '¿Cuál es la modalidad de estudio y los horarios?',
-    answer: 'Ofrecemos modalidad híbrida: clases presenciales en Campus Cota Cota (FCPN-UMSA) complementadas con sesiones virtuales síncronas. Horario principalmente nocturno (19:00–22:00 hrs) de lunes a jueves, pensado para profesionales activos.',
-  },
-  {
-    icon: HelpCircle,
-    category: 'Convocatorias',
-    question: '¿Cómo saber si una convocatoria está vigente?',
-    answer: 'Las convocatorias activas aparecen en la página de inicio y en "Programas Académicos". También puede consultar vía WhatsApp o siguiendo la página oficial de la Carrera de Estadística UMSA.',
-  },
-  {
-    icon: Award,
-    category: 'Financiamiento',
-    question: '¿Existe financiamiento o becas disponibles?',
-    answer: 'La UMSA ofrece becas institucionales para personal académico, administrativo y estudiantes. También se otorgan descuentos por pago al contado. Para más información sobre planes de financiamiento, comuníquese vía WhatsApp o correo institucional.',
+    category: 'Duración',
+    question: '¿Cuánto dura la Maestría en Ciencia y Análisis de Datos?',
+    answer: 'La tercera versión tiene actividades académicas programadas desde abril de 2027 hasta enero de 2029 aproximadamente 20 meses, equivalentes a un año y ocho meses. A este periodo se añade el tiempo previsto por la normativa para la tesis de maestría.',
   },
   {
     icon: Users,
     category: 'Postulación',
-    question: '¿Puedo iniciar el proceso de postulación en línea?',
-    answer: 'Sí. La postulación se realiza a través de un formulario en línea (Google Forms) disponible en cada convocatoria. También deberá presentar físicamente la documentación en la secretaría de la Unidad de Posgrado (Edificio Monoblock, Campus Cota Cota).',
+    question: '¿Quiénes pueden postular a la maestría?',
+    answer: 'La preinscripción solicita título académico y título profesional. El programa tiene orientación multidisciplinaria; la información consultada no establece una lista cerrada de carreras admitidas. La aceptación se comunica después de revisar la postulación.',
   },
   {
     icon: Laptop,
-    category: 'Software',
-    question: '¿Con qué software y herramientas trabajan los programas?',
-    answer: 'R / RStudio, Python (Jupyter, Pandas, Scikit-learn, PyTorch), SPSS, Stata, SAS Analytics, Stan (inferencia bayesiana) y herramientas de Big Data como Apache Spark. Los estudiantes tienen acceso a licencias institucionales y entornos de cómputo del laboratorio FCPN-UMSA.',
+    category: 'Modalidad',
+    question: '¿Cuál es la modalidad de estudio?',
+    answer: 'La modalidad publicada es semipresencial. Algunas materias serán 100% virtual y otras combinadas hibridas.',
+  },
+  {
+    icon: FileText,
+    category: 'Requisitos',
+    question: '¿Qué documentos se necesitan para postular?',
+    answer: 'Se solicitan copias escaneadas del título académico, título profesional, hoja de vida resumida y cédula de identidad por ambos lados. Después de la admisión se indican los documentos que deben presentarse físicamente.',
+  },
+  {
+    icon: BookOpen,
+    category: 'Contenido',
+    question: '¿Qué conocimientos se desarrollan durante la maestría?',
+    answer: 'Se estudian programación estadística, bases de datos, análisis multivariante, Big Data, minería de datos, modelos lineales y no lineales, y aprendizaje automático y profundo.',
+  },
+  {
+    icon: Clock,
+    category: 'Horarios',
+    question: '¿Cuáles son los horarios de clases?',
+    answer: 'Las clases son los lunes y miércoles, de 19:00 a 22:00, y los sábados, de 08:00 a 13:00.',
+  },
+  {
+    icon: Award,
+    category: 'Titulación',
+    question: '¿Qué título y certificaciones intermedias se obtienen?',
+    answer: 'El título es Magister Scientiarum en Ciencia y Análisis de Datos. La tercera versión contempla dos diplomas intermedios: Ciencia de Datos y Big Data, y Ciencia de Datos y Data Mining.',
+  },
+  {
+    icon: Briefcase,
+    category: 'Campo Laboral',
+    question: '¿En qué ámbitos se pueden aplicar los conocimientos adquiridos?',
+    answer: 'En investigación y análisis de datos, así como en asesoramiento a instituciones públicas y privadas. La formación aborda aplicaciones en negocios, economía, salud y tecnología.',
   },
 ];
 
 const categoryColors = {
-  'Requisitos':     { bg: '#eaf5ec', text: '#267342', dot: '#267342' },
-  'Programas':      { bg: '#edf4f9', text: '#4f7e9f', dot: '#4f7e9f' },
-  'Acreditación':   { bg: '#f5f0fa', text: '#7c5cbf', dot: '#7c5cbf' },
-  'Modalidad':      { bg: '#fdf7e7', text: '#9e7512', dot: '#9e7512' },
-  'Convocatorias':  { bg: '#fff0ee', text: '#b3392f', dot: '#b3392f' },
-  'Financiamiento': { bg: '#eaf5ec', text: '#267342', dot: '#267342' },
-  'Postulación':    { bg: '#edf4f9', text: '#4f7e9f', dot: '#4f7e9f' },
-  'Software':       { bg: '#f0f4ff', text: '#4060bf', dot: '#4060bf' },
+  'Duración':      { bg: '#edf4f9', text: '#4f7e9f', dot: '#4f7e9f' },
+  'Postulación':   { bg: '#f5f0fa', text: '#7c5cbf', dot: '#7c5cbf' },
+  'Modalidad':     { bg: '#fdf7e7', text: '#9e7512', dot: '#9e7512' },
+  'Requisitos':    { bg: '#eaf5ec', text: '#267342', dot: '#267342' },
+  'Contenido':     { bg: '#f0f4ff', text: '#4060bf', dot: '#4060bf' },
+  'Horarios':      { bg: '#fff0ee', text: '#b3392f', dot: '#b3392f' },
+  'Titulación':    { bg: '#eaf5ec', text: '#267342', dot: '#267342' },
+  'Campo Laboral': { bg: '#edf4f9', text: '#4f7e9f', dot: '#4f7e9f' },
 };
 
 const FAQItem = ({ faq, isOpen, onToggle, index }) => {
@@ -241,7 +241,7 @@ export const FAQSection = () => {
             Preguntas <span className="highlight">frecuentes</span>
           </h2>
           <p className="section-subtitle">
-            Todo lo que necesitas saber sobre nuestros programas de Maestría y Diplomado en Estadística.
+            Todo lo que necesitas saber sobre la Maestría en Ciencia y Análisis de Datos y nuestros programas de posgrado.
           </p>
         </div>
 
