@@ -39,6 +39,11 @@ import cardCienciaDatos from '../../assets/images/banner/card_maestria_ciencia_d
 import cardTerminalEstadistica from '../../assets/images/banner/card_maestria_terminal_estadistica.png';
 import cardDataMining from '../../assets/images/banner/card_diplomado_data_mining.png';
 
+// Posts y Afiches oficiales individuales para cada programa
+import postCienciaDatos from '../../assets/images/banner/post_maestria_ciencia_datos.png';
+import postTerminalEstadistica from '../../assets/images/banner/post_maestria_terminal_estadistica.png';
+import postDataMining from '../../assets/images/banner/post_diplomado_data_mining.jpg';
+
 const getProgramBannerUrl = (prog) => {
   const id = (prog?.id || '').toLowerCase();
   const code = (prog?.code || '').toLowerCase();
@@ -54,6 +59,23 @@ const getProgramBannerUrl = (prog) => {
     return cardDataMining;
   }
   return cardCienciaDatos;
+};
+
+const getProgramPostUrl = (prog) => {
+  const id = (prog?.id || '').toLowerCase();
+  const code = (prog?.code || '').toLowerCase();
+  const title = (prog?.title || '').toLowerCase();
+
+  if (id === 'pg-est-002' || id === 'msc-ciencia-datos' || code.includes('m01') || title.includes('ciencia') || title.includes('datos')) {
+    return postCienciaDatos;
+  }
+  if (id === 'pg-est-001' || id === 'msc-terminal-estadistica' || title.includes('terminal') || title.includes('estadística') || title.includes('estadistica') || title.includes('bioestadística') || title.includes('bioestadistica')) {
+    return postTerminalEstadistica;
+  }
+  if (id === 'pg-est-003' || id.includes('dip') || title.includes('mining') || title.includes('diplomado') || title.includes('métodos') || title.includes('metodos') || title.includes('machine learning') || title.includes('actuarial')) {
+    return postDataMining;
+  }
+  return postCienciaDatos;
 };
 
 // Helper to produce a direct download URL (handles Google Drive links directly)
@@ -261,6 +283,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
   ];
 
   const heroBannerUrl = getProgramBannerUrl(prog);
+  const programPostUrl = getProgramPostUrl(prog);
 
   return (
     <div className="program-detail-root animate-fade-in" style={{ backgroundColor: '#F0F2F5', minHeight: '100vh', color: '#373A40', paddingBottom: '5rem' }}>
@@ -636,7 +659,18 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           </div>
         </div>
 
-        {/* ── TAB 1: PERFIL ACADÉMICO (Azul Acero #4682B4 & Azul Apoyo #6495ED) ── */}
+        {/* ── LAYOUT PRINCIPAL: 2 columnas — contenido tabs (izq) + post lateral (der) ── */}
+        <div className="tab-layout-grid" style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 280px',
+          gap: '1.75rem',
+          alignItems: 'start',
+        }}>
+
+          {/* ── Columna izquierda: contenido de pestañas ── */}
+          <div>
+
+        {/* ── TAB 1: PERFIL ACADÉMICO ── */}
         {activeTab === 'perfil' && (
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             
@@ -1452,6 +1486,122 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           </div>
         )}
 
+          </div>{/* /columna-izquierda */}
+
+          {/* ── Columna derecha: Panel Lateral con Post Oficial del Programa ── */}
+          <div className="post-sidebar" style={{
+            position: 'sticky',
+            top: '90px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}>
+
+            {/* Post / Afiche del programa */}
+            <div style={{
+              borderRadius: '14px',
+              overflow: 'hidden',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.13)',
+              border: '2px solid #DCE1E6',
+              background: '#FFFFFF',
+            }}>
+              <img
+                src={programPostUrl}
+                alt={`Afiche oficial: ${prog.title}`}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
+              />
+            </div>
+
+            {/* Botones de acción rápidos */}
+            <a
+              href={directDownloadConvocatoria}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              style={{
+                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                padding: '0.85rem 1rem',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.55rem',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(5,150,105,0.3)',
+                transition: 'all 0.2s ease',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(5,150,105,0.4)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(5,150,105,0.3)'; }}
+            >
+              <Download size={16} strokeWidth={2.4} />
+              <span>Descargar Convocatoria</span>
+            </a>
+
+            <a
+              href={`https://wa.me/59176543210?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                background: 'linear-gradient(135deg, #128C7E 0%, #25D366 100%)',
+                color: '#FFFFFF',
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                padding: '0.85rem 1rem',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.55rem',
+                textDecoration: 'none',
+                boxShadow: '0 4px 14px rgba(37,211,102,0.3)',
+                transition: 'all 0.2s ease',
+                border: '1.5px solid rgba(255,255,255,0.2)',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              <MessageCircle size={16} strokeWidth={2.4} />
+              <span>Consultar por WhatsApp</span>
+            </a>
+
+            {/* Info rápida del programa */}
+            <div style={{
+              background: '#FFFFFF',
+              border: '1.5px solid #DCE1E6',
+              borderRadius: '12px',
+              padding: '1.1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.6rem',
+            }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#006400', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #DCE1E6', paddingBottom: '0.5rem', marginBottom: '0.2rem' }}>
+                Datos del Programa
+              </div>
+              {[
+                { label: 'Tipo', value: prog.type || (isMaster ? 'Maestría' : 'Diplomado'), color: '#2563EB' },
+                { label: 'Modalidad', value: prog.modality || 'Híbrida – Turno Noche', color: '#059669' },
+                { label: 'Duración', value: prog.duration || (isMaster ? '24 meses' : '6 meses'), color: '#7C3AED' },
+                { label: 'Créditos', value: prog.credits ? `${prog.credits} CEUB` : 'Acreditado SNC', color: '#D97706' },
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', gap: '0.5rem' }}>
+                  <span style={{ color: '#646973', fontWeight: 600 }}>{item.label}</span>
+                  <span style={{ fontWeight: 800, color: item.color, textAlign: 'right', maxWidth: '60%' }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>{/* /post-sidebar */}
+
+        </div>{/* /tab-layout-grid */}
+
         {/* ── BANNER INFERIOR DE AYUDA Y CONTACTO CON WHATSAPP FOSFORESCENTE ── */}
         <section style={{
           marginTop: '3.5rem',
@@ -1533,8 +1683,8 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           </div>
         </section>
 
-      </div>
-    </div>
+        </div>{/* /container */}
+      </div>{/* /tabs background div */}
 
       {/* Responsive adjustments */}
       <style>{`
@@ -1584,6 +1734,18 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
         .program-nav-tabs-mobile {
           display: none !important;
         }
+        /* Layout 2 columnas: contenido + sidebar post */
+        .tab-layout-grid {
+          grid-template-columns: 1fr 280px;
+        }
+        .post-sidebar {
+          display: flex;
+        }
+        @media (max-width: 1024px) {
+          .tab-layout-grid {
+            grid-template-columns: 1fr 240px !important;
+          }
+        }
         @media (max-width: 820px) {
           .program-nav-tabs-desktop {
             display: none !important;
@@ -1591,6 +1753,31 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           .program-nav-tabs-mobile {
             display: block !important;
           }
+          .tab-layout-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .post-sidebar {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.75rem !important;
+            position: static !important;
+          }
+          .post-sidebar img {
+            grid-column: 1 / -1;
+          }
+        }
+        @media (max-width: 520px) {
+          .post-sidebar {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        /* Animate fade in */
+        .animate-fade-in {
+          animation: fadeInUp 0.35s ease forwards;
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
