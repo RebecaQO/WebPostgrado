@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight, MessageCircle, CheckCircle2 } from 'lucide-react';
-import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+import cienciaBanner from '../../assets/images/banner/banner_maestria_datos.png';
 
 export const PromotionalBannerSection = ({ onSelectProgram }) => {
   const handleRedirect = () => {
@@ -12,7 +12,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
   };
 
   const whatsappMessage = encodeURIComponent(
-    'Hola, deseo consultar sobre la Maestría en Ciencia y Análisis de Datos (II Versión).'
+    'Hola, deseo consultar sobre la Maestría en Ciencia y Análisis de Datos (III Versión).'
   );
 
   return (
@@ -29,7 +29,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 0.9fr) minmax(0, 1.2fr)',
+          gridTemplateColumns: 'minmax(0, 0.95fr) minmax(0, 1.15fr)',
           width: '100%',
           background: '#0B192C',
           alignItems: 'center',
@@ -55,7 +55,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
         >
           <img
             src={cienciaBanner}
-            alt="Maestría en Ciencia y Análisis de Datos"
+            alt="Maestría en Ciencia y Análisis de Datos - UMSA"
             style={{
               maxWidth: '100%',
               maxHeight: '340px',
@@ -63,7 +63,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
               height: 'auto',
               objectFit: 'contain',
               display: 'block',
-              borderRadius: '4px',
+              borderRadius: '6px',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
               transition: 'transform 0.3s ease',
             }}
@@ -96,7 +96,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
                 margin: '0 0 0.35rem 0',
               }}
             >
-              UMSA · Facultad de Ciencias Puras y Naturales
+              UMSA · Facultad de Ciencias Puras y Naturales · Carrera de Estadística
             </p>
             <h2
               style={{
@@ -118,11 +118,11 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
                 fontWeight: 700,
               }}
             >
-              II Versión — Gestión Académica 2026
+              III Versión — Modalidad Semipresencial
             </p>
           </div>
 
-          {/* Párrafo descriptivo limpio sin ticks */}
+          {/* Párrafo descriptivo alineado al nuevo afiche */}
           <p
             style={{
               fontSize: '0.92rem',
@@ -132,7 +132,7 @@ export const PromotionalBannerSection = ({ onSelectProgram }) => {
               maxWidth: '68ch',
             }}
           >
-            Modalidad semipresencial con sesiones virtuales síncronas, orientada a herramientas avanzadas en R, Python, Machine Learning y Big Data en el Campus Universitario Cota Cota (Edificio FCPN).
+            Aprende R, Python, Machine Learning, Big Data, Minería de Datos, Inteligencia Artificial y Modelos lineales generalizados en un programa multidisciplinario enfocado en profesionales que buscan impacto real.
           </p>
 
           {/* Acciones principales */}

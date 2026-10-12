@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import bannerCiencia from '../../assets/images/banner/banner_ciencia.jpeg';
-import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+import cienciaBanner from '../../assets/images/banner/banner_maestria_datos.png';
 
 export const MasterBannerPopup = ({ onNavigateToProgram }) => {
   const [isOpen, setIsOpen] = useState(false);

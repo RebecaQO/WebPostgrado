@@ -3,7 +3,7 @@ import { GraduationCap, BookOpen, Search } from 'lucide-react';
 import { apiUrl } from '../../utils/api';
 
 const SLIDES = [
-  new URL('../../assets/images/carrusel/slide1.jpg', import.meta.url).href,
+  new URL('../../assets/images/carrusel/hero_banner.jpg', import.meta.url).href,
   new URL('../../assets/images/carrusel/slide2.jpg', import.meta.url).href,
   new URL('../../assets/images/carrusel/slide3.jpg', import.meta.url).href,
   new URL('../../assets/images/carrusel/slide4.jpg', import.meta.url).href,
