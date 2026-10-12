@@ -1517,62 +1517,6 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
               />
             </div>
 
-            {/* Botones de acción rápidos */}
-            <a
-              href={directDownloadConvocatoria}
-              target="_blank"
-              rel="noopener noreferrer"
-              download
-              style={{
-                background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '0.88rem',
-                padding: '0.85rem 1rem',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.55rem',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(5,150,105,0.3)',
-                transition: 'all 0.2s ease',
-                border: '1.5px solid rgba(255,255,255,0.2)',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(5,150,105,0.4)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(5,150,105,0.3)'; }}
-            >
-              <Download size={16} strokeWidth={2.4} />
-              <span>Descargar Convocatoria</span>
-            </a>
-
-            <a
-              href={`https://wa.me/59176543210?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                background: 'linear-gradient(135deg, #128C7E 0%, #25D366 100%)',
-                color: '#FFFFFF',
-                fontWeight: 800,
-                fontSize: '0.88rem',
-                padding: '0.85rem 1rem',
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.55rem',
-                textDecoration: 'none',
-                boxShadow: '0 4px 14px rgba(37,211,102,0.3)',
-                transition: 'all 0.2s ease',
-                border: '1.5px solid rgba(255,255,255,0.2)',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
-              <MessageCircle size={16} strokeWidth={2.4} />
-              <span>Consultar por WhatsApp</span>
-            </a>
-
             {/* Info rápida del programa */}
             <div style={{
               background: '#FFFFFF',
@@ -1736,14 +1680,19 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
         }
         /* Layout 2 columnas: contenido + sidebar post */
         .tab-layout-grid {
-          grid-template-columns: 1fr 280px;
+          grid-template-columns: 1fr 320px;
         }
         .post-sidebar {
           display: flex;
         }
+        @media (max-width: 1200px) {
+          .tab-layout-grid {
+            grid-template-columns: 1fr 300px !important;
+          }
+        }
         @media (max-width: 1024px) {
           .tab-layout-grid {
-            grid-template-columns: 1fr 240px !important;
+            grid-template-columns: 1fr 260px !important;
           }
         }
         @media (max-width: 820px) {
@@ -1757,18 +1706,25 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
             grid-template-columns: 1fr !important;
           }
           .post-sidebar {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 0.75rem !important;
             position: static !important;
+            flex-direction: row !important;
+            align-items: flex-start !important;
+            gap: 1rem !important;
           }
-          .post-sidebar img {
-            grid-column: 1 / -1;
+          .post-sidebar > div:first-child {
+            flex: 1 1 auto !important;
+            max-width: 320px !important;
+          }
+          .post-sidebar > div:last-child {
+            flex: 1 1 auto !important;
           }
         }
-        @media (max-width: 520px) {
+        @media (max-width: 580px) {
           .post-sidebar {
-            grid-template-columns: 1fr !important;
+            flex-direction: column !important;
+          }
+          .post-sidebar > div:first-child {
+            max-width: 100% !important;
           }
         }
         /* Animate fade in */
