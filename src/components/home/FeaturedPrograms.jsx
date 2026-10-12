@@ -15,10 +15,30 @@ import slide2 from '../../assets/images/carrusel/slide2.jpg';
 import slide3 from '../../assets/images/carrusel/slide3.jpg';
 import slide4 from '../../assets/images/carrusel/slide4.jpg';
 
-import bannerCiencia from '../../assets/images/banner/banner_ciencia.jpeg';
-import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+import cardCienciaDatos from '../../assets/images/banner/card_maestria_ciencia_datos.png';
+import cardTerminalEstadistica from '../../assets/images/banner/card_maestria_terminal_estadistica.png';
+import cardDataMining from '../../assets/images/banner/card_diplomado_data_mining.png';
 
 const CARD_IMAGES = [slide1, slide2, slide3, slide4];
+
+const getProgramCardBanner = (prog, idx) => {
+  const id = prog?.id || '';
+  const title = (prog?.title || '').toLowerCase();
+
+  if (id === 'PG-EST-002' || title.includes('ciencia')) {
+    return cardCienciaDatos;
+  }
+  if (id === 'PG-EST-001' || title.includes('terminal')) {
+    return cardTerminalEstadistica;
+  }
+  if (id === 'PG-EST-003' || title.includes('mining') || title.includes('métodos') || title.includes('metodos')) {
+    return cardDataMining;
+  }
+  if (prog?.banner) {
+    return prog.banner;
+  }
+  return CARD_IMAGES[idx % CARD_IMAGES.length];
+};
 
 export const FeaturedPrograms = ({ onSelectProgram }) => {
   const [programs, setPrograms] = useState([]);
@@ -163,11 +183,7 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
                   {/* ── Banner con Imagen superior de la tarjeta e insignia de diferenciación ── */}
                   <div style={{ position: 'relative', width: '100%', height: '175px', overflow: 'hidden' }}>
                     <img
-                      src={
-                        (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
-                          ? cienciaBanner
-                          : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length])
-                      }
+                      src={getProgramCardBanner(prog, idx)}
                       alt={prog.title}
                       style={{
                         width: '100%',

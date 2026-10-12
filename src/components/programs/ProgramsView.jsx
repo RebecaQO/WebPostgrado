@@ -22,10 +22,30 @@ import slide2 from '../../assets/images/carrusel/slide2.jpg';
 import slide3 from '../../assets/images/carrusel/slide3.jpg';
 import slide4 from '../../assets/images/carrusel/slide4.jpg';
 
-import bannerCiencia from '../../assets/images/banner/banner_ciencia.jpeg';
-import cienciaBanner from '../../assets/images/banner/cienciabanner.jpeg';
+import cardCienciaDatos from '../../assets/images/banner/card_maestria_ciencia_datos.png';
+import cardTerminalEstadistica from '../../assets/images/banner/card_maestria_terminal_estadistica.png';
+import cardDataMining from '../../assets/images/banner/card_diplomado_data_mining.png';
 
 const CARD_IMAGES = [slide1, slide2, slide3, slide4];
+
+const getProgramCardBanner = (prog, idx) => {
+  const id = prog?.id || '';
+  const title = (prog?.title || '').toLowerCase();
+
+  if (id === 'PG-EST-002' || title.includes('ciencia')) {
+    return cardCienciaDatos;
+  }
+  if (id === 'PG-EST-001' || title.includes('terminal')) {
+    return cardTerminalEstadistica;
+  }
+  if (id === 'PG-EST-003' || title.includes('mining') || title.includes('métodos') || title.includes('metodos')) {
+    return cardDataMining;
+  }
+  if (prog?.banner) {
+    return prog.banner;
+  }
+  return CARD_IMAGES[idx % CARD_IMAGES.length];
+};
 
 export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSelectProgram }) => {
   const [programs, setPrograms] = useState([]);
@@ -207,9 +227,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
   };
 
   const renderProgramCard = (prog, idx, isSuggested = false) => {
-    const cardImg = (prog.id === 'PG-EST-002' || (prog.title || '').toLowerCase().includes('ciencia'))
-      ? cienciaBanner
-      : (prog.imagen || CARD_IMAGES[idx % CARD_IMAGES.length]);
+    const cardImg = getProgramCardBanner(prog, idx);
     const isMaster = (prog.type || '').toLowerCase().includes('maestr') ||
       prog.typeFilter === 'maestria' ||
       prog.typeFilter === 'terminal' ||
@@ -246,7 +264,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
           {/* ── Imagen Superior de la Tarjeta con Insignia de Nivel ── */}
           <div style={{ position: 'relative', width: '100%', height: '190px', overflow: 'hidden' }}>
             <img
-              src={cardImg}
+              src={getProgramCardBanner(prog, idx)}
               alt={prog.title}
               style={{
                 width: '100%',
