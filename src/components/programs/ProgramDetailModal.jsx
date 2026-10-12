@@ -73,7 +73,6 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
   const hasPerfilEgreso = Boolean(prog.perfil_egreso && prog.perfil_egreso.trim());
   const hasPerfilAspirante = Boolean(prog.perfil_aspirante && prog.perfil_aspirante.trim());
   const hasRequisitos = Boolean(prog.requisitos_admision && prog.requisitos_admision.trim());
-  const hasTitulacion = Boolean(prog.modalidad_titulacion && prog.modalidad_titulacion.trim());
 
   // Collect unique docente names from curriculum for matching
   const curriculumDocentes = new Set();
@@ -326,40 +325,8 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
                 </div>
               )}
 
-              {/* Modalidades de Titulación */}
-              {hasTitulacion && (
-                <div style={{
-                  background: '#ffffff',
-                  borderRadius: '10px',
-                  padding: '1.5rem',
-                  border: '1px solid #e2e8f0',
-                }}>
-                  <h3 style={{
-                    fontSize: '1.05rem',
-                    fontWeight: 800,
-                    color: '#334155',
-                    margin: '0 0 0.85rem 0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.45rem'
-                  }}>
-                    <Award size={18} color={themeColor} />
-                    Modalidades de Titulación
-                  </h3>
-                  <p style={{
-                    fontSize: '0.88rem',
-                    color: '#475569',
-                    lineHeight: 1.7,
-                    whiteSpace: 'pre-line',
-                    margin: 0
-                  }}>
-                    {prog.modalidad_titulacion}
-                  </p>
-                </div>
-              )}
-
               {/* Si no hay datos de perfil en absoluto */}
-              {!hasPerfilEgreso && !hasPerfilAspirante && !hasRequisitos && !hasTitulacion && (
+              {!hasPerfilEgreso && !hasPerfilAspirante && !hasRequisitos && (
                 <div style={{
                   background: '#ffffff',
                   borderRadius: '10px',

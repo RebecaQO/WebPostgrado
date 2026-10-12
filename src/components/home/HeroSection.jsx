@@ -1,30 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GraduationCap, BookOpen, Search } from 'lucide-react';
 import { apiUrl } from '../../utils/api';
 
-const SLIDES = [
-  new URL('../../assets/images/carrusel/hero_banner.jpg', import.meta.url).href,
-  new URL('../../assets/images/carrusel/slide2.jpg', import.meta.url).href,
-  new URL('../../assets/images/carrusel/slide3.jpg', import.meta.url).href,
-  new URL('../../assets/images/carrusel/slide4.jpg', import.meta.url).href,
-];
+const HERO_IMAGE = new URL('../../assets/images/carrusel/hero_banner.jpg', import.meta.url).href;
 
 export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
-  const [current, setCurrent] = useState(0);
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedArea, setSelectedArea] = useState('');
   const [areas, setAreas] = useState([]);
   const bgRef = useRef(null);
-
-  // Auto-advance slides every 7 seconds
-  const next = useCallback(() => {
-    setCurrent((prev) => (prev + 1) % SLIDES.length);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(next, 7000);
-    return () => clearInterval(timer);
-  }, [next]);
 
   // Parallax suave en el background respetando prefers-reduced-motion
   useEffect(() => {
@@ -87,25 +71,17 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
 
   return (
     <section className="hero" aria-label="Introducción institucional">
-      {/* ── Background Slides ── */}
+      {/* ── Background estático ── */}
       <div ref={bgRef} className="hero__bg" aria-hidden="true">
-        {SLIDES.map((slideImg, idx) => (
-          <div
-            key={idx}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundImage: `url(${slideImg})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              opacity: idx === current ? 1 : 0,
-              transform: idx === current ? 'scale(1.02)' : 'scale(1)',
-              transitionProperty: 'opacity, transform',
-              transitionDuration: idx === current ? '7s, 7s' : '0.9s, 0.9s',
-              transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            }}
-          />
-        ))}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: `url(${HERO_IMAGE})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
       </div>
 
       {/* ── Overlay ── */}
@@ -320,26 +296,7 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
           `}</style>
         </div>
 
-        {/* Slide indicators */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '0.45rem', marginTop: 'var(--space-md)' }}>
-          {SLIDES.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrent(idx)}
-              aria-label={`Ir a slide ${idx + 1}`}
-              style={{
-                width: idx === current ? '22px' : '7px',
-                height: '7px',
-                borderRadius: '99px',
-                border: 'none',
-                background: idx === current ? '#68d391' : 'rgba(255,255,255,0.35)',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                padding: 0,
-              }}
-            />
-          ))}
-        </div>
+
 
       </div>
     </section>

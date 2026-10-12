@@ -163,7 +163,7 @@ export const InstitutionView = () => {
           <div className="section-header">
             <span className="eyebrow" style={{ borderRadius: '4px' }}>
               <Users size={14} />
-              <span>Autoridades &amp; Personal Encargado</span>
+              <span>Dirección &amp; Encargados Administrativos</span>
             </span>
             <h2
               id="authorities-title"
@@ -178,10 +178,10 @@ export const InstitutionView = () => {
                 margin: 'var(--space-2xs) 0 0.5rem 0'
               }}
             >
-              Dirección y Equipo de Coordinación
+              Dirección de Carrera y Personal Administrativo
             </h2>
             <p style={{ color: '#64748b', fontSize: '1.05rem', margin: 'var(--space-2xs) 0 0 0' }}>
-              Liderazgo institucional, coordinación académica y personal de apoyo al servicio de la comunidad de posgrado.
+              Liderazgo de la Carrera de Estadística y equipo administrativo de apoyo a la comunidad académica.
             </p>
           </div>
 
@@ -234,51 +234,44 @@ export const InstitutionView = () => {
                     border: '1px solid #4ade80',
                   }}
                 >
-                  Dirección Ejecutiva
+                  Dirección de Carrera
                 </span>
               </div>
 
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#93c5fd', fontSize: '0.85rem', fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
                   <Award size={16} />
-                  <span>Máxima Autoridad de Posgrado</span>
+                  <span>Máxima Autoridad</span>
                 </div>
                 <h3 style={{ fontSize: 'clamp(1.5rem, 2.4vw, 2rem)', fontWeight: 900, color: '#ffffff', margin: '0 0 0.25rem 0', letterSpacing: '-0.02em' }}>
                   {director.name}
                 </h3>
-                <div style={{ fontSize: '1rem', color: '#68d391', fontWeight: 700, marginBottom: '0.2rem' }}>
+                <div style={{ fontSize: '1.05rem', color: '#68d391', fontWeight: 700, marginBottom: '0.2rem' }}>
                   {director.role}
                 </div>
                 <div style={{ fontSize: '0.86rem', color: '#cbd5e1', marginBottom: '0.85rem' }}>
-                  {director.degree} · {director.office}
+                  {director.degree}
                 </div>
                 <p style={{ color: 'rgba(226, 232, 240, 0.92)', lineHeight: 1.65, fontSize: '0.94rem', margin: '0 0 1.1rem 0' }}>
                   {director.bio}
                 </p>
 
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
-                  <a
-                    href={`mailto:${director.email}`}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', color: '#e2e8f0', background: 'rgba(255,255,255,0.1)', padding: '0.4rem 0.85rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.2)' }}
-                  >
-                    <Mail size={14} color="#60a5fa" />
-                    <span>{director.email}</span>
-                  </a>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                    <Phone size={14} color="#68d391" />
-                    <span>{director.phone}</span>
+                    <Building2 size={15} color="#68d391" />
+                    <span>{director.office}</span>
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Grilla de Personal Encargado y Coordinadores */}
+          {/* Grilla de 2 Encargados Administrativos (Sin correos ni teléfonos) */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1.25rem'
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gap: '1.5rem'
             }}
           >
             {otherAuthorities.map((staff) => (
@@ -286,10 +279,10 @@ export const InstitutionView = () => {
                 key={staff.id}
                 style={{
                   background: '#ffffff',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   boxShadow: '0 4px 18px -4px rgba(0, 0, 0, 0.06)',
-                  padding: '1.5rem',
+                  padding: '1.75rem',
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
@@ -308,9 +301,9 @@ export const InstitutionView = () => {
                     src={staff.avatar}
                     alt={staff.name}
                     style={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: '6px',
+                      width: '72px',
+                      height: '72px',
+                      borderRadius: '8px',
                       objectFit: 'cover',
                       border: '2px solid var(--color-green-inst, #267342)',
                       background: '#f1f5f9',
@@ -323,7 +316,7 @@ export const InstitutionView = () => {
                         display: 'inline-block',
                         background: 'rgba(38, 115, 66, 0.1)',
                         color: 'var(--color-green-inst, #267342)',
-                        fontSize: '0.7rem',
+                        fontSize: '0.72rem',
                         fontWeight: 800,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
@@ -332,34 +325,28 @@ export const InstitutionView = () => {
                         marginBottom: '0.25rem',
                       }}
                     >
-                      Personal Encargado
+                      Personal Administrativo
                     </span>
-                    <h4 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25 }}>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0, lineHeight: 1.25 }}>
                       {staff.name}
                     </h4>
-                    <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
                       {staff.degree}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '0.86rem', color: 'var(--color-green-inst, #267342)', fontWeight: 800, marginBottom: '0.45rem' }}>
+                <div style={{ fontSize: '0.9rem', color: 'var(--color-green-inst, #267342)', fontWeight: 800, marginBottom: '0.45rem' }}>
                   {staff.role}
                 </div>
 
-                <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.55, margin: '0 0 1rem 0', flex: 1 }}>
+                <p style={{ fontSize: '0.86rem', color: '#475569', lineHeight: 1.6, margin: '0 0 1.1rem 0', flex: 1 }}>
                   {staff.bio}
                 </p>
 
-                <div style={{ paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.78rem', color: '#475569' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <Mail size={13} color="var(--color-green-inst, #267342)" />
-                    <a href={`mailto:${staff.email}`} style={{ color: '#2563eb', fontWeight: 600 }}>{staff.email}</a>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                    <Building2 size={13} color="#64748b" />
-                    <span>{staff.office}</span>
-                  </div>
+                <div style={{ paddingTop: '0.85rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.8rem', color: '#64748b' }}>
+                  <Building2 size={14} color="var(--color-green-inst, #267342)" />
+                  <span>{staff.office}</span>
                 </div>
               </div>
             ))}
@@ -924,70 +911,150 @@ export const InstitutionView = () => {
             </p>
           </div>
 
+          {/* Grilla de Docentes con Gama de Colores Armoniosa (Sin LinkedIn ni enlaces externos) */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 'var(--space-md)'
+            gap: '1.5rem'
           }}>
-            {docentes.map((doc) => {
+            {docentes.map((doc, idx) => {
               const fullName = doc.nombre_completo || doc.name || `${doc.nombre || ''} ${doc.apellido || ''}`;
               const degree = doc.titulo || doc.degree || 'MSc en Estadística';
               const specialty = doc.especialidad || doc.specialty || 'Estadística Aplicada';
               const photo = doc.foto_url || doc.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
               const bio = doc.bio || 'Docente e Investigador de la Carrera de Estadística (FCPN-UMSA).';
 
-              const scholarUrl = doc.scholar || doc.links?.scholar || 'https://scholar.google.com';
-              const orcidUrl = doc.orcid || doc.links?.orcid || 'https://orcid.org';
-              const researchgateUrl = doc.researchgate || doc.links?.researchgate || 'https://researchgate.net';
-              const linkedinUrl = doc.linkedin || doc.links?.linkedin || 'https://linkedin.com';
+              // Gama de colores armoniosa rotativa
+              const DOCENTE_PALETTES = [
+                {
+                  theme: '#2563EB',
+                  lightBg: '#EFF6FF',
+                  borderColor: '#BFDBFE',
+                  darkText: '#1D4ED8',
+                  glow: 'rgba(37, 99, 235, 0.15)',
+                  badge: 'Ciencia de Datos & Cómputo'
+                },
+                {
+                  theme: '#059669',
+                  lightBg: '#ECFDF5',
+                  borderColor: '#A7F3D0',
+                  darkText: '#047857',
+                  glow: 'rgba(5, 150, 105, 0.15)',
+                  badge: 'Bioestadística & Salud'
+                },
+                {
+                  theme: '#7C3AED',
+                  lightBg: '#F5F3FF',
+                  borderColor: '#DDD6FE',
+                  darkText: '#6D28D9',
+                  glow: 'rgba(124, 58, 237, 0.15)',
+                  badge: 'Modelación & IA'
+                },
+                {
+                  theme: '#D97706',
+                  lightBg: '#FFFBEB',
+                  borderColor: '#FDE68A',
+                  darkText: '#B45309',
+                  glow: 'rgba(217, 119, 6, 0.15)',
+                  badge: 'Econometría & Muestreo'
+                },
+                {
+                  theme: '#0891B2',
+                  lightBg: '#ECFEFF',
+                  borderColor: '#A5F3FC',
+                  darkText: '#0E7490',
+                  glow: 'rgba(8, 145, 178, 0.15)',
+                  badge: 'Minería de Datos'
+                },
+                {
+                  theme: '#DC2626',
+                  lightBg: '#FEF2F2',
+                  borderColor: '#FECACA',
+                  darkText: '#B91C1C',
+                  glow: 'rgba(220, 38, 38, 0.15)',
+                  badge: 'Inferencia Causal'
+                }
+              ];
+
+              const palette = DOCENTE_PALETTES[idx % DOCENTE_PALETTES.length];
 
               return (
                 <article
                   key={doc.id}
-                  className="stat"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    padding: 'var(--space-md)',
-                    borderRadius: '6px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff'
+                    padding: '1.75rem 1.5rem',
+                    borderRadius: '10px',
+                    border: `1.5px solid ${palette.borderColor}`,
+                    borderTop: `4px solid ${palette.theme}`,
+                    background: '#ffffff',
+                    boxShadow: `0 4px 18px ${palette.glow}`,
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 12px 28px ${palette.glow}`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = `0 4px 18px ${palette.glow}`;
                   }}
                 >
-                  <img
-                    src={photo}
-                    alt={fullName}
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
-                    }}
-                    style={{
-                      width: '92px',
-                      height: '92px',
-                      borderRadius: '50%',
-                      objectFit: 'cover',
-                      border: '2px solid var(--color-green-inst, #006400)',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
-                      marginBottom: 'var(--space-2xs)',
-                      background: '#f1f5f9'
-                    }}
-                  />
+                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <img
+                      src={photo}
+                      alt={fullName}
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+                      }}
+                      style={{
+                        width: '96px',
+                        height: '96px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: `3px solid ${palette.theme}`,
+                        boxShadow: `0 4px 16px ${palette.glow}`,
+                        display: 'block',
+                        background: '#f1f5f9'
+                      }}
+                    />
+                  </div>
 
-                  <h3 style={{ fontSize: '1.2rem', color: '#0f172a', margin: '0 0 0.2rem 0', fontWeight: 900 }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      background: palette.lightBg,
+                      color: palette.darkText,
+                      border: `1px solid ${palette.borderColor}`,
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      padding: '0.2rem 0.65rem',
+                      borderRadius: '99px',
+                      marginBottom: '0.55rem'
+                    }}
+                  >
+                    {palette.badge}
+                  </span>
+
+                  <h3 style={{ fontSize: '1.15rem', color: '#0f172a', margin: '0 0 0.25rem 0', fontWeight: 900, lineHeight: 1.25 }}>
                     {fullName}
                   </h3>
 
                   <div style={{
-                    fontSize: '0.84rem',
-                    color: 'var(--color-green-inst, #006400)',
+                    fontSize: '0.85rem',
+                    color: palette.theme,
                     fontWeight: 800,
-                    marginBottom: '0.2rem'
+                    marginBottom: '0.25rem'
                   }}>
                     {degree}
                   </div>
 
-                  <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: 'var(--space-2xs)' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600, marginBottom: '0.85rem' }}>
                     {specialty}
                   </div>
 
@@ -995,56 +1062,11 @@ export const InstitutionView = () => {
                     fontSize: '0.86rem',
                     color: '#475569',
                     lineHeight: 1.6,
-                    margin: '0 0 var(--space-sm) 0',
+                    margin: 0,
                     flex: 1
                   }}>
                     {bio}
                   </p>
-
-                  {/* Enlaces a Perfiles Académicos Rectangulares */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    flexWrap: 'wrap',
-                    justifyContent: 'center',
-                    paddingTop: 'var(--space-2xs)',
-                    borderTop: '1px solid #f1f5f9',
-                    width: '100%'
-                  }}>
-                    <a
-                      href={scholarUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ fontSize: '0.74rem', padding: '0.25rem 0.55rem', borderRadius: '4px', background: '#f1f5f9', color: '#334155', fontWeight: 700, border: '1px solid #e2e8f0' }}
-                    >
-                      Scholar
-                    </a>
-                    <a
-                      href={orcidUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ fontSize: '0.74rem', padding: '0.25rem 0.55rem', borderRadius: '4px', background: '#f1f5f9', color: '#334155', fontWeight: 700, border: '1px solid #e2e8f0' }}
-                    >
-                      ORCID
-                    </a>
-                    <a
-                      href={researchgateUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ fontSize: '0.74rem', padding: '0.25rem 0.55rem', borderRadius: '4px', background: '#f1f5f9', color: '#334155', fontWeight: 700, border: '1px solid #e2e8f0' }}
-                    >
-                      ResearchGate
-                    </a>
-                    <a
-                      href={linkedinUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ fontSize: '0.74rem', padding: '0.25rem 0.55rem', borderRadius: '4px', background: '#f1f5f9', color: '#334155', fontWeight: 700, border: '1px solid #e2e8f0' }}
-                    >
-                      LinkedIn
-                    </a>
-                  </div>
                 </article>
               );
             })}

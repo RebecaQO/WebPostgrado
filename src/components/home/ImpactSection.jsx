@@ -21,13 +21,13 @@ export const ImpactSection = ({ onExplorePrograms, onAboutInstitution }) => {
             overflow: 'hidden'
           }}
         >
-          <div className="impact__media" style={{ borderRadius: '6px 0 0 6px' }}>
+          <div className="impact__media" style={{ borderRadius: '6px 0 0 6px', background: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem' }}>
             <img
               src={slide4}
-              alt="Laboratorios de investigación y computación científica de posgrado UMSA"
+              alt="Oferta académica oficial de la Unidad de Posgrado Carrera de Estadística UMSA"
               loading="lazy"
               decoding="async"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{ width: '100%', height: '100%', maxHeight: '560px', objectFit: 'contain', display: 'block' }}
             />
           </div>
           <div className="impact__body" style={{ padding: 'clamp(2rem, 4vw, 3.2rem)' }}>

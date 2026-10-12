@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
+  ChevronDown,
   BookOpen,
   GraduationCap,
   Award,
@@ -32,6 +33,28 @@ import {
 import { apiFetch } from '../../utils/api';
 import { facultyData } from '../../data/facultyData';
 import { programsData } from '../../data/programsData';
+
+// Banners oficiales para cada maestría y diplomado
+import cardCienciaDatos from '../../assets/images/banner/card_maestria_ciencia_datos.png';
+import cardTerminalEstadistica from '../../assets/images/banner/card_maestria_terminal_estadistica.png';
+import cardDataMining from '../../assets/images/banner/card_diplomado_data_mining.png';
+
+const getProgramBannerUrl = (prog) => {
+  const id = (prog?.id || '').toLowerCase();
+  const code = (prog?.code || '').toLowerCase();
+  const title = (prog?.title || '').toLowerCase();
+
+  if (id === 'pg-est-002' || id === 'msc-ciencia-datos' || code.includes('m01') || title.includes('ciencia') || title.includes('datos')) {
+    return cardCienciaDatos;
+  }
+  if (id === 'pg-est-001' || id === 'msc-terminal-estadistica' || title.includes('terminal') || title.includes('estadística') || title.includes('estadistica') || title.includes('bioestadística') || title.includes('bioestadistica')) {
+    return cardTerminalEstadistica;
+  }
+  if (id === 'pg-est-003' || id.includes('dip') || title.includes('mining') || title.includes('diplomado') || title.includes('métodos') || title.includes('metodos') || title.includes('machine learning') || title.includes('actuarial')) {
+    return cardDataMining;
+  }
+  return cardCienciaDatos;
+};
 
 // Helper to produce a direct download URL (handles Google Drive links directly)
 const getDirectDownloadLink = (url) => {
@@ -184,93 +207,74 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
     `Hola, solicito información y orientación sobre el programa: ${prog.title} (Código: ${prog.code || prog.id || ''})`
   );
 
-  /* ═══════════════════════════════════════════════════════════════════
-     PALETA DE COLORES WEB CORPORATIVA - UNIDAD DE POSGRADO (UMSA)
-     • Fondo Principal: #F5F5F5
-     • Fondo Tarjetas: #EBE6DA
-     • Títulos y Texto: #373A40 | Textos Secundarios: #646973
-     • Verde Primario: #006400 | Acento Verde: #32CD32
-     • Azul Secundario: #4682B4 | Acento Azul: #6495ED
-     • Alertas: #DCF5DC (éxito) | #FFF5DC (advertencia)
-     • Divisores: #DCE1E6 | Bordes: #C8CDD2
-     • WhatsApp Fosforescente: #00FF66 / #25F46C con resplandor neón
-     ═══════════════════════════════════════════════════════════════════ */
-
   const tabConfigs = [
     {
       id: 'perfil',
-      label: '1. Perfil Académico',
+      label: 'Perfil Académico',
       icon: Compass,
-      color: '#4682B4',
-      gradient: 'linear-gradient(135deg, #2A5A84 0%, #4682B4 100%)',
-      subtleBg: '#E6EBF5',
-      borderColor: '#B8CBE0',
-      textColor: '#2A5A84'
+      color: '#2563EB',
+      gradient: 'linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%)',
+      subtleBg: '#EFF6FF',
+      borderColor: '#BFDBFE',
+      textColor: '#1D4ED8'
     },
     {
       id: 'materias',
-      label: `2. Materias & Malla ${curriculum.length > 0 ? `(${curriculum.length})` : ''}`,
+      label: 'Materias y Malla',
       icon: BookOpen,
-      color: '#006400',
-      gradient: 'linear-gradient(135deg, #004D00 0%, #006400 100%)',
-      subtleBg: '#DCF5DC',
-      borderColor: '#98DF98',
-      textColor: '#006400'
+      color: '#059669',
+      gradient: 'linear-gradient(135deg, #047857 0%, #10B981 100%)',
+      subtleBg: '#ECFDF5',
+      borderColor: '#A7F3D0',
+      textColor: '#047857'
     },
     {
       id: 'docentes',
-      label: '3. Docentes',
+      label: 'Docentes',
       icon: Users,
-      color: '#6495ED',
-      gradient: 'linear-gradient(135deg, #3C68B5 0%, #6495ED 100%)',
-      subtleBg: '#E6EBF5',
-      borderColor: '#B8CBE0',
-      textColor: '#2A5A84'
+      color: '#7C3AED',
+      gradient: 'linear-gradient(135deg, #6D28D9 0%, #8B5CF6 100%)',
+      subtleBg: '#F5F3FF',
+      borderColor: '#DDD6FE',
+      textColor: '#6D28D9'
     },
     {
       id: 'requisitos',
-      label: '4. Requisitos de Admisión',
+      label: 'Requisitos',
       icon: FileText,
-      color: '#006400',
-      gradient: 'linear-gradient(135deg, #005000 0%, #006400 100%)',
-      subtleBg: '#FFF5DC',
-      borderColor: '#E6D2A8',
-      textColor: '#373A40'
-    },
-    {
-      id: 'titulacion',
-      label: '5. Titulación',
-      icon: Award,
-      color: '#32CD32',
-      gradient: 'linear-gradient(135deg, #006400 0%, #228B22 100%)',
-      subtleBg: '#DCF5DC',
-      borderColor: '#98DF98',
-      textColor: '#006400'
+      color: '#D97706',
+      gradient: 'linear-gradient(135deg, #B45309 0%, #F59E0B 100%)',
+      subtleBg: '#FFFBEB',
+      borderColor: '#FDE68A',
+      textColor: '#B45309'
     },
     {
       id: 'fechas',
-      label: '6. Fechas & Horarios',
+      label: 'Fechas y Horarios',
       icon: CalendarDays,
-      color: '#4682B4',
-      gradient: 'linear-gradient(135deg, #2E5D82 0%, #4682B4 100%)',
-      subtleBg: '#E6EBF5',
-      borderColor: '#B8CBE0',
-      textColor: '#2A5A84'
+      color: '#DC2626',
+      gradient: 'linear-gradient(135deg, #B91C1C 0%, #EF4444 100%)',
+      subtleBg: '#FEF2F2',
+      borderColor: '#FECACA',
+      textColor: '#B91C1C'
     }
   ];
 
+  const heroBannerUrl = getProgramBannerUrl(prog);
+
   return (
-    <div className="program-detail-root animate-fade-in" style={{ backgroundColor: '#F5F5F5', minHeight: '100vh', color: '#373A40', paddingBottom: '5rem' }}>
+    <div className="program-detail-root animate-fade-in" style={{ backgroundColor: '#F0F2F5', minHeight: '100vh', color: '#373A40', paddingBottom: '5rem' }}>
       
-      {/* ── 1. Top Bar Navigation (Limpia con fondo corporativo #F0F2F5) ── */}
+      {/* ── 1. Top Bar Navigation ── */}
       <nav style={{
-        background: '#F0F2F5',
-        borderBottom: '1px solid #DCE1E6',
-        padding: '0.85rem 0',
+        background: 'rgba(15,20,30,0.92)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        padding: '0.7rem 0',
         position: 'sticky',
         top: '78px',
         zIndex: 40,
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
@@ -279,7 +283,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#006400',
+                color: '#86EFAC',
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'inline-flex',
@@ -289,219 +293,242 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                 borderRadius: '6px',
                 transition: 'all 0.15s ease'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#DCF5DC'}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(134,239,172,0.1)'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               <ArrowLeft size={16} />
               <span>Volver al Catálogo</span>
             </button>
-            <span style={{ color: '#C8CDD2' }}>/</span>
-            <span style={{ color: '#646973', fontWeight: 600 }}>{prog.type || (isMaster ? 'Maestría' : 'Diplomado')}</span>
-            <span style={{ color: '#C8CDD2' }}>/</span>
-            <span style={{ color: '#373A40', fontWeight: 700, maxWidth: '420px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <span style={{ color: 'rgba(255,255,255,0.25)' }}>/</span>
+            <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>{prog.type || (isMaster ? 'Maestría' : 'Diplomado')}</span>
+            <span style={{ color: 'rgba(255,255,255,0.25)' }}>/</span>
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, maxWidth: '380px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {prog.title}
             </span>
           </div>
         </div>
       </nav>
 
-      {/* ── 2. Hero Section Corporativo (Verde Institucional #006400 y Azul UMSA) ── */}
+      {/* ── 2. HERO: Banner full-width a pantalla completa con botones superpuestos ── */}
       <section style={{
-        background: 'linear-gradient(135deg, #003800 0%, #006400 55%, #1B3F63 100%)',
-        color: '#FFFFFF',
         position: 'relative',
+        width: '100%',
+        margin: 0,
+        padding: 0,
         overflow: 'hidden',
-        padding: '3rem 0 3.75rem 0'
+        backgroundColor: '#0F172A',
+        lineHeight: 0
       }}>
-        <div className="container" style={{ position: 'relative', zIndex: 10 }}>
-          <div style={{ maxWidth: '960px' }}>
-            
-            {/* Título Principal */}
-            <h1 style={{
-              fontSize: 'clamp(2rem, 4vw, 2.9rem)',
-              fontWeight: 900,
-              color: '#FFFFFF',
-              lineHeight: 1.18,
-              marginBottom: '1rem',
-              letterSpacing: '-0.02em'
-            }}>
-              {prog.title}
-            </h1>
+        {/* Imagen del Banner a todo lo ancho de la pantalla */}
+        <img
+          src={heroBannerUrl}
+          alt={prog.title || 'Banner del Programa'}
+          style={{
+            width: '100%',
+            height: 'auto',
+            minHeight: '240px',
+            maxHeight: '520px',
+            display: 'block',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+        />
 
-            {/* Descripción Breve */}
-            <p style={{
-              fontSize: '1.05rem',
-              lineHeight: 1.65,
-              color: '#E6EBF5',
-              marginBottom: '2rem',
-              maxWidth: '850px'
-            }}>
-              {prog.description || 'Formación de alto nivel en métodos estadísticos aplicados a ciencias sociales, salud y economía bajo estándares del CEUB y la FCPN UMSA.'}
-            </p>
-
-            {/* Acciones del Hero: Descarga Directa + WhatsApp FOSFORESCENTE */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              
-              {/* DESCARGA DIRECTA DE CONVOCATORIA OFICIAL (#006400 primario corporativo) */}
-              <a
-                href={directDownloadConvocatoria}
-                target="_blank"
-                rel="noopener noreferrer"
-                download
-                style={{
-                  background: '#006400',
-                  color: '#FFFFFF',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                  padding: '0.85rem 1.75rem',
-                  borderRadius: '8px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.6rem',
-                  border: '1.5px solid #32CD32',
-                  boxShadow: '0 4px 18px rgba(0, 100, 0, 0.45)',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#004D00';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 22px rgba(50, 205, 50, 0.45)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#006400';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 18px rgba(0, 100, 0, 0.45)';
-                }}
-              >
-                <Download size={19} />
-                <span>Descargar Convocatoria Oficial (PDF)</span>
-              </a>
-
-              {/* CONSULTAR POR WHATSAPP */}
-              <a
-                href={`https://wa.me/59176543210?text=${whatsappMessage}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{
-                  background: '#25D366',
-                  color: '#FFFFFF',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  padding: '0.8rem 1.4rem',
-                  borderRadius: '8px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.55rem',
-                  textDecoration: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
-                  transition: 'background 0.18s ease, transform 0.15s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#20BA5A';
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = '#25D366';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <MessageCircle size={19} color="#FFFFFF" strokeWidth={2.2} />
-                <span>Consultar por WhatsApp</span>
-              </a>
-
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── 3. Quick Info Strip con Colores Corporativos ── */}
-      <section style={{ position: 'relative', marginTop: '-24px', zIndex: 20 }}>
-        <div className="container">
-          <div style={{
-            background: '#FFFFFF',
-            borderRadius: '12px',
-            border: '1px solid #DCE1E6',
-            boxShadow: '0 8px 24px rgba(55, 58, 64, 0.08)',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            padding: '1.25rem 1.5rem',
-            gap: '1.25rem'
-          }} className="quick-info-strip">
-
-            <div style={{ borderRight: '1px solid #DCE1E6', paddingRight: '0.75rem' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#006400', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                MODALIDAD
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#373A40', marginTop: '0.2rem' }}>
-                {prog.modality || 'Híbrida – Turno Noche'}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#646973' }}>
-                Clases virtuales síncronas grabadas
-              </div>
-            </div>
-
-            <div style={{ borderRight: '1px solid #DCE1E6', paddingRight: '0.75rem' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#006400', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                DURACIÓN & CRÉDITOS
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#373A40', marginTop: '0.2rem' }}>
-                {prog.duration || (isMaster ? '24 meses' : '6 Meses')}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#646973' }}>
-                {prog.credits ? `${prog.credits} Créditos CEUB` : 'Acreditado SNC-CEUB'}
-              </div>
-            </div>
-
-            <div style={{ borderRight: '1px solid #DCE1E6', paddingRight: '0.75rem' }}>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#006400', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                SEDE & CAMPUS
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#373A40', marginTop: '0.2rem' }}>
-                Campus Universitario Cota Cota
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#646973' }}>
-                Edificio FCPN • La Paz, Bolivia
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#006400', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                GRADO ACADÉMICO
-              </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#373A40', marginTop: '0.2rem' }}>
-                {prog.degree || (isMaster ? 'M.Sc. en Ciencia de Datos' : 'Diploma de Posgrado')}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#646973' }}>
-                Homologación CEUB - UMSA
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4. Main Clean Tabs Navigation (Alineado con Paleta Corporativa UMSA) ── */}
-      <div className="container" style={{ marginTop: '2.5rem' }}>
-        
-        {/* TAB BUTTONS BAR */}
+        {/* Overlay degradado inferior para máximo contraste y legibilidad */}
         <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(to bottom, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.3) 50%, rgba(15,23,42,0.85) 100%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Botones de acción SUPERPUESTOS directamente sobre el Banner */}
+        <div className="hero-buttons-overlay" style={{
+          position: 'absolute',
+          bottom: '1.25rem',
+          right: '1.5rem',
           display: 'flex',
-          gap: '0.65rem',
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
+          gap: '0.85rem',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          zIndex: 10,
+        }}>
+          {/* BOTÓN DESCARGA DIRECTA DE CONVOCATORIA (Verde Esmeralda Corporativo) */}
+          <a
+            href={directDownloadConvocatoria}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            style={{
+              background: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              padding: '0.8rem 1.6rem',
+              borderRadius: '10px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.6rem',
+              border: '1.5px solid rgba(255, 255, 255, 0.35)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(5, 150, 105, 0.4)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(16, 185, 129, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(5, 150, 105, 0.4)';
+            }}
+          >
+            <Download size={18} strokeWidth={2.4} />
+            <span>Descargar Convocatoria Oficial (PDF)</span>
+          </a>
+
+          {/* BOTÓN CONSULTAR POR WHATSAPP (Verde WhatsApp Vibrante) */}
+          <a
+            href={`https://wa.me/59176543210?text=${whatsappMessage}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+              color: '#FFFFFF',
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              padding: '0.8rem 1.6rem',
+              borderRadius: '10px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.55rem',
+              border: '1.5px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(37, 211, 102, 0.4)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              whiteSpace: 'nowrap',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
+              e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.55), 0 4px 14px rgba(37, 211, 102, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(37, 211, 102, 0.4)';
+            }}
+          >
+            <MessageCircle size={18} color="#FFFFFF" strokeWidth={2.4} />
+            <span>Consultar por WhatsApp</span>
+          </a>
+        </div>
+      </section>
+
+      {/* ── 3. Quick Info Strip: Pegado directamente sin espacios, variedad de colores en métricas ── */}
+      <section style={{ position: 'relative', zIndex: 20, margin: 0, padding: 0 }}>
+        <div style={{
+          background: '#0B132B',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          margin: 0,
+          padding: 0,
+        }} className="quick-info-strip">
+
+          {[
+            {
+              label: 'MODALIDAD',
+              value: prog.modality || 'Híbrida Turno Noche',
+              sub: 'Clases virtuales síncronas grabadas',
+              accent: '#34D399',
+              bg: 'rgba(52, 211, 153, 0.08)',
+              border: 'rgba(52, 211, 153, 0.2)'
+            },
+            {
+              label: 'DURACIÓN Y CRÉDITOS',
+              value: prog.duration || (isMaster ? '24 meses' : '6 Meses'),
+              sub: prog.credits ? `${prog.credits} Créditos CEUB` : 'Acreditado SNC CEUB',
+              accent: '#60A5FA',
+              bg: 'rgba(96, 165, 250, 0.08)',
+              border: 'rgba(96, 165, 250, 0.2)'
+            },
+            {
+              label: 'SEDE Y CAMPUS',
+              value: 'Campus Universitario Cota Cota',
+              sub: 'Edificio FCPN, La Paz, Bolivia',
+              accent: '#C084FC',
+              bg: 'rgba(192, 132, 252, 0.08)',
+              border: 'rgba(192, 132, 252, 0.2)'
+            },
+            {
+              label: 'GRADO ACADÉMICO',
+              value: prog.degree || (isMaster ? 'M.Sc. en Ciencia de Datos' : 'Diploma de Posgrado'),
+              sub: 'Homologación CEUB / UMSA',
+              accent: '#FB923C',
+              bg: 'rgba(251, 146, 60, 0.08)',
+              border: 'rgba(251, 146, 60, 0.2)'
+            },
+          ].map((item, i) => (
+            <div key={i} style={{
+              padding: '1.15rem 1.4rem',
+              borderRight: i < 3 ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+              background: item.bg,
+              transition: 'background 0.2s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}>
+              <div style={{
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                color: item.accent,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                marginBottom: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: item.accent }} />
+                <span>{item.label}</span>
+              </div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#FFFFFF', lineHeight: 1.3 }}>
+                {item.value}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.55)', marginTop: '0.2rem' }}>
+                {item.sub}
+              </div>
+            </div>
+          ))}
+
+        </div>
+      </section>
+
+      {/* ── 4. Navegación de Pestañas — conectada directamente sin huecos vacíos ── */}
+      <div style={{ background: '#F8FAFC', padding: 0 }}>
+        <div className="container" style={{ paddingTop: '1.25rem' }}>
+
+        {/* DESKTOP: TAB BUTTONS BAR - Todos visibles en pantalla */}
+        <div className="program-nav-tabs-desktop" style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: '0.5rem',
           paddingBottom: '0.75rem',
           marginBottom: '2rem',
           borderBottom: '2px solid #DCE1E6'
-        }} className="program-nav-tabs">
-          
+        }}>
           {tabConfigs.map((tab) => {
             const isActive = activeTab === tab.id;
             const IconComponent = tab.icon;
-
             return (
               <button
                 key={tab.id}
@@ -509,18 +536,20 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.55rem',
-                  padding: '0.75rem 1.25rem',
+                  gap: '0.45rem',
+                  padding: '0.75rem 0.5rem',
                   borderRadius: '8px',
                   border: isActive ? `1.5px solid ${tab.color}` : `1.5px solid ${tab.borderColor}`,
                   background: isActive ? tab.gradient : '#FFFFFF',
                   color: isActive ? '#FFFFFF' : '#373A40',
-                  boxShadow: isActive ? '0 4px 14px rgba(0, 100, 0, 0.25)' : '0 1px 3px rgba(55,58,64,0.04)',
-                  fontSize: '0.885rem',
+                  boxShadow: isActive ? '0 4px 14px rgba(0,100,0,0.22)' : '0 1px 3px rgba(55,58,64,0.04)',
+                  fontSize: '0.85rem',
                   fontWeight: 800,
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
-                  transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)'
+                  transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                  justifyContent: 'center',
+                  width: '100%',
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
@@ -538,22 +567,73 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                 }}
               >
                 <div style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '6px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: isActive ? 'rgba(255, 255, 255, 0.22)' : tab.subtleBg,
+                  width: '22px', height: '22px', borderRadius: '5px', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  background: isActive ? 'rgba(255,255,255,0.22)' : tab.subtleBg,
                   color: isActive ? '#FFFFFF' : tab.color
                 }}>
-                  <IconComponent size={15} />
+                  <IconComponent size={14} />
                 </div>
                 <span>{tab.label}</span>
               </button>
             );
           })}
+        </div>
 
+        {/* MÓVIL: Barra Desplegable 100% Responsiva */}
+        <div className="program-nav-tabs-mobile" style={{ marginBottom: '1.75rem' }}>
+          <div style={{ position: 'relative', width: '100%' }}>
+            <label htmlFor="tab-dropdown-select" style={{
+              display: 'block',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              color: '#006400',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              marginBottom: '0.35rem'
+            }}>
+              Sección del Programa
+            </label>
+            <div style={{ position: 'relative' }}>
+              <select
+                id="tab-dropdown-select"
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 2.5rem 0.85rem 1rem',
+                  borderRadius: '10px',
+                  border: '2px solid #006400',
+                  background: '#FFFFFF',
+                  color: '#006400',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  boxShadow: '0 4px 12px rgba(0, 100, 0, 0.1)',
+                  cursor: 'pointer'
+                }}
+              >
+                {tabConfigs.map((t) => (
+                  <option key={t.id} value={t.id} style={{ color: '#373A40', fontWeight: 600 }}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <div style={{
+                position: 'absolute',
+                right: '1rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'none',
+                color: '#006400',
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <ChevronDown size={20} strokeWidth={2.5} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* ── TAB 1: PERFIL ACADÉMICO (Azul Acero #4682B4 & Azul Apoyo #6495ED) ── */}
@@ -758,10 +838,10 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
             }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: '#FFFFFF' }}>
-                  Plan de Estudios & Estructura Modular
+                  Plan de Estudios y Estructura Modular
                 </h3>
                 <div style={{ fontSize: '0.875rem', color: '#DCF5DC', marginTop: '0.25rem' }}>
-                  Homologado por el CEUB • Total: <strong>{prog.credits || '72'} créditos</strong> • Modalidad: <strong>{prog.modality || 'Híbrida'}</strong>
+                  Homologado por el CEUB | Total: <strong>{prog.credits || '72'} créditos</strong> | Modalidad: <strong>{prog.modality || 'Híbrida'}</strong>
                 </div>
               </div>
 
@@ -1016,62 +1096,94 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                 gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                 gap: '1.25rem'
               }}>
-                {facultyData.map((doc) => (
-                  <div
-                    key={doc.id}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '1.5px solid #DCE1E6',
-                      borderRadius: '8px',
-                      padding: '1.35rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      boxShadow: '0 2px 8px rgba(70, 130, 180, 0.05)',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
-                        <img
-                          src={doc.avatar}
-                          alt={doc.name}
-                          style={{
-                            width: '56px',
-                            height: '56px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                            border: '2.5px solid #4682B4'
-                          }}
-                        />
-                        <div>
-                          <h4 style={{ margin: '0 0 0.15rem 0', fontSize: '1rem', fontWeight: 800, color: '#373A40' }}>
-                            {doc.name}
-                          </h4>
-                          <div style={{ fontSize: '0.82rem', color: '#006400', fontWeight: 700 }}>
-                            {doc.degree}
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: '#646973' }}>
-                            {doc.university}
+                {facultyData.map((doc, idx) => {
+                  const DOC_COLORS = [
+                    { theme: '#2563EB', lightBg: '#EFF6FF', border: '#BFDBFE', darkText: '#1D4ED8' },
+                    { theme: '#059669', lightBg: '#ECFDF5', border: '#A7F3D0', darkText: '#047857' },
+                    { theme: '#7C3AED', lightBg: '#F5F3FF', border: '#DDD6FE', darkText: '#6D28D9' },
+                    { theme: '#D97706', lightBg: '#FFFBEB', border: '#FDE68A', darkText: '#B45309' },
+                    { theme: '#0891B2', lightBg: '#ECFEFF', border: '#A5F3FC', darkText: '#0E7490' },
+                    { theme: '#DC2626', lightBg: '#FEF2F2', border: '#FECACA', darkText: '#B91C1C' }
+                  ];
+                  const col = DOC_COLORS[idx % DOC_COLORS.length];
+
+                  return (
+                    <div
+                      key={doc.id}
+                      style={{
+                        background: '#FFFFFF',
+                        border: `1.5px solid ${col.border}`,
+                        borderTop: `4px solid ${col.theme}`,
+                        borderRadius: '10px',
+                        padding: '1.4rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)',
+                        transition: 'all 0.18s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-3px)';
+                        e.currentTarget.style.boxShadow = '0 8px 22px rgba(0, 0, 0, 0.08)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.04)';
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '0.85rem' }}>
+                          <img
+                            src={doc.avatar}
+                            alt={doc.name}
+                            style={{
+                              width: '58px',
+                              height: '58px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: `2.5px solid ${col.theme}`,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }}
+                          />
+                          <div>
+                            <h4 style={{ margin: '0 0 0.15rem 0', fontSize: '1rem', fontWeight: 900, color: '#1E293B' }}>
+                              {doc.name}
+                            </h4>
+                            <div style={{
+                              display: 'inline-block',
+                              fontSize: '0.74rem',
+                              color: col.darkText,
+                              background: col.lightBg,
+                              border: `1px solid ${col.border}`,
+                              fontWeight: 800,
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '4px',
+                              marginTop: '0.15rem'
+                            }}>
+                              {doc.degree}
+                            </div>
+                            <div style={{ fontSize: '0.74rem', color: '#64748B', marginTop: '0.2rem' }}>
+                              {doc.university}
+                            </div>
                           </div>
                         </div>
+
+                        <p style={{ fontSize: '0.84rem', color: '#475569', lineHeight: 1.55, margin: '0 0 0.85rem 0' }}>
+                          {doc.bio}
+                        </p>
                       </div>
 
-                      <p style={{ fontSize: '0.85rem', color: '#646973', lineHeight: 1.55, margin: '0 0 0.85rem 0' }}>
-                        {doc.bio}
-                      </p>
-                    </div>
-
-                    <div style={{ borderTop: '1px solid #DCE1E6', paddingTop: '0.75rem' }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#646973', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
-                        Especialidad / Línea:
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: '#373A40', fontWeight: 600 }}>
-                        {doc.specialty}
+                      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '0.75rem' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: col.theme, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.2rem' }}>
+                          Especialidad / Línea:
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#1E293B', fontWeight: 600 }}>
+                          {doc.specialty}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -1170,12 +1282,12 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
               {/* Lista interactiva de checkboxes */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {[
-                  { id: 'doc1', title: 'Fotocopia legalizada del Título en Provisión Nacional (Grado Licenciatura).' },
-                  { id: 'doc2', title: 'Fotocopia legalizada del Diploma Académico de Licenciatura.' },
-                  { id: 'doc3', title: 'Certificado de Nacimiento original y Cédula de Identidad vigente.' },
-                  { id: 'doc4', title: 'Currículum Vitae documentado y foliado según reglamento.' },
-                  { id: 'doc5', title: 'Carta de motivación y solicitud de postulación dirigida al Coordinador.' },
-                  { id: 'doc6', title: 'Formulario oficial de preinscripción digital completado.' }
+                  { id: 'doc1', title: 'Fotocopia legalizada del Título en Provisión Nacional (Grado Licenciatura)' },
+                  { id: 'doc2', title: 'Fotocopia legalizada del Diploma Académico de Licenciatura' },
+                  { id: 'doc3', title: 'Certificado de Nacimiento original y Cédula de Identidad vigente' },
+                  { id: 'doc4', title: 'Currículum Vitae documentado y foliado según reglamento' },
+                  { id: 'doc5', title: 'Carta de motivación y solicitud de postulación dirigida al Coordinador' },
+                  { id: 'doc6', title: 'Formulario oficial de preinscripción digital completado' }
                 ].map((item) => {
                   const isChecked = checkedDocs[item.id];
                   return (
@@ -1226,7 +1338,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                     Preinscripción Digital
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#646973' }}>
-                    Completar el formulario en línea y cargar comprobante digital.
+                    Completar el formulario en línea y cargar comprobante digital
                   </div>
                 </div>
 
@@ -1238,7 +1350,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                     Entrega de Carpeta
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#646973' }}>
-                    Presentación de títulos legalizados y foliados en Posgrado.
+                    Presentación de títulos legalizados y foliados en Posgrado
                   </div>
                 </div>
 
@@ -1250,7 +1362,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                     Evaluación de Méritos
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#646973' }}>
-                    Revisión por la Comisión Académica Evaluadora.
+                    Revisión por la Comisión Académica Evaluadora
                   </div>
                 </div>
 
@@ -1259,10 +1371,10 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                     Paso 4
                   </div>
                   <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#373A40', marginBottom: '0.2rem' }}>
-                    Admisión & Matrícula
+                    Admisión y Matrícula
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#646973' }}>
-                    Generación de código CPT y habilitación de campus virtual.
+                    Generación de código CPT y habilitación de campus virtual
                   </div>
                 </div>
               </div>
@@ -1271,78 +1383,6 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           </div>
         )}
 
-        {/* ── TAB 5: MODALIDADES DE TITULACIÓN (Verde Institucional & Verde Acento) ── */}
-        {activeTab === 'titulacion' && (
-          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-            <div style={cleanPanelStyle}>
-              <div style={sectionHeaderStyle('#DCF5DC', '#006400')}>
-                <div style={iconBadgeStyle('#DCF5DC', '#006400')}>
-                  <Award size={22} />
-                </div>
-                <div>
-                  <h3 style={sectionTitleStyle}>Modalidades de Titulación Aprobadas</h3>
-                  <p style={sectionSubtitleStyle}>Vías normadas por el Comité Ejecutivo de la Universidad Boliviana (CEUB)</p>
-                </div>
-              </div>
-
-              <div style={{
-                background: '#EBE6DA',
-                borderRadius: '8px',
-                padding: '1.5rem',
-                border: '1px solid #DCE1E6',
-                fontSize: '0.95rem',
-                color: '#373A40',
-                lineHeight: 1.8,
-                whiteSpace: 'pre-line',
-                marginBottom: '1.5rem'
-              }}>
-                {titulationText}
-              </div>
-
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                gap: '1.25rem'
-              }}>
-                <div style={{ background: '#FFFFFF', border: '1.5px solid #DCE1E6', borderRadius: '8px', padding: '1.35rem', boxShadow: '0 2px 6px rgba(55,58,64,0.03)' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '6px', background: '#DCF5DC', color: '#006400', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                    <Award size={20} />
-                  </div>
-                  <div style={{ fontWeight: 800, color: '#373A40', fontSize: '1rem', marginBottom: '0.35rem' }}>
-                    1. Tesis de Maestría
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#646973', lineHeight: 1.55 }}>
-                    Investigación científica original de rigor metodológico guiada por un docente tutor acreditado y defendida públicamente.
-                  </p>
-                </div>
-
-                <div style={{ background: '#FFFFFF', border: '1.5px solid #DCE1E6', borderRadius: '8px', padding: '1.35rem', boxShadow: '0 2px 6px rgba(55,58,64,0.03)' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '6px', background: '#E6EBF5', color: '#4682B4', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                    <FileText size={20} />
-                  </div>
-                  <div style={{ fontWeight: 800, color: '#373A40', fontSize: '1rem', marginBottom: '0.35rem' }}>
-                    2. Artículo Científico Indexado
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#646973', lineHeight: 1.55 }}>
-                    Publicación de al menos un artículo científico como autor principal en revistas indexadas (Scopus, SciELO o Web of Science).
-                  </p>
-                </div>
-
-                <div style={{ background: '#FFFFFF', border: '1.5px solid #DCE1E6', borderRadius: '8px', padding: '1.35rem', boxShadow: '0 2px 6px rgba(55,58,64,0.03)' }}>
-                  <div style={{ width: '38px', height: '38px', borderRadius: '6px', background: '#DCF5DC', color: '#006400', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                    <CheckCircle2 size={20} />
-                  </div>
-                  <div style={{ fontWeight: 800, color: '#373A40', fontSize: '1rem', marginBottom: '0.35rem' }}>
-                    3. Trabajo Dirigido
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: '#646973', lineHeight: 1.55 }}>
-                    Solución práctica de un problema metodológico o analítico concreto en una institución pública o del sector productivo.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ── TAB 6: FECHAS & HORARIOS (Azul Acero #4682B4 & #E6EBF5) ── */}
         {activeTab === 'fechas' && (
@@ -1369,28 +1409,28 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                   <div style={dateBadgeStyle('#DCF5DC', '#006400')}>Paso 1</div>
                   <div style={dateTitleStyle}>Publicación de Bases</div>
                   <div style={dateValueStyle}>Gestión 2026</div>
-                  <div style={dateDescStyle}>Apertura de inscripciones y descarga de guías académicas.</div>
+                  <div style={dateDescStyle}>Apertura de inscripciones y descarga de guías académicas</div>
                 </div>
 
                 <div style={dateCardStyle}>
                   <div style={dateBadgeStyle('#FFF5DC', '#B8860B')}>Paso 2</div>
                   <div style={dateTitleStyle}>Recepción de Carpetas</div>
                   <div style={dateValueStyle}>Ventanilla de Posgrado</div>
-                  <div style={dateDescStyle}>Entrega de expedientes y títulos legalizados.</div>
+                  <div style={dateDescStyle}>Entrega de expedientes y títulos legalizados</div>
                 </div>
 
                 <div style={dateCardStyle}>
                   <div style={dateBadgeStyle('#E6EBF5', '#4682B4')}>Paso 3</div>
                   <div style={dateTitleStyle}>Evaluación de Méritos</div>
                   <div style={dateValueStyle}>Comité de Posgrado</div>
-                  <div style={dateDescStyle}>Calificación curricular y publicación de listas de admitidos.</div>
+                  <div style={dateDescStyle}>Calificación curricular y publicación de listas de admitidos</div>
                 </div>
 
                 <div style={dateCardStyle}>
                   <div style={dateBadgeStyle('#DCF5DC', '#006400')}>Paso 4</div>
                   <div style={dateTitleStyle}>Inicio de Clases</div>
-                  <div style={dateValueStyle}>Semestre I - 2026</div>
-                  <div style={dateDescStyle}>Sesiones síncronas programadas e inducción a la plataforma.</div>
+                  <div style={dateValueStyle}>Semestre I 2026</div>
+                  <div style={dateDescStyle}>Sesiones síncronas programadas e inducción a la plataforma</div>
                 </div>
               </div>
 
@@ -1399,13 +1439,13 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
                   <Clock size={18} color="#006400" />
                   <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#373A40' }}>
-                    Horario de Clases & Turnos
+                    Horario de Clases y Turnos
                   </h4>
                 </div>
-                <div style={{ fontSize: '0.92rem', color: '#646973', lineHeight: 1.7 }}>
-                  • <strong>Días de Clases:</strong> Lunes a Jueves (Turno Noche: 19:00 a 22:00 h).<br />
-                  • <strong>Modalidad:</strong> Clases virtuales síncronas mediante plataforma Zoom / Meet de la UMSA, con grabación disponible 24/7.<br />
-                  • <strong>Talleres Prácticos:</strong> Laboratorios de computación estadística en Campus Cota Cota (programados en fines de semana o virtuales).
+                <div style={{ fontSize: '0.92rem', color: '#646973', lineHeight: 1.85 }}>
+                  <div style={{ marginBottom: '0.5rem' }}><strong>Días de Clases:</strong> Lunes a Jueves, Turno Noche de 19:00 a 22:00 h</div>
+                  <div style={{ marginBottom: '0.5rem' }}><strong>Modalidad:</strong> Clases virtuales síncronas mediante plataforma Zoom y Meet de la UMSA, con grabación disponible 24/7</div>
+                  <div><strong>Talleres Prácticos:</strong> Laboratorios de computación estadística en Campus Cota Cota, programados en fines de semana o de forma virtual</div>
                 </div>
               </div>
             </div>
@@ -1494,6 +1534,7 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
         </section>
 
       </div>
+    </div>
 
       {/* Responsive adjustments */}
       <style>{`
@@ -1501,10 +1542,54 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
           .quick-info-strip {
             grid-template-columns: 1fr 1fr !important;
           }
+          .hero-buttons-overlay {
+            position: absolute !important;
+            bottom: 0.75rem !important;
+            left: 0.75rem !important;
+            right: 0.75rem !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+          }
+          .hero-buttons-overlay > a {
+            flex: 1 1 160px !important;
+            padding: 0.65rem 0.9rem !important;
+            font-size: 0.8rem !important;
+            justify-content: center !important;
+          }
         }
         @media (max-width: 520px) {
           .quick-info-strip {
             grid-template-columns: 1fr !important;
+          }
+          .hero-buttons-overlay {
+            position: absolute !important;
+            bottom: 0.5rem !important;
+            left: 0.5rem !important;
+            right: 0.5rem !important;
+            flex-direction: column !important;
+            gap: 0.4rem !important;
+          }
+          .hero-buttons-overlay > a {
+            width: 100% !important;
+            padding: 0.6rem 0.8rem !important;
+            font-size: 0.78rem !important;
+          }
+        }
+        /* Tabs responsive: desktop muestra los 5 botones en pantalla, móvil muestra barra desplegable */
+        .program-nav-tabs-desktop {
+          display: grid !important;
+          grid-template-columns: repeat(5, 1fr) !important;
+          gap: 0.5rem !important;
+        }
+        .program-nav-tabs-mobile {
+          display: none !important;
+        }
+        @media (max-width: 820px) {
+          .program-nav-tabs-desktop {
+            display: none !important;
+          }
+          .program-nav-tabs-mobile {
+            display: block !important;
           }
         }
       `}</style>
