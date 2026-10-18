@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Phone, ExternalLink, MessageCircle, ShieldCheck, BookOpen } from 'lucide-react';
+import { institucionService } from '../../services/institucionService';
 
 export const TopBar = () => {
   const [info, setInfo] = useState({
@@ -12,12 +13,9 @@ export const TopBar = () => {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await fetch('/api/institucion/info');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.email_principal) {
-            setInfo(prev => ({ ...prev, ...data }));
-          }
+        const data = await institucionService.getInfo();
+        if (data && data.email_principal) {
+          setInfo(prev => ({ ...prev, ...data }));
         }
       } catch (err) {
         console.error('Error cargando info institucional en TopBar:', err);

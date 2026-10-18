@@ -18,6 +18,7 @@ import {
   FileCheck,
   Building
 } from 'lucide-react';
+import { programaService } from '../../services/programaService';
 
 export const AdmissionWizard = ({ preselectedProgramId, onFinished }) => {
   const { addApplicant } = useApplicants();
@@ -29,8 +30,7 @@ export const AdmissionWizard = ({ preselectedProgramId, onFinished }) => {
   useEffect(() => {
     const loadPrograms = async () => {
       try {
-        const response = await fetch('/api/programas/activos');
-        const data = await response.json();
+        const data = await programaService.getActivos();
         const validPrograms = Array.isArray(data) ? data : [];
         setProgramList(validPrograms);
 

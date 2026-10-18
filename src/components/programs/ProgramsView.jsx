@@ -16,6 +16,7 @@ import {
   ChevronUp,
   RotateCcw
 } from 'lucide-react';
+import { programaService } from '../../services/programaService';
 
 import slide1 from '../../assets/images/carrusel/slide1.jpg';
 import slide2 from '../../assets/images/carrusel/slide2.jpg';
@@ -94,8 +95,7 @@ export const ProgramsView = ({ onNavigateToAdmission, initialFilter = null, onSe
     const loadPrograms = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/programas/activos');
-        const data = await response.json();
+        const data = await programaService.getActivos();
         setPrograms(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error('Error cargando programas desde la BD:', error);

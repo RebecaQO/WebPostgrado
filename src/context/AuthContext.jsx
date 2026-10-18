@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { apiUrl } from '../utils/api';
+import { authService } from '../services/authService';
 
 const AuthContext = createContext();
 
@@ -50,17 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch(apiUrl('/api/auth/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        setAuthError(data.error || 'Credenciales inválidas');
-        return false;
-      }
+      const data = await authService.login(email, password);
 
       const normalizedUser = {
         ...DEFAULT_PROFILES.admin,
@@ -75,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       return normalizedUser;
     } catch (error) {
       console.error('Error durante autenticación:', error);
-      setAuthError('Error de red o servidor no disponible');
+      setAuthError(error.message || 'Error de red o servidor no disponible');
       return false;
     }
   };

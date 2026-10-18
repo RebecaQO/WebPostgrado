@@ -8,6 +8,7 @@ import {
   Info,
   ArrowRight
 } from 'lucide-react';
+import { programaService } from '../../services/programaService';
 
 export const AdmissionView = ({ targetProgramId = null }) => {
   const [programs, setPrograms] = useState([]);
@@ -17,14 +18,11 @@ export const AdmissionView = ({ targetProgramId = null }) => {
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        const res = await fetch('/api/programas/activos');
-        if (res.ok) {
-          const data = await res.json();
-          const items = Array.isArray(data) ? data : [];
-          setPrograms(items);
-          if (!selectedProgramId && items.length > 0) {
-            setSelectedProgramId(targetProgramId || items[0].id);
-          }
+        const data = await programaService.getActivos();
+        const items = Array.isArray(data) ? data : [];
+        setPrograms(items);
+        if (!selectedProgramId && items.length > 0) {
+          setSelectedProgramId(targetProgramId || items[0].id);
         }
       } catch (err) {
         console.error('Error cargando programas para inscripción:', err);

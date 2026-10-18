@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GraduationCap, BookOpen, Search } from 'lucide-react';
-import { apiUrl } from '../../utils/api';
+import { programaService } from '../../services/programaService';
 
 const HERO_IMAGE = new URL('../../assets/images/carrusel/hero_banner.jpg', import.meta.url).href;
 
@@ -36,17 +36,14 @@ export const HeroSection = ({ onNavigate, onFilterPrograms }) => {
   useEffect(() => {
     const fetchAreas = async () => {
       try {
-        const res = await fetch(apiUrl('/api/programas/activos'));
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data)) {
-            const unique = [...new Set(
-              data
-                .map(p => p.area || '')
-                .filter(a => a.trim().length > 0)
-            )].sort();
-            setAreas(unique);
-          }
+        const data = await programaService.getActivos();
+        if (Array.isArray(data)) {
+          const unique = [...new Set(
+            data
+              .map(p => p.area || '')
+              .filter(a => a.trim().length > 0)
+          )].sort();
+          setAreas(unique);
         }
       } catch (_) {
         // Fallback

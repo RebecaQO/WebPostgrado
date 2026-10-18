@@ -9,6 +9,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import logoPosgrado from '../../assets/images/logo/logo_posgrado.jpg';
+import { institucionService } from '../../services/institucionService';
 
 export const Footer = ({ onNavigate }) => {
   const [emailSub, setEmailSub] = useState('');
@@ -24,12 +25,9 @@ export const Footer = ({ onNavigate }) => {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await fetch('/api/institucion/info');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.email_principal) {
-            setInfo(prev => ({ ...prev, ...data }));
-          }
+        const data = await institucionService.getInfo();
+        if (data && data.email_principal) {
+          setInfo(prev => ({ ...prev, ...data }));
         }
       } catch (err) {
         console.error('Error cargando info institucional en Footer:', err);

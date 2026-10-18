@@ -30,7 +30,7 @@ import {
   CheckSquare,
   Square
 } from 'lucide-react';
-import { apiFetch } from '../../utils/api';
+import { programaService } from '../../services/programaService';
 import { facultyData } from '../../data/facultyData';
 import { programsData } from '../../data/programsData';
 
@@ -124,31 +124,14 @@ export const ProgramDetailView = ({ programId, program: initialProgram, onBack, 
     const fetchFullData = async () => {
       try {
         setLoading(true);
-        let res;
-        try {
-          res = await fetch(`/api/programas/${targetId}/malla`);
-          if (!res.ok) throw new Error();
-        } catch {
-          res = await apiFetch(`/api/programas/${targetId}/malla`);
-        }
-
-        if (res && res.ok) {
-          const data = await res.json();
-          if (isMounted) {
-            setProgramData(data);
-          }
-        } else {
-          const fallback = programsData.find(
-            (p) => p.id === targetId || p.code === targetId || p.title === targetId
-          );
-          if (isMounted && fallback) {
-            setProgramData((prev) => prev || fallback);
-          }
+        const data = await programaService.getMalla(targetId);
+        if (isMounted && data) {
+          setProgramData(data);
         }
       } catch (err) {
         console.warn('Error cargando datos del programa:', err);
         const fallback = programsData.find(
-          (p) => p.id === targetId || p.code === targetId
+          (p) => p.id === targetId || p.code === targetId || p.title === targetId
         );
         if (isMounted && fallback) {
           setProgramData((prev) => prev || fallback);

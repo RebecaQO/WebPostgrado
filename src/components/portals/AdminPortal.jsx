@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import {
+  programaService,
+  adminService,
+  docenteService,
+  convocatoriaService,
+  defensaService,
+  institucionService,
+} from '../../services';
 import { 
   GraduationCap, 
   Users, 
@@ -42,6 +50,7 @@ import {
   Globe,
   PhoneCall
 } from 'lucide-react';
+import { ProgramEditorFixed } from './ProgramEditorFixed';
 
 export const AdminPortal = () => {
   const { currentUser } = useAuth();
@@ -94,6 +103,10 @@ export const AdminPortal = () => {
     nota: '',
     enlace_acta: ''
   });
+
+  // Program Fixed In-Page Editor (Misma ventana, interactivo sin modales)
+  const [fixedEditorOpen, setFixedEditorOpen] = useState(false);
+  const [selectedProgramForEditor, setSelectedProgramForEditor] = useState(null);
 
   // Program Modal CRUD
   const [programModalOpen, setProgramModalOpen] = useState(false);
@@ -190,25 +203,17 @@ export const AdminPortal = () => {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      const [progRes, userRes, roleRes, docRes, convRes, infoRes, defensasRes] = await Promise.all([
-        fetch('/api/admin/programas'),
-        fetch('/api/admin/usuarios'),
-        fetch('/api/admin/roles'),
-        fetch('/api/admin/docentes'),
-        fetch('/api/convocatorias-pasadas'),
-        fetch('/api/institucion/info'),
-        fetch('/api/defensas-tesis')
+      const [progData, userData, roleData, docData, convData, infoData, defensasData] = await Promise.all([
+        programaService.adminGetAll(),
+        adminService.getUsuarios(),
+        adminService.getRoles(),
+        docenteService.getAdminDocentes(),
+        convocatoriaService.getConvocatoriasPasadas(),
+        institucionService.getInfo(),
+        defensaService.getDefensasTesis(),
       ]);
 
-      const progData = await progRes.json();
-      const userData = await userRes.json();
-      const roleData = await roleRes.json();
-      const docData = await docRes.json();
-      const convData = await convRes.json();
-      const infoData = await infoRes.json();
-      const defensasData = await defensasRes.json();
-
-      const items = Array.isArray(progData.items) ? progData.items : [];
+      const items = Array.isArray(progData?.items) ? progData.items : [];
       setProgramCatalog(items);
       if (items.length > 0 && !selectedProgramForCurriculum) {
         setSelectedProgramForCurriculum(items[0].id);
@@ -237,11 +242,8 @@ export const AdminPortal = () => {
     if (!progId) return;
     setIsLoadingModules(true);
     try {
-      const res = await fetch(`/api/admin/programas/${progId}/modulos`);
-      if (res.ok) {
-        const data = await res.json();
-        setProgramModules(Array.isArray(data.modulos) ? data.modulos : []);
-      }
+      const data = await programaService.getModulos(progId);
+      setProgramModules(Array.isArray(data?.modulos) ? data.modulos : []);
     } catch (err) {
       console.error('Error cargando módulos:', err);
     } finally {
@@ -315,20 +317,11 @@ export const AdminPortal = () => {
   const handleSaveProgram = async (e) => {
     e.preventDefault();
     try {
-      const url = editingProgram 
-        ? `/api/admin/programas/${editingProgram.id}`
-        : '/api/admin/programas';
-      const method = editingProgram ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(programForm)
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error al guardar programa');
-
+      if (editingProgram) {
+        await programaService.update(editingProgram.id, programForm);
+      } else {
+        await programaService.create(programForm);
+      }
       showNotification(editingProgram ? 'Programa actualizado correctamente' : 'Nuevo programa creado en Neon DB');
       setProgramModalOpen(false);
       fetchAllData();
@@ -340,10 +333,7 @@ export const AdminPortal = () => {
   const handleDeleteProgram = async (progId) => {
     if (!window.confirm(`¿Está seguro de eliminar el programa "${progId}"? Esta acción no se puede deshacer.`)) return;
     try {
-      const response = await fetch(`/api/admin/programas/${progId}`, { method: 'DELETE' });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error al eliminar');
-
+      await programaService.delete(progId);
       showNotification('Programa eliminado de la base de datos');
       fetchAllData();
     } catch (err) {
@@ -354,12 +344,7 @@ export const AdminPortal = () => {
   const handleToggleProgramStatus = async (programId, currentStatus) => {
     const nextStatus = currentStatus === 'Activo' ? 'Inactivo' : 'Activo';
     try {
-      const res = await fetch(`/api/admin/programas/${programId}/estado`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: nextStatus })
-      });
-      if (!res.ok) throw new Error('Error al cambiar estado');
+      await programaService.updateStatus(programId, nextStatus);
       showNotification(`Estado de ${programId} cambiado a ${nextStatus}`);
       fetchAllData();
     } catch (err) {
@@ -370,13 +355,7 @@ export const AdminPortal = () => {
   const handleConcluirPrograma = async (progId, progTitle) => {
     if (!window.confirm(`¿Desea dar por concluida la edición de "${progTitle}" y mandarla al repositorio histórico de Convocatorias Pasadas?`)) return;
     try {
-      const res = await fetch(`/api/admin/programas/${progId}/concluir`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al concluir edición');
-
+      const data = await programaService.concluir(progId);
       showNotification(`Edición concluida: ${data.message || 'Archivada en Convocatorias Pasadas'}`);
       fetchAllData();
     } catch (err) {
@@ -389,17 +368,10 @@ export const AdminPortal = () => {
     e.preventDefault();
     if (!selectedProgramForCurriculum || !moduloForm.nombre_mod) return;
     try {
-      const res = await fetch('/api/admin/modulos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id_programa: selectedProgramForCurriculum,
-          nombre_mod: moduloForm.nombre_mod
-        })
+      await programaService.createModulo({
+        id_programa: selectedProgramForCurriculum,
+        nombre_mod: moduloForm.nombre_mod
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al crear módulo');
-
       showNotification(`Módulo "${moduloForm.nombre_mod}" creado con éxito`);
       setModuloModalOpen(false);
       setModuloForm({ nombre_mod: '' });
@@ -412,8 +384,7 @@ export const AdminPortal = () => {
   const handleDeleteModulo = async (idMod) => {
     if (!window.confirm('¿Eliminar este módulo y todas sus asignaturas asociadas?')) return;
     try {
-      const res = await fetch(`/api/admin/modulos/${idMod}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error al eliminar módulo');
+      await programaService.deleteModulo(idMod);
       showNotification('Módulo eliminado');
       fetchCurriculumModules(selectedProgramForCurriculum);
     } catch (err) {
@@ -440,17 +411,7 @@ export const AdminPortal = () => {
   const handleSaveMateria = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/admin/materias', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...materiaForm,
-          id_mod: targetModuloId
-        })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al guardar materia');
-
+      await programaService.createMateria({ ...materiaForm, id_mod: targetModuloId });
       showNotification(`Materia "${materiaForm.nombre_mat}" guardada en Neon DB`);
       setMateriaModalOpen(false);
       fetchCurriculumModules(selectedProgramForCurriculum);
@@ -462,8 +423,7 @@ export const AdminPortal = () => {
   const handleDeleteMateria = async (idMat) => {
     if (!window.confirm('¿Eliminar esta asignatura?')) return;
     try {
-      const res = await fetch(`/api/admin/materias/${idMat}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error al eliminar materia');
+      await programaService.deleteMateria(idMat);
       showNotification('Materia eliminada');
       fetchCurriculumModules(selectedProgramForCurriculum);
     } catch (err) {
@@ -475,14 +435,7 @@ export const AdminPortal = () => {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/admin/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUser)
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error al crear usuario');
-
+      await adminService.createUsuario(newUser);
       showNotification('Usuario creado exitosamente en Neon DB');
       setUserModalOpen(false);
       setNewUser({ email: '', tipo: 'Estudiante', rol: 'ROL-004', password: '' });
@@ -495,12 +448,7 @@ export const AdminPortal = () => {
   const handleToggleUserStatus = async (userId, currentStatus) => {
     const nextStatus = currentStatus === 'Activo' ? 'Inactivo' : 'Activo';
     try {
-      const res = await fetch(`/api/admin/usuarios/${userId}/estado`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estado: nextStatus })
-      });
-      if (!res.ok) throw new Error('Error al actualizar estado');
+      await adminService.updateUsuarioEstado(userId, nextStatus);
       showNotification(`Usuario ${userId} marcado como ${nextStatus}`);
       fetchAllData();
     } catch (err) {
@@ -511,8 +459,7 @@ export const AdminPortal = () => {
   const handleDeleteUser = async (userId) => {
     if (!window.confirm(`¿Eliminar usuario ${userId}?`)) return;
     try {
-      const res = await fetch(`/api/admin/usuarios/${userId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Error al eliminar usuario');
+      await adminService.deleteUsuario(userId);
       showNotification('Usuario eliminado correctamente');
       fetchAllData();
     } catch (err) {
@@ -564,19 +511,9 @@ export const AdminPortal = () => {
   const handleDocenteFotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const formData = new FormData();
-    formData.append('foto', file);
     setIsUploadingDocFoto(true);
-
     try {
-      const res = await fetch('/api/admin/docentes/upload-foto', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al subir imagen');
-
+      const data = await docenteService.uploadFoto(file);
       setDocenteForm(prev => ({ ...prev, foto_url: data.url }));
       showNotification('Fotografía subida y resguardada localmente en el servidor');
     } catch (err) {
@@ -589,17 +526,11 @@ export const AdminPortal = () => {
   const handleSaveDocente = async (e) => {
     e.preventDefault();
     try {
-      const url = editingDocente ? `/api/admin/docentes/${editingDocente.id}` : '/api/admin/docentes';
-      const method = editingDocente ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(docenteForm)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al guardar docente');
-
+      if (editingDocente) {
+        await docenteService.update(editingDocente.id, docenteForm);
+      } else {
+        await docenteService.create(docenteForm);
+      }
       showNotification(editingDocente ? 'Docente actualizado correctamente' : 'Docente registrado en Neon DB');
       setDocenteModalOpen(false);
       fetchAllData();
@@ -611,10 +542,7 @@ export const AdminPortal = () => {
   const handleDeleteDocente = async (docId, docNombre) => {
     if (!window.confirm(`¿Está seguro de eliminar al docente ${docNombre}? Esta acción removerá sus asignaciones docentes.`)) return;
     try {
-      const res = await fetch(`/api/admin/docentes/${docId}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al eliminar docente');
-
+      await docenteService.delete(docId);
       showNotification('Docente eliminado de la base de datos');
       fetchAllData();
     } catch (err) {
@@ -660,13 +588,7 @@ export const AdminPortal = () => {
 
   const handleSyncConvocatorias = async () => {
     try {
-      const res = await fetch('/api/admin/convocatorias-pasadas/sincronizar-ediciones', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al sincronizar');
-
+      const data = await convocatoriaService.sincronizarEdiciones();
       showNotification(data.message || 'Ediciones concluidas sincronizadas');
       fetchAllData();
     } catch (err) {
@@ -677,14 +599,7 @@ export const AdminPortal = () => {
   const handleSaveConvocatoria = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/admin/convocatorias-pasadas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(convocatoriaForm)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al registrar convocatoria pasada');
-
+      await convocatoriaService.create(convocatoriaForm);
       showNotification('Convocatoria histórica guardada en Neon DB');
       setConvocatoriaModalOpen(false);
       fetchAllData();
@@ -696,10 +611,7 @@ export const AdminPortal = () => {
   const handleDeleteConvocatoria = async (idConv, tit) => {
     if (!window.confirm(`¿Eliminar la convocatoria histórica "${tit}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/convocatorias-pasadas/${idConv}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
-
+      await convocatoriaService.delete(idConv);
       showNotification('Convocatoria histórica eliminada');
       fetchAllData();
     } catch (err) {
@@ -751,14 +663,7 @@ export const AdminPortal = () => {
   const handleSaveDefensa = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/admin/defensas-tesis', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(defensaForm)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al guardar defensa de tesis');
-
+      await defensaService.save(defensaForm);
       showNotification(editingDefensa ? 'Defensa de tesis actualizada' : 'Nueva defensa de tesis registrada en Neon DB');
       setDefensaModalOpen(false);
       fetchAllData();
@@ -770,10 +675,7 @@ export const AdminPortal = () => {
   const handleDeleteDefensa = async (idTit, tit) => {
     if (!window.confirm(`¿Eliminar la defensa de tesis "${tit}"?`)) return;
     try {
-      const res = await fetch(`/api/admin/defensas-tesis/${idTit}`, { method: 'DELETE' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al eliminar');
-
+      await defensaService.delete(idTit);
       showNotification('Registro de defensa eliminado');
       fetchAllData();
     } catch (err) {
@@ -786,14 +688,7 @@ export const AdminPortal = () => {
     e.preventDefault();
     setIsSavingCarreraInfo(true);
     try {
-      const res = await fetch('/api/admin/institucion/info', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(carreraInfo)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error al guardar información institucional');
-
+      await institucionService.updateInfo(carreraInfo);
       showNotification('Información de la carrera actualizada en Neon PostgreSQL');
       fetchAllData();
     } catch (err) {

@@ -1,32 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Calendar, Video, ArrowRight, ExternalLink, GraduationCap, Users, Clock, MapPin, Award } from 'lucide-react';
+import { useDefensas } from '../../hooks/useDefensas';
 
 export const EventsSection = ({ onNavigate }) => {
-  const [defenses, setDefenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDefensas = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/defensas-tesis');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setDefenses(data);
-          } else {
-            setDefenses([]);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching defensas de tesis:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDefensas();
-  }, []);
+  const { defensas: defenses, loading } = useDefensas();
 
   return (
     <section className="section-spacing" style={{ position: 'relative', background: '#f8fafc' }}>

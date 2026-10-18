@@ -20,6 +20,7 @@ import {
   ChevronUp,
   RotateCcw
 } from 'lucide-react';
+import { convocatoriaService } from '../../services/convocatoriaService';
 
 export const RegulationsView = () => {
   const [convocatorias, setConvocatorias] = useState([]);
@@ -34,11 +35,8 @@ export const RegulationsView = () => {
     const fetchConvocatoriasPasadas = async () => {
       try {
         setLoading(true);
-        const res = await fetch('/api/convocatorias-pasadas');
-        if (res.ok) {
-          const data = await res.json();
-          setConvocatorias(Array.isArray(data) ? data : []);
-        }
+        const data = await convocatoriaService.getConvocatoriasPasadas();
+        setConvocatorias(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error cargando convocatorias pasadas:', err);
       } finally {

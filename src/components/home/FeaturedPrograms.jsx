@@ -8,7 +8,7 @@ import {
   Award,
   GraduationCap
 } from 'lucide-react';
-import { apiUrl } from '../../utils/api';
+import { programaService } from '../../services/programaService';
 
 import slide1 from '../../assets/images/carrusel/slide1.jpg';
 import slide2 from '../../assets/images/carrusel/slide2.jpg';
@@ -48,13 +48,10 @@ export const FeaturedPrograms = ({ onSelectProgram }) => {
     const loadPrograms = async () => {
       try {
         setLoading(true);
-        const response = await fetch(apiUrl('/api/programas/activos'));
-        if (response.ok) {
-          const data = await response.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setPrograms(data.slice(0, 3));
-            return;
-          }
+        const data = await programaService.getActivos();
+        if (Array.isArray(data) && data.length > 0) {
+          setPrograms(data.slice(0, 3));
+          return;
         }
       } catch (err) {
         console.error('Error cargando programas de la BD:', err);

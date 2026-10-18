@@ -31,6 +31,7 @@ import slide1 from '../../assets/images/carrusel/slide1.jpg';
 import slide2 from '../../assets/images/carrusel/slide2.jpg';
 import slide3 from '../../assets/images/carrusel/slide3.jpg';
 import slide4 from '../../assets/images/carrusel/slide4.jpg';
+import { docenteService } from '../../services/docenteService';
 
 export const InstitutionView = () => {
   const [docentes, setDocentes] = useState([]);
@@ -44,14 +45,9 @@ export const InstitutionView = () => {
     const fetchDocentes = async () => {
       try {
         setLoadingDocentes(true);
-        const res = await fetch('/api/docentes');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setDocentes(data);
-          } else {
-            setDocentes(facultyData);
-          }
+        const data = await docenteService.getPublicDocentes();
+        if (Array.isArray(data) && data.length > 0) {
+          setDocentes(data);
         } else {
           setDocentes(facultyData);
         }

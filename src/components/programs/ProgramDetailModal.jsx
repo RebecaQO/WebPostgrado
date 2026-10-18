@@ -13,6 +13,8 @@ import {
   ChevronUp,
   Download
 } from 'lucide-react';
+import { programaService } from '../../services/programaService';
+import { docenteService } from '../../services/docenteService';
 
 export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }) => {
   const [activeTab, setActiveTab] = useState('perfil');
@@ -27,9 +29,8 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
     const fetchMalla = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/programas/${initialProgram.id}/malla`);
-        if (res.ok) {
-          const data = await res.json();
+        const data = await programaService.getMalla(initialProgram.id);
+        if (data) {
           setProgramData(data);
         }
       } catch (err) {
@@ -47,17 +48,15 @@ export const ProgramDetailModal = ({ program: initialProgram, onClose, onApply }
     const fetchDocentes = async () => {
       try {
         setDocentesLoading(true);
-        const res = await fetch('/api/docentes');
-        if (res.ok) {
-          const data = await res.json();
-          setDocentes(Array.isArray(data) ? data : []);
-        }
+        const data = await docenteService.getPublicDocentes();
+        setDocentes(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error cargando docentes:', err);
       } finally {
         setDocentesLoading(false);
       }
     };
+
     fetchDocentes();
   }, []);
 

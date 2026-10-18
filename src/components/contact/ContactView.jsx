@@ -16,6 +16,7 @@ import {
 
 import monoblockImg from '../../assets/images/sedes/monoblock.jpg';
 import cotacotaImg from '../../assets/images/sedes/cotacota.jpg';
+import { institucionService } from '../../services/institucionService';
 
 export const ContactView = () => {
   const [info, setInfo] = useState({
@@ -32,12 +33,9 @@ export const ContactView = () => {
   useEffect(() => {
     const fetchInfo = async () => {
       try {
-        const res = await fetch('/api/institucion/info');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.email_principal) {
-            setInfo(prev => ({ ...prev, ...data }));
-          }
+        const data = await institucionService.getInfo();
+        if (data && data.email_principal) {
+          setInfo(prev => ({ ...prev, ...data }));
         }
       } catch (err) {
         console.error('Error cargando info institucional en ContactView:', err);
