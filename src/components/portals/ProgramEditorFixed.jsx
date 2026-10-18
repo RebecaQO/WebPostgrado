@@ -15,8 +15,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Clock,
-  Award,
-  Link as LinkIcon
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { programaService } from '../../services/programaService';
 import { docenteService } from '../../services/docenteService';
@@ -36,6 +36,11 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
   const [mallaMode, setMallaMode] = useState('new');
   const [savedMallas, setSavedMallas] = useState([]);
 
+  // Materias existentes en la Base de Datos para reutilización
+  const [dbMaterias, setDbMaterias] = useState([]);
+  const [selectedDbMatId, setSelectedDbMatId] = useState('');
+  const [diplomaDbMatSelect, setDiplomaDbMatSelect] = useState('');
+
   // 1. Datos del Programa
   const [program, setProgram] = useState({
     id: uid('PG-EST'),
@@ -45,20 +50,12 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     type: 'Terminal',  // 'Terminal' | 'Autosostenible'
   });
 
-  // 2. Plan de Estudios (Malla, Módulos y Materias)
+  // 2. Plan de Estudios (Por defecto NO tiene ningún módulo ni materia)
   const [malla, setMalla] = useState({
     id: `MALLA-${uid('PG-EST')}`,
     name: 'Plan de Estudios 2026',
-    modules: [], // Para Maestrías
-    subjects: [  // Para Diplomados
-      {
-        id: uid('MAT'),
-        name: 'Módulo 1: Fundamentos de Análisis Estadístico',
-        description: 'Herramientas fundamentales de inferencia y estadística aplicada.',
-        credits: 4,
-        hours: 64,
-      }
-    ],
+    modules: [],  // Por defecto VACÍO
+    subjects: [], // Por defecto VACÍO
   });
 
   // 3. Edición, Convocatoria y Horarios
@@ -98,11 +95,17 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     hours: 64,
   });
 
-  // Cargar docentes existentes del sistema al iniciar
+  // Cargar materias de la BD y docentes existentes al iniciar
   useEffect(() => {
     const init = async () => {
       try {
         setLoading(true);
+
+        // 1. Cargar materias existentes de la Base de Datos para reutilización
+        const materiasList = await programaService.getMaterias().catch(() => []);
+        setDbMaterias(Array.isArray(materiasList) ? materiasList : []);
+
+        // 2. Cargar docentes del sistema
         const docs = await docenteService.getPublicDocentes().catch(() => []);
         if (Array.isArray(docs) && docs.length > 0) {
           setAvailableTeachers(docs);
@@ -114,6 +117,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
           ]);
         }
 
+        // 3. Cargar datos si es edición de programa existente
         if (initialProgramId) {
           const wizardData = await programaService.getWizardData(initialProgramId);
           if (wizardData) {
@@ -134,7 +138,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     init();
   }, [initialProgramId]);
 
-  // Cambio de modalidad (Diplomado vs Maestría)
+  // Cambio de modalidad (Diplomado vs Maestría) sin cargar módulos ficticios
   const handleKindChange = (newKind) => {
     setProgram((prev) => ({
       ...prev,
@@ -148,47 +152,38 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         duration: '6 meses',
         degree: 'Aprobación de módulos y presentación de monografía / tesina final.',
       }));
-      if (malla.subjects.length === 0) {
-        setMalla((prev) => ({
-          ...prev,
-          subjects: [
-            { id: uid('MAT'), name: 'Módulo 1: Métodos de Análisis de Datos', description: 'Fundamentos estadísticos e inferencia básica.', credits: 4, hours: 64 },
-            { id: uid('MAT'), name: 'Módulo 2: Modelación Predictiva y Regresión', description: 'Modelos lineales generalizados y análisis multivariado.', credits: 4, hours: 64 }
-          ]
-        }));
-      }
     } else {
       setEdition((prev) => ({
         ...prev,
         duration: '18 meses',
         degree: 'Tesis de Maestría y publicación de artículo científico en revista indexada.',
       }));
-      if (malla.modules.length === 0) {
-        setMalla((prev) => ({
-          ...prev,
-          modules: [
-            {
-              id: uid('MOD'),
-              name: 'Módulo I: Fundamentos Estadísticos y Computación Científica',
-              subjects: [
-                { id: uid('MAT'), name: 'Probabilidad Avanzada e Inferencia Estadística', description: 'Teoría de la estimación y pruebas de hipótesis.', credits: 4, hours: 64 },
-                { id: uid('MAT'), name: 'Programación Estadística con R y Python', description: 'Computación científica y tratamiento de grandes volúmenes de datos.', credits: 4, hours: 64 },
-              ]
-            },
-            {
-              id: uid('MOD'),
-              name: 'Módulo II: Modelado Cuantitativo y Machine Learning',
-              subjects: [
-                { id: uid('MAT'), name: 'Modelos Estadísticos Avanzados', description: 'Modelación multinivel y series de tiempo.', credits: 4, hours: 64 }
-              ]
-            }
-          ]
-        }));
-      }
     }
   };
 
-  // Manejo de materias de Diplomado
+  // Reutilizar materia existente de la BD en Diplomado
+  const handleAddExistingMateriaToDiploma = () => {
+    if (!diplomaDbMatSelect) return;
+    const found = dbMaterias.find((m) => m.id === diplomaDbMatSelect);
+    if (!found) return;
+
+    setMalla((prev) => ({
+      ...prev,
+      subjects: [
+        ...prev.subjects,
+        {
+          id: found.id,
+          name: found.name,
+          description: found.description || '',
+          credits: found.credits || 4,
+          hours: found.hours || 64,
+        }
+      ]
+    }));
+    setDiplomaDbMatSelect('');
+  };
+
+  // Crear materia personalizada desde cero en Diplomado
   const addDiplomaSubject = () => {
     setMalla((prev) => ({
       ...prev,
@@ -214,7 +209,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     }));
   };
 
-  // Manejo de módulos de Maestría
+  // Crear un nuevo módulo en Maestría (comienza sin materias)
   const addMasterModule = () => {
     const nextNum = malla.modules.length + 1;
     setMalla((prev) => ({
@@ -241,9 +236,10 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     }));
   };
 
-  // Agregar materia inline dentro del módulo
+  // Abrir formulario inline para agregar materia a un módulo
   const openInlineSubject = (modIdx) => {
     setActiveModuleForSubject(modIdx);
+    setSelectedDbMatId('');
     setInlineSubjectDraft({
       id: uid('MAT'),
       name: '',
@@ -253,6 +249,33 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     });
   };
 
+  // Seleccionar materia existente desde la barra desplegable para autocompletar
+  const handlePickDbMateriaForModule = (matId) => {
+    setSelectedDbMatId(matId);
+    if (!matId || matId === '__NEW__') {
+      setInlineSubjectDraft({
+        id: uid('MAT'),
+        name: '',
+        description: '',
+        credits: 4,
+        hours: 64,
+      });
+      return;
+    }
+
+    const found = dbMaterias.find((m) => m.id === matId);
+    if (found) {
+      setInlineSubjectDraft({
+        id: found.id,
+        name: found.name,
+        description: found.description || '',
+        credits: found.credits || 4,
+        hours: found.hours || 64,
+      });
+    }
+  };
+
+  // Guardar materia en el módulo
   const saveInlineSubject = () => {
     const matName = inlineSubjectDraft.name.trim() || 'Nueva Materia';
     setMalla((prev) => {
@@ -264,6 +287,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
       return { ...prev, modules: copy };
     });
     setActiveModuleForSubject(null);
+    setSelectedDbMatId('');
   };
 
   const removeSubjectFromModule = (modIdx, subjIdx) => {
@@ -274,7 +298,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     });
   };
 
-  // Manejo de selección de docentes
+  // Manejo de docentes
   const toggleTeacher = (id) => {
     setSelectedTeachers((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -315,7 +339,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     setTeacherDrafts([]);
   };
 
-  // NAVEGACIÓN TOTALMENTE LIBRE ENTRE PESTAÑAS (Sin bloquear al usuario)
+  // Navegación libre entre pestañas
   const handleTabClick = (index) => {
     setStep(index);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -346,7 +370,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         id: `MALLA-${newId}`,
         name: 'Plan de Estudios 2026',
         modules: [],
-        subjects: [{ id: uid('MAT'), name: 'Módulo 1: Fundamentos', description: '', credits: 4, hours: 64 }],
+        subjects: [],
       });
       setSelectedTeachers([]);
       setTeacherDrafts([]);
@@ -354,7 +378,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     }
   };
 
-  // Guardado en Base de Datos (con valores por defecto amigables para evitar errores)
+  // Guardado en Base de Datos
   const handleSaveToDatabase = async () => {
     try {
       setSaving(true);
@@ -365,7 +389,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         ...program,
         id: program.id.trim() || uid('PG-EST'),
         name: program.name.trim() || 'Nuevo Programa Académico',
-        description: program.description.trim() || 'Programa de posgrado de la Universidad Mayor de San Andrés.',
+        description: program.description.trim() || 'Programa oficial de posgrado de la UMSA.',
       };
 
       const cleanMalla = {
@@ -381,11 +405,8 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         schedule: edition.schedule.trim() || 'Lunes a Viernes 19:00 - 22:00',
       };
 
-      // Si no seleccionó ningún docente, asociar al menos uno predeterminado
-      let finalTeachers = [...selectedTeachers];
-      if (finalTeachers.length === 0 && availableTeachers.length > 0) {
-        finalTeachers = [availableTeachers[0].id || availableTeachers[0].id_doc];
-      }
+      // Solo enviar docentes realmente seleccionados (evitar docentes ficticios no registrados en BD remota)
+      const finalTeachers = selectedTeachers.filter(Boolean);
 
       const payload = {
         program: cleanProgram,
@@ -395,8 +416,11 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         selectedTeachers: finalTeachers,
       };
 
+      console.log('[ProgramEditor] Enviando al servidor:', JSON.stringify(payload, null, 2));
+
       const result = await programaService.saveWizardProgram(payload);
 
+      console.log('[ProgramEditor] Respuesta del servidor:', result);
       setSuccessMessage(`¡El programa "${cleanProgram.name}" se guardó exitosamente en el sistema académico!`);
       
       if (onSaved) {
@@ -405,14 +429,19 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         }, 1200);
       }
     } catch (err) {
-      console.error('Error guardando en la BD:', err);
-      setErrorMessage('No se pudo guardar la información. Por favor verifique su conexión e intente nuevamente.');
+      console.error('[ProgramEditor] Error guardando en la BD:', err);
+      // Mostrar el mensaje real del servidor si está disponible
+      const serverMsg = err?.message || err?.data?.error || err?.data?.message || null;
+      const humanMsg = serverMsg
+        ? `No se pudo guardar: ${serverMsg}`
+        : 'No se pudo guardar la información. Por favor verifique su conexión e intente nuevamente.';
+      setErrorMessage(humanMsg);
     } finally {
       setSaving(false);
     }
   };
 
-  // Pestañas de navegación amigables y responsivas
+  // Pestañas de navegación
   const tabs = [
     { title: 'Programa Académico', icon: GraduationCap, desc: 'Nombre y clasificación' },
     { title: 'Plan de Estudios', icon: BookOpen, desc: 'Módulos y materias' },
@@ -429,7 +458,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     );
   }
 
-  // Cálculos de resumen para el paso final
+  // Cálculos de resumen
   const totalMaterias = program.kind === 'Diplomado' 
     ? malla.subjects.length 
     : malla.modules.reduce((acc, m) => acc + m.subjects.length, 0);
@@ -457,7 +486,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
             {initialProgramId ? `Editar: ${program.name || program.id}` : 'Crear Nuevo Programa'}
           </h1>
           <p className="pe-subtitle">
-            Completa la información en las pestañas a tu propio ritmo. Puedes avanzar o retroceder libremente en cualquier momento.
+            Crea la estructura del curso desde cero o reutiliza materias registradas en la base de datos mediante la barra desplegable.
           </p>
         </div>
 
@@ -473,7 +502,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         </div>
       </div>
 
-      {/* ── PESTAÑAS TOTALMENTE INTERACTIVAS Y RESPONSIVAS (Clickeables libremente) ── */}
+      {/* ── PESTAÑAS INTERACTIVAS Y RESPONSIVAS ── */}
       <div className="pe-steps">
         {tabs.map((tabItem, i) => {
           const Icon = tabItem.icon;
@@ -506,7 +535,6 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
 
       {/* ── CONTENIDO ── */}
       <div className="pe-content">
-        {/* Notificaciones amigables */}
         {successMessage && (
           <div className="pe-alert-success">
             <CheckCircle2 size={18} />
@@ -592,14 +620,14 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
-            PESTAÑA 02 · PLAN DE ESTUDIOS (MÓDULOS Y MATERIAS)
+            PESTAÑA 02 · PLAN DE ESTUDIOS (REUTILIZACIÓN CON BARRA DESPLEGABLE)
            ══════════════════════════════════════════════════════════════════════ */}
         {step === 1 && (
           <div className="pe-panel">
             <span className="pe-eyebrow">PASO 2 DE 5</span>
             <h2>Plan de Estudios: {program.name || program.kind}</h2>
             <p>
-              Estructura las materias y contenidos que cursarán los estudiantes.
+              Agrega los módulos y materias. Puedes seleccionar materias existentes de la base de datos mediante la barra desplegable o crearlas desde cero.
             </p>
 
             {/* Alternar Malla */}
@@ -659,79 +687,123 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
 
                 <hr style={{ margin: '22px 0', border: 'none', borderTop: '1px solid #e4ede6' }} />
 
-                {/* Materias para Diplomado */}
+                {/* ── CASO A: DIPLOMADO ── */}
                 {program.kind === 'Diplomado' ? (
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                      <h3 style={{ fontSize: '15px', margin: 0, fontWeight: 800 }}>
-                        Materias y Módulos del Diplomado ({malla.subjects.length})
-                      </h3>
-                      <button className="pe-btn" onClick={addDiplomaSubject}>
-                        <Plus size={15} /> + Agregar Materia
-                      </button>
+                    {/* Barra desplegable para reutilizar materias de la BD */}
+                    <div style={{ background: '#f0f7f2', padding: '16px 20px', borderRadius: '12px', border: '1.5px solid #c1dec7', marginBottom: '18px' }}>
+                      <label style={{ color: 'var(--pe-primary)', fontWeight: 800, fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <BookOpen size={16} />
+                        Reutilizar materia registrada en la base de datos (Barra desplegable):
+                      </label>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <select
+                          value={diplomaDbMatSelect}
+                          onChange={(e) => setDiplomaDbMatSelect(e.target.value)}
+                          style={{ flex: 1, minWidth: '280px', borderColor: '#267342' }}
+                        >
+                          <option value="">-- Seleccionar materia de la base de datos para reutilizar --</option>
+                          {dbMaterias.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name} ({m.id}) · {m.credits} créditos · {m.hours} hrs
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          className="pe-btn"
+                          type="button"
+                          onClick={handleAddExistingMateriaToDiploma}
+                          disabled={!diplomaDbMatSelect}
+                        >
+                          + Reutilizar esta materia
+                        </button>
+                        <button
+                          className="pe-btn outline"
+                          type="button"
+                          onClick={addDiplomaSubject}
+                        >
+                          + Crear materia desde cero
+                        </button>
+                      </div>
                     </div>
 
-                    {malla.subjects.map((sub, i) => (
-                      <div key={i} className="pe-item">
-                        <div className="pe-itemhead">
-                          <b>Módulo / Asignatura #{i + 1}</b>
-                          <button className="pe-btn danger" onClick={() => removeDiplomaSubject(i)}>
-                            <Trash2 size={13} /> Quitar
-                          </button>
-                        </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', margin: 0, fontWeight: 800 }}>
+                        Materias del Diplomado ({malla.subjects.length})
+                      </h3>
+                    </div>
 
-                        <div className="pe-grid">
-                          <div className="pe-field">
-                            <label>Código Asignatura</label>
-                            <input
-                              type="text"
-                              value={sub.id}
-                              onChange={(e) => updateDiplomaSubject(i, 'id', e.target.value)}
-                            />
+                    {malla.subjects.length > 0 ? (
+                      malla.subjects.map((sub, i) => (
+                        <div key={i} className="pe-item">
+                          <div className="pe-itemhead">
+                            <b>Materia #{i + 1}: {sub.name || 'Sin título'}</b>
+                            <button className="pe-btn danger" onClick={() => removeDiplomaSubject(i)}>
+                              <Trash2 size={13} /> Quitar
+                            </button>
                           </div>
-                          <div className="pe-field">
-                            <label>Nombre de la Materia</label>
-                            <input
-                              type="text"
-                              value={sub.name}
-                              onChange={(e) => updateDiplomaSubject(i, 'name', e.target.value)}
-                              placeholder="Ej: Análisis Exploratorio y Minería de Datos"
-                            />
-                          </div>
-                          <div className="pe-field">
-                            <label>Créditos Académicos</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={sub.credits}
-                              onChange={(e) => updateDiplomaSubject(i, 'credits', e.target.value)}
-                            />
-                          </div>
-                          <div className="pe-field">
-                            <label>Carga Horaria (Horas)</label>
-                            <input
-                              type="number"
-                              min="1"
-                              value={sub.hours}
-                              onChange={(e) => updateDiplomaSubject(i, 'hours', e.target.value)}
-                            />
-                          </div>
-                          <div className="pe-field full">
-                            <label>Contenido Mínimo o Temario</label>
-                            <textarea
-                              value={sub.description}
-                              onChange={(e) => updateDiplomaSubject(i, 'description', e.target.value)}
-                              placeholder="Breve descripción del temario de la asignatura..."
-                            />
+
+                          <div className="pe-grid">
+                            <div className="pe-field">
+                              <label>Código Asignatura</label>
+                              <input
+                                type="text"
+                                value={sub.id}
+                                onChange={(e) => updateDiplomaSubject(i, 'id', e.target.value)}
+                              />
+                            </div>
+                            <div className="pe-field">
+                              <label>Nombre de la Materia</label>
+                              <input
+                                type="text"
+                                value={sub.name}
+                                onChange={(e) => updateDiplomaSubject(i, 'name', e.target.value)}
+                                placeholder="Ej: Análisis Exploratorio y Minería de Datos"
+                              />
+                            </div>
+                            <div className="pe-field">
+                              <label>Créditos Académicos</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={sub.credits}
+                                onChange={(e) => updateDiplomaSubject(i, 'credits', e.target.value)}
+                              />
+                            </div>
+                            <div className="pe-field">
+                              <label>Carga Horaria (Horas)</label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={sub.hours}
+                                onChange={(e) => updateDiplomaSubject(i, 'hours', e.target.value)}
+                              />
+                            </div>
+                            <div className="pe-field full">
+                              <label>Contenido Mínimo o Temario</label>
+                              <textarea
+                                value={sub.description}
+                                onChange={(e) => updateDiplomaSubject(i, 'description', e.target.value)}
+                                placeholder="Breve descripción del temario de la asignatura..."
+                              />
+                            </div>
                           </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="pe-hint" style={{ textAlign: 'center', padding: '28px 20px', background: '#fafdfa', border: '1.5px dashed #c0dbca' }}>
+                        <BookOpen size={28} style={{ color: 'var(--pe-primary)', marginBottom: '8px' }} />
+                        <h4 style={{ margin: '4px 0 6px', color: '#163320', fontSize: '15px' }}>Plan de estudios sin materias iniciales</h4>
+                        <p style={{ margin: 0, fontSize: '13px', color: '#687c6f' }}>
+                          Selecciona una materia existente en la barra desplegable de arriba para reutilizarla, o haz clic en "+ Crear materia desde cero".
+                        </p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 ) : (
-                  /* Módulos y Materias para Maestría */
+                  /* ── CASO B: MAESTRÍA (Módulos y Materias con Barra Desplegable) ── */
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <h3 style={{ fontSize: '15px', margin: 0, fontWeight: 800 }}>
                         Módulos de la Maestría ({malla.modules.length})
                       </h3>
@@ -740,156 +812,192 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
                       </button>
                     </div>
 
-                    {malla.modules.map((mod, modIdx) => (
-                      <div key={modIdx} className="pe-item" style={{ borderLeft: '4px solid var(--pe-primary)' }}>
-                        <div className="pe-itemhead">
-                          <b>Módulo {modIdx + 1}: {mod.name || 'Sin título'}</b>
-                          <button className="pe-btn danger" onClick={() => removeMasterModule(modIdx)}>
-                            <Trash2 size={13} /> Eliminar Módulo
-                          </button>
-                        </div>
-
-                        <div className="pe-grid">
-                          <div className="pe-field">
-                            <label>Código del Módulo</label>
-                            <input
-                              type="text"
-                              value={mod.id}
-                              onChange={(e) => updateMasterModule(modIdx, 'id', e.target.value)}
-                            />
-                          </div>
-                          <div className="pe-field">
-                            <label>Nombre del Módulo</label>
-                            <input
-                              type="text"
-                              value={mod.name}
-                              onChange={(e) => updateMasterModule(modIdx, 'name', e.target.value)}
-                              placeholder="Ej: Módulo I: Fundamentos y Computación Científica"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Materias del módulo */}
-                        <div style={{ marginTop: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 750, color: '#324b38' }}>
-                              Materias de este módulo ({mod.subjects.length}):
-                            </span>
-                            <button
-                              className="pe-btn outline"
-                              style={{ padding: '6px 14px', fontSize: '12px', minHeight: '32px' }}
-                              onClick={() => openInlineSubject(modIdx)}
-                            >
-                              <Plus size={13} /> + Añadir Materia
+                    {malla.modules.length > 0 ? (
+                      malla.modules.map((mod, modIdx) => (
+                        <div key={modIdx} className="pe-item" style={{ borderLeft: '4px solid var(--pe-primary)' }}>
+                          <div className="pe-itemhead">
+                            <b>Módulo {modIdx + 1}: {mod.name || 'Sin título'}</b>
+                            <button className="pe-btn danger" onClick={() => removeMasterModule(modIdx)}>
+                              <Trash2 size={13} /> Eliminar Módulo
                             </button>
                           </div>
 
-                          {mod.subjects.length > 0 ? (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              {mod.subjects.map((sub, sIdx) => (
-                                <div
-                                  key={sIdx}
-                                  style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    background: '#ffffff',
-                                    border: '1px solid #d8e5dc',
-                                    borderRadius: '8px',
-                                    padding: '10px 14px',
-                                    fontSize: '13px',
-                                  }}
-                                >
-                                  <div>
-                                    <b style={{ color: 'var(--pe-primary)' }}>{sub.name}</b>{' '}
-                                    <span style={{ color: '#728578', fontSize: '12px' }}>({sub.id})</span> ·{' '}
-                                    <span className="pe-tag">{sub.credits} créditos</span> ·{' '}
-                                    <span style={{ color: '#4d6957', fontSize: '12px' }}>{sub.hours} hrs</span>
-                                  </div>
-                                  <button
-                                    className="pe-btn danger"
-                                    style={{ padding: '4px 10px', fontSize: '12px', minHeight: '28px' }}
-                                    onClick={() => removeSubjectFromModule(modIdx, sIdx)}
-                                    title="Quitar materia"
+                          <div className="pe-grid">
+                            <div className="pe-field">
+                              <label>Código del Módulo</label>
+                              <input
+                                type="text"
+                                value={mod.id}
+                                onChange={(e) => updateMasterModule(modIdx, 'id', e.target.value)}
+                              />
+                            </div>
+                            <div className="pe-field">
+                              <label>Nombre del Módulo</label>
+                              <input
+                                type="text"
+                                value={mod.name}
+                                onChange={(e) => updateMasterModule(modIdx, 'name', e.target.value)}
+                                placeholder="Ej: Módulo I: Fundamentos y Computación Científica"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Materias del módulo */}
+                          <div style={{ marginTop: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                              <span style={{ fontSize: '13px', fontWeight: 750, color: '#324b38' }}>
+                                Materias asignadas a este módulo ({mod.subjects.length}):
+                              </span>
+                              <button
+                                className="pe-btn outline"
+                                style={{ padding: '6px 14px', fontSize: '12px', minHeight: '32px' }}
+                                onClick={() => openInlineSubject(modIdx)}
+                              >
+                                <Plus size={13} /> + Añadir Materia al Módulo
+                              </button>
+                            </div>
+
+                            {mod.subjects.length > 0 ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {mod.subjects.map((sub, sIdx) => (
+                                  <div
+                                    key={sIdx}
+                                    style={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center',
+                                      background: '#ffffff',
+                                      border: '1px solid #d8e5dc',
+                                      borderRadius: '8px',
+                                      padding: '10px 14px',
+                                      fontSize: '13px',
+                                    }}
                                   >
-                                    ✕
+                                    <div>
+                                      <b style={{ color: 'var(--pe-primary)' }}>{sub.name}</b>{' '}
+                                      <span style={{ color: '#728578', fontSize: '12px' }}>({sub.id})</span> ·{' '}
+                                      <span className="pe-tag">{sub.credits} créditos</span> ·{' '}
+                                      <span style={{ color: '#4d6957', fontSize: '12px' }}>{sub.hours} hrs</span>
+                                    </div>
+                                    <button
+                                      className="pe-btn danger"
+                                      style={{ padding: '4px 10px', fontSize: '12px', minHeight: '28px' }}
+                                      onClick={() => removeSubjectFromModule(modIdx, sIdx)}
+                                      title="Quitar materia"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="pe-hint" style={{ margin: '6px 0' }}>
+                                Este módulo aún no tiene materias asignadas. Haz clic en "+ Añadir Materia al Módulo" para reutilizar alguna de la base de datos o registrar una nueva.
+                              </div>
+                            )}
+
+                            {/* Sub-formulario inline interactivo con Barra Desplegable */}
+                            {activeModuleForSubject === modIdx && (
+                              <div className="pe-inline-subform">
+                                <div className="pe-inline-subform-header">
+                                  <BookOpen size={16} />
+                                  Añadir Materia al Módulo {modIdx + 1} ({mod.name})
+                                </div>
+
+                                {/* Barra Desplegable para reutilizar materias de la BD */}
+                                <div className="pe-field full" style={{ background: '#f0f7f2', padding: '14px', borderRadius: '10px', border: '1.5px solid #c1dec7', marginBottom: '14px' }}>
+                                  <label style={{ color: 'var(--pe-primary)', fontWeight: 800, fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Sparkles size={14} /> Reutilizar materia de la base de datos (Barra desplegable):
+                                  </label>
+                                  <select
+                                    value={selectedDbMatId}
+                                    onChange={(e) => handlePickDbMateriaForModule(e.target.value)}
+                                    style={{ borderColor: '#267342', fontWeight: 600, background: '#ffffff', marginTop: '4px' }}
+                                  >
+                                    <option value="">-- Elige una materia de la base de datos para autocompletar --</option>
+                                    {dbMaterias.map((m) => (
+                                      <option key={m.id} value={m.id}>
+                                        {m.name} ({m.id}) · {m.credits} créditos · {m.hours} hrs
+                                      </option>
+                                    ))}
+                                    <option value="__NEW__">✏️ Registrar una nueva materia personalizada...</option>
+                                  </select>
+                                  <span style={{ fontSize: '11.5px', color: '#4a6b54', marginTop: '4px', display: 'block' }}>
+                                    Al elegir una materia existente, sus créditos, horas y descripción se cargarán automáticamente en los campos inferiores.
+                                  </span>
+                                </div>
+
+                                <div className="pe-grid">
+                                  <div className="pe-field">
+                                    <label>Código de Materia</label>
+                                    <input
+                                      type="text"
+                                      value={inlineSubjectDraft.id}
+                                      onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, id: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="pe-field">
+                                    <label>Nombre de la Asignatura</label>
+                                    <input
+                                      type="text"
+                                      value={inlineSubjectDraft.name}
+                                      onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, name: e.target.value })}
+                                      placeholder="Ej: Inferencia Bayesiana Aplicada"
+                                    />
+                                  </div>
+                                  <div className="pe-field">
+                                    <label>Créditos Académicos</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={inlineSubjectDraft.credits}
+                                      onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, credits: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="pe-field">
+                                    <label>Horas Académicas</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={inlineSubjectDraft.hours}
+                                      onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, hours: e.target.value })}
+                                    />
+                                  </div>
+                                  <div className="pe-field full">
+                                    <label>Descripción / Bibliografía básica</label>
+                                    <textarea
+                                      value={inlineSubjectDraft.description}
+                                      onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, description: e.target.value })}
+                                      placeholder="Temario y objetivos de aprendizaje..."
+                                    />
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+                                  <button className="pe-btn" onClick={saveInlineSubject}>
+                                    ✓ Guardar Materia en Módulo
+                                  </button>
+                                  <button className="pe-btn outline" onClick={() => setActiveModuleForSubject(null)}>
+                                    Cancelar
                                   </button>
                                 </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="pe-hint" style={{ margin: '6px 0' }}>
-                              Este módulo aún no tiene materias. Haz clic en "+ Añadir Materia" para crearlas fácilmente.
-                            </div>
-                          )}
-
-                          {/* Sub-formulario inline interactivo */}
-                          {activeModuleForSubject === modIdx && (
-                            <div className="pe-inline-subform">
-                              <div className="pe-inline-subform-header">
-                                <BookOpen size={16} />
-                                Agregar Materia al Módulo {modIdx + 1} ({mod.name})
                               </div>
-
-                              <div className="pe-grid">
-                                <div className="pe-field">
-                                  <label>Código de Materia</label>
-                                  <input
-                                    type="text"
-                                    value={inlineSubjectDraft.id}
-                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, id: e.target.value })}
-                                  />
-                                </div>
-                                <div className="pe-field">
-                                  <label>Nombre de la Asignatura</label>
-                                  <input
-                                    type="text"
-                                    value={inlineSubjectDraft.name}
-                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, name: e.target.value })}
-                                    placeholder="Ej: Inferencia Bayesiana Aplicada"
-                                  />
-                                </div>
-                                <div className="pe-field">
-                                  <label>Créditos Académicos</label>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    value={inlineSubjectDraft.credits}
-                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, credits: e.target.value })}
-                                  />
-                                </div>
-                                <div className="pe-field">
-                                  <label>Horas Académicas</label>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    value={inlineSubjectDraft.hours}
-                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, hours: e.target.value })}
-                                  />
-                                </div>
-                                <div className="pe-field full">
-                                  <label>Descripción / Bibliografía básica</label>
-                                  <textarea
-                                    value={inlineSubjectDraft.description}
-                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, description: e.target.value })}
-                                    placeholder="Temario y objetivos de aprendizaje..."
-                                  />
-                                </div>
-                              </div>
-
-                              <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
-                                <button className="pe-btn" onClick={saveInlineSubject}>
-                                  ✓ Guardar Materia en Módulo
-                                </button>
-                                <button className="pe-btn outline" onClick={() => setActiveModuleForSubject(null)}>
-                                  Cancelar
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
+                      ))
+                    ) : (
+                      <div className="pe-hint" style={{ textAlign: 'center', padding: '32px 20px', background: '#fafdfa', border: '1.5px dashed #c0dbca' }}>
+                        <Layers size={30} style={{ color: 'var(--pe-primary)', marginBottom: '8px' }} />
+                        <h4 style={{ margin: '4px 0 6px', color: '#163320', fontSize: '15px' }}>Plan de estudios sin módulos iniciales</h4>
+                        <p style={{ margin: '0 0 16px', fontSize: '13px', color: '#687c6f' }}>
+                          No hay módulos precargados. Haz clic en el botón para crear el primer módulo y agregar materias (reutilizadas de la base de datos o nuevas).
+                        </p>
+                        <button className="pe-btn" onClick={addMasterModule}>
+                          <Plus size={15} /> + Crear Primer Módulo
+                        </button>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>
