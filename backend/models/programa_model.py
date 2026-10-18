@@ -726,6 +726,32 @@ class ProgramaModel:
             conn.execute(text("DELETE FROM materia WHERE id_mat = :id"), {"id": id_mat})
 
     @staticmethod
+    def get_all_materias():
+        with engine.connect() as conn:
+            res = conn.execute(
+                text("""
+                    SELECT id_mat, nombre_mat, creditos, carga_horaria, descripcion
+                    FROM materia
+                    ORDER BY nombre_mat ASC
+                """)
+            ).mappings().all()
+            return [
+                {
+                    "id": r["id_mat"],
+                    "id_mat": r["id_mat"],
+                    "nombre": r["nombre_mat"],
+                    "name": r["nombre_mat"],
+                    "creditos": r["creditos"] or 4,
+                    "credits": r["creditos"] or 4,
+                    "carga_horaria": r["carga_horaria"] or 64,
+                    "hours": r["carga_horaria"] or 64,
+                    "descripcion": r["descripcion"] or "",
+                    "description": r["descripcion"] or ""
+                }
+                for r in res
+            ]
+
+    @staticmethod
     def get_mallas_by_programa(id_programa=None):
         with engine.connect() as conn:
             query = "SELECT id_malla, nombre_malla, id_programa FROM malla_curricular"
@@ -901,26 +927,46 @@ class ProgramaModel:
         p_kind = program.get("kind") or "Diplomado"
         p_type = program.get("type") or "Terminal"
 
-        if not p_id or not p_name:
-            raise ValueError("El ID y Nombre del programa son obligatorios")
+        if not p_id:
+            p_id = f"PG-EST-{hashlib.sha1(os.urandom(4)).hexdigest()[:4]}"
+        if not p_name:
+            p_name = "Programa Académico sin título"
 
         m_id = (malla.get("id") or f"MALLA-{p_id}").strip()
         m_name = (malla.get("name") or f"Malla Curricular - {p_name}").strip()
-
         ed_id = (edition.get("id") or f"ED-2026-{p_id}").strip()
+
+        # Calcular o asignar creditos_totales (NOT NULL en tabla programa_postgrado)
+        total_credits = 0
+        if p_kind == "Diplomado":
+            total_credits = sum(int(s.get("credits") or 4) for s in (malla.get("subjects") or []))
+        else:
+            for m in (malla.get("modules") or []):
+                total_credits += sum(int(s.get("credits") or 4) for s in (m.get("subjects") or []))
+        if total_credits <= 0:
+            total_credits = 60 if p_kind == "Maestría" else 20
 
         with engine.begin() as conn:
             # 1. Programa_Postgrado
             conn.execute(
                 text("""
-                    INSERT INTO programa_postgrado (id_programa, nombre_programa, descripcion, estado, tipo_programa)
-                    VALUES (:id, :nom, :desc, 'Activo', :tipo)
+                    INSERT INTO programa_postgrado (
+                        id_programa, nombre_programa, descripcion, estado, tipo_programa, creditos_totales
+                    )
+                    VALUES (:id, :nom, :desc, 'Activo', :tipo, :cred)
                     ON CONFLICT (id_programa) DO UPDATE SET
                         nombre_programa = EXCLUDED.nombre_programa,
                         descripcion = EXCLUDED.descripcion,
-                        tipo_programa = EXCLUDED.tipo_programa
+                        tipo_programa = EXCLUDED.tipo_programa,
+                        creditos_totales = EXCLUDED.creditos_totales
                 """),
-                {"id": p_id, "nom": p_name, "desc": p_desc, "tipo": "Terminal" if p_type == "Terminal" else "Autofinanciada"}
+                {
+                    "id": p_id, 
+                    "nom": p_name, 
+                    "desc": p_desc, 
+                    "tipo": "Terminal" if p_type == "Terminal" else "Autofinanciada",
+                    "cred": total_credits
+                }
             )
 
             # 2. Maestria / Diplomado
@@ -954,10 +1000,25 @@ class ProgramaModel:
             )
 
             # 4. Módulos y Materias
+            all_mat_ids = []
             if p_kind == "Diplomado":
+                dip_mod_id = f"MOD-DIP-{p_id}"
+                conn.execute(
+                    text("""
+                        INSERT INTO modulo (id_mod, nombre_mod, id_malla)
+                        VALUES (:mod_id, 'Módulos del Diplomado', :m_id)
+                        ON CONFLICT (id_mod) DO UPDATE SET id_malla = EXCLUDED.id_malla
+                    """),
+                    {"mod_id": dip_mod_id, "m_id": m_id}
+                )
+
                 subjects = malla.get("subjects") or []
+                if not subjects:
+                    subjects = [{"id": f"MAT-DIP-{p_id}", "name": "Módulo General", "description": "", "credits": 4, "hours": 64}]
+
                 for s in subjects:
                     s_id = (s.get("id") or f"MAT-{p_id}-{hashlib.sha1(os.urandom(4)).hexdigest()[:4]}").strip()
+                    all_mat_ids.append(s_id)
                     s_name = (s.get("name") or "Materia Diplomado").strip()
                     s_desc = s.get("description") or ""
                     credits_val = int(s.get("credits") or 4)
@@ -965,15 +1026,16 @@ class ProgramaModel:
 
                     conn.execute(
                         text("""
-                            INSERT INTO materia (id_mat, nombre_mat, descripcion, creditos, carga_horaria, estado)
-                            VALUES (:id, :nom, :desc, :cred, :carga, 'Activa')
+                            INSERT INTO materia (id_mat, nombre_mat, descripcion, creditos, carga_horaria, estado, id_mod)
+                            VALUES (:id, :nom, :desc, :cred, :carga, 'Activa', :mod_id)
                             ON CONFLICT (id_mat) DO UPDATE SET
                                 nombre_mat = EXCLUDED.nombre_mat,
                                 descripcion = EXCLUDED.descripcion,
                                 creditos = EXCLUDED.creditos,
-                                carga_horaria = EXCLUDED.carga_horaria
+                                carga_horaria = EXCLUDED.carga_horaria,
+                                id_mod = EXCLUDED.id_mod
                         """),
-                        {"id": s_id, "nom": s_name, "desc": s_desc, "cred": credits_val, "carga": hours_val}
+                        {"id": s_id, "nom": s_name, "desc": s_desc, "cred": credits_val, "carga": hours_val, "mod_id": dip_mod_id}
                     )
 
                     conn.execute(
@@ -993,6 +1055,13 @@ class ProgramaModel:
                     )
             else:
                 modules = malla.get("modules") or []
+                if not modules:
+                    modules = [{
+                        "id": f"MOD-{p_id}-1",
+                        "name": "Módulo I: Fundamentos",
+                        "subjects": [{"id": f"MAT-{p_id}-1", "name": "Materia I", "description": "", "credits": 4, "hours": 64}]
+                    }]
+
                 for mod in modules:
                     mod_id = (mod.get("id") or f"MOD-{p_id}-{hashlib.sha1(os.urandom(4)).hexdigest()[:4]}").strip()
                     mod_name = (mod.get("name") or "Módulo de Maestría").strip()
@@ -1008,8 +1077,13 @@ class ProgramaModel:
                         {"id": mod_id, "nom": mod_name, "m_id": m_id}
                     )
 
-                    for s in (mod.get("subjects") or []):
+                    m_subjs = mod.get("subjects") or []
+                    if not m_subjs:
+                        m_subjs = [{"id": f"MAT-{mod_id}-1", "name": "Asignatura Base", "description": "", "credits": 4, "hours": 64}]
+
+                    for s in m_subjs:
                         s_id = (s.get("id") or f"MAT-{mod_id}-{hashlib.sha1(os.urandom(4)).hexdigest()[:4]}").strip()
+                        all_mat_ids.append(s_id)
                         s_name = (s.get("name") or "Materia Maestría").strip()
                         s_desc = s.get("description") or ""
                         credits_val = int(s.get("credits") or 4)
@@ -1054,6 +1128,18 @@ class ProgramaModel:
             # 5. Edicion_Programa
             ed_start = edition.get("start") or None
             ed_end = edition.get("end") or None
+
+            # Mapear estado para cumplir con CHECK constraint de PostgreSQL
+            state_raw = (edition.get("state") or "Activo").strip()
+            state_map = {
+                "En Proceso": "Planificada",
+                "Abierta": "Activo",
+                "En Curso": "En curso",
+                "Concluida": "Concluido",
+                "Cancelada": "Inactivo"
+            }
+            db_state = state_map.get(state_raw, "Activo")
+
             conn.execute(
                 text("""
                     INSERT INTO edicion_programa (
@@ -1064,11 +1150,14 @@ class ProgramaModel:
                         periodo_academico, sede
                     )
                     VALUES (
-                        :ed_id, COALESCE(:start::date, CURRENT_DATE), COALESCE(:end::date, CURRENT_DATE + INTERVAL '1 year'),
+                        :ed_id, 
+                        COALESCE(CAST(:start AS DATE), CURRENT_DATE), 
+                        COALESCE(CAST(:end AS DATE), CURRENT_DATE + INTERVAL '180 days'),
                         :dur, :hor, :desc, :mod_tit, :req, :call, :form, :link_call,
                         :ban, :post, :pub, :perfil, :prof, :comp,
-                        :state, :m_id, :p_id, 25, 10, CURRENT_DATE + INTERVAL '30 days',
-                        '2026-1', 'Campus Cota Cota – FCPN'
+                        :state, :m_id, :p_id, 25, 10, 
+                        COALESCE(CAST(:start AS DATE), CURRENT_DATE),
+                        '2026-I', 'Campus Cota Cota – FCPN'
                     )
                     ON CONFLICT (id_edicion) DO UPDATE SET
                         fecha_inicio = EXCLUDED.fecha_inicio,
@@ -1092,9 +1181,11 @@ class ProgramaModel:
                         id_programa = EXCLUDED.id_programa
                 """),
                 {
-                    "ed_id": ed_id, "start": ed_start, "end": ed_end,
-                    "dur": edition.get("duration") or "18 meses",
-                    "hor": edition.get("schedule") or "Lunes a Jueves 19:00 - 22:00",
+                    "ed_id": ed_id, 
+                    "start": ed_start, 
+                    "end": ed_end,
+                    "dur": edition.get("duration") or "6 meses",
+                    "hor": edition.get("schedule") or "Lunes a Viernes 19:00 - 22:00",
                     "desc": edition.get("description") or "",
                     "mod_tit": edition.get("degree") or "",
                     "req": edition.get("requirements") or "",
@@ -1107,19 +1198,20 @@ class ProgramaModel:
                     "perfil": edition.get("perfilPro") or "",
                     "prof": edition.get("professions") or "",
                     "comp": edition.get("competencies") or "",
-                    "state": edition.get("state") or "En Proceso",
+                    "state": db_state,
                     "m_id": m_id,
                     "p_id": p_id
                 }
             )
 
-            # 6. Docentes nuevos (si se registraron)
+            # 6. Docentes nuevos (si hay)
             for t in teachers:
                 t_id = (t.get("id") or f"DOC-{hashlib.sha1(os.urandom(4)).hexdigest()[:4]}").strip()
+                t_email = f"{t_id.lower().replace('-', '_')}@fcpn.edu.bo"
                 conn.execute(
                     text("""
-                        INSERT INTO docente (id_doc, nombre_doc, apellido_doc, foto, foto_url, estado, especialidad)
-                        VALUES (:id, :nom, :ape, :foto, :foto, 'Activo', 'Estadística Aplicada')
+                        INSERT INTO docente (id_doc, nombre_doc, apellido_doc, email, titulo_academico, foto, foto_url, estado, especialidad)
+                        VALUES (:id, :nom, :ape, :email, 'Docente Posgrado', :foto, :foto, 'Activo', 'Estadística Aplicada')
                         ON CONFLICT (id_doc) DO UPDATE SET
                             nombre_doc = EXCLUDED.nombre_doc,
                             apellido_doc = EXCLUDED.apellido_doc,
@@ -1128,23 +1220,36 @@ class ProgramaModel:
                     """),
                     {
                         "id": t_id,
-                        "nom": t.get("name") or "",
-                        "ape": t.get("last") or "",
+                        "nom": t.get("name") or "Docente",
+                        "ape": t.get("last") or "Posgrado",
+                        "email": t_email,
                         "foto": t.get("photo") or ""
                     }
                 )
 
-            # 7. Asignación de Docentes a la Edición (Enseña)
+            # 7. Asignación a Enseña (id_doc, id_mat, id_edicion)
             conn.execute(text("DELETE FROM enseña WHERE id_edicion = :ed_id"), {"ed_id": ed_id})
+            first_mat = all_mat_ids[0] if all_mat_ids else f"MAT-GEN-{p_id}"
             for doc_id in selected_teachers:
                 if doc_id:
+                    d_id = str(doc_id).strip()
+                    # Asegurar que el docente exista en la tabla docente para evitar violación de clave foránea
                     conn.execute(
                         text("""
-                            INSERT INTO enseña (id_doc, id_edicion, rol, fecha_asignacion)
-                            VALUES (:doc_id, :ed_id, 'Titular', CURRENT_DATE)
-                            ON CONFLICT DO NOTHING
+                            INSERT INTO docente (id_doc, nombre_doc, apellido_doc, email, titulo_academico, estado)
+                            VALUES (:id, 'Docente', :id, :email, 'Docente Posgrado', 'Activo')
+                            ON CONFLICT (id_doc) DO NOTHING
                         """),
-                        {"doc_id": doc_id, "ed_id": ed_id}
+                        {"id": d_id, "email": f"{d_id.lower().replace('-', '_')}@fcpn.edu.bo"}
+                    )
+
+                    conn.execute(
+                        text("""
+                            INSERT INTO enseña (id_doc, id_mat, id_edicion, rol, fecha_asignacion)
+                            VALUES (:doc_id, :mat_id, :ed_id, 'Titular', CURRENT_DATE)
+                            ON CONFLICT (id_doc, id_mat, id_edicion) DO NOTHING
+                        """),
+                        {"doc_id": d_id, "mat_id": first_mat, "ed_id": ed_id}
                     )
 
         return p_id

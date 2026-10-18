@@ -21,6 +21,7 @@ programa_bp.post("/api/admin/programas/<program_id>/concluir")(ProgramaControlle
 programa_bp.get("/api/admin/programas/<program_id>/modulos")(ProgramaController.admin_get_modulos)
 programa_bp.post("/api/admin/modulos")(ProgramaController.admin_create_modulo)
 programa_bp.delete("/api/admin/modulos/<id_mod>")(ProgramaController.admin_delete_modulo)
+programa_bp.get("/api/admin/materias")(ProgramaController.admin_get_materias)
 programa_bp.post("/api/admin/materias")(ProgramaController.admin_create_materia)
 programa_bp.delete("/api/admin/materias/<id_mat>")(ProgramaController.admin_delete_materia)
 

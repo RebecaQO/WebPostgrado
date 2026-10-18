@@ -31,6 +31,7 @@ export const programaService = {
 
   // Módulos y materias
   getModulos: (id) => apiClient(`/api/admin/programas/${id}/modulos`),
+  getMaterias: () => apiClient('/api/admin/materias'),
   createModulo: (payload) => apiClient('/api/admin/modulos', { method: 'POST', body: payload }),
   deleteModulo: (idMod) => apiClient(`/api/admin/modulos/${idMod}`, { method: 'DELETE' }),
   createMateria: (payload) => apiClient('/api/admin/materias', { method: 'POST', body: payload }),

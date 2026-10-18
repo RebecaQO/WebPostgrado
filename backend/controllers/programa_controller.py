@@ -143,6 +143,14 @@ class ProgramaController:
             return jsonify({"error": "No se pudo eliminar la materia", "message": str(exc)}), 500
 
     @staticmethod
+    def admin_get_materias():
+        try:
+            materias = ProgramaModel.get_all_materias()
+            return jsonify(materias)
+        except Exception as exc:
+            return jsonify({"error": "No se pudieron obtener las materias", "message": str(exc)}), 500
+
+    @staticmethod
     def get_mallas():
         id_prog = request.args.get("id_programa")
         try:

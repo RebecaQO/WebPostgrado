@@ -257,61 +257,15 @@ export const AdminPortal = () => {
     }
   }, [selectedProgramForCurriculum]);
 
-  // PROGRAM CRUD HANDLERS
+  // PROGRAM CRUD HANDLERS (Editor de Pantalla Completa Ajustado a bd.sql)
   const handleOpenCreateProgram = () => {
-    setEditingProgram(null);
-    setProgramForm({
-      id: `PG-EST-${Math.floor(100 + Math.random() * 900)}`,
-      title: '',
-      description: '',
-      area: 'Ciencias Exactas',
-      credits: 120,
-      tipo_programa: 'Autofinanciada',
-      mencion: '',
-      status: 'Activo',
-      resolution: 'CU-RES-2026-001',
-      resolucion_hcu: 'Resolución HCU N° 284/2024 - Aprobación Plena UMSA',
-      cupo_total: 25,
-      enlace_convocatoria_drive: 'https://drive.google.com/drive/folders/1umsa_posgrado_estadistica_2026_convocatoria',
-      enlace_pdf_programa: 'https://drive.google.com/file/d/1_desc_programa_estadistica_fcpn_2026/view',
-      enlace_formulario_inscripcion: 'https://docs.google.com/forms/d/e/1FAIpQLSd_posgrado_estadistica_umsa_postulacion_2026/viewform',
-      descuento_contado_porcentaje: 10,
-      numero_cuotas: 18,
-      monto_cuota: 850,
-      perfil_aspirante: '',
-      perfil_egreso: '',
-      requisitos_admision: '',
-      modalidad_titulacion: ''
-    });
-    setProgramModalOpen(true);
+    setSelectedProgramForEditor(null);
+    setFixedEditorOpen(true);
   };
 
   const handleOpenEditProgram = (prog) => {
-    setEditingProgram(prog);
-    setProgramForm({
-      id: prog.id,
-      title: prog.title || '',
-      description: prog.description || '',
-      area: prog.area || 'Ciencias Exactas',
-      credits: prog.credits || 60,
-      tipo_programa: prog.typeFilter === 'terminal' ? 'Terminal' : 'Autofinanciada',
-      mencion: prog.mencion || '',
-      status: prog.status || 'Activo',
-      resolution: prog.resolution || 'CU-RES-2026-001',
-      resolucion_hcu: prog.resolucion_hcu || 'Resolución HCU N° 284/2024 - Aprobación Plena UMSA',
-      cupo_total: prog.cupo_total || 25,
-      enlace_convocatoria_drive: prog.enlace_convocatoria_drive || 'https://drive.google.com/drive/folders/1umsa_posgrado_estadistica_2026_convocatoria',
-      enlace_pdf_programa: prog.enlace_pdf_programa || 'https://drive.google.com/file/d/1_desc_programa_estadistica_fcpn_2026/view',
-      enlace_formulario_inscripcion: prog.enlace_formulario_inscripcion || 'https://docs.google.com/forms/d/e/1FAIpQLSd_posgrado_estadistica_umsa_postulacion_2026/viewform',
-      descuento_contado_porcentaje: prog.descuento_contado_porcentaje ?? 10,
-      numero_cuotas: prog.numero_cuotas ?? 18,
-      monto_cuota: prog.monto_cuota ?? 850,
-      perfil_aspirante: prog.perfil_aspirante || '',
-      perfil_egreso: prog.perfil_egreso || '',
-      requisitos_admision: prog.requisitos_admision || '',
-      modalidad_titulacion: prog.modalidad_titulacion || ''
-    });
-    setProgramModalOpen(true);
+    setSelectedProgramForEditor(prog.id);
+    setFixedEditorOpen(true);
   };
 
   const handleSaveProgram = async (e) => {
@@ -1000,106 +954,124 @@ export const AdminPortal = () => {
             {/* 1. SECCIÓN PROGRAMAS */}
             {activeTab === 'programas' && (
               <div className="animate-fade-in">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.35rem', color: 'var(--color-text-main)', fontWeight: 800, margin: 0 }}>
-                      Catálogo de Programas de Postgrado
-                    </h3>
-                    <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0 }}>
-                      Crea, edita y gestiona las convocatorias de maestrías y diplomados.
-                    </p>
-                  </div>
+                {fixedEditorOpen ? (
+                  <ProgramEditorFixed
+                    initialProgramId={selectedProgramForEditor}
+                    onSaved={() => {
+                      setFixedEditorOpen(false);
+                      setSelectedProgramForEditor(null);
+                      fetchAllData();
+                      showNotification('¡Programa guardado y sincronizado correctamente con la base de datos!');
+                    }}
+                    onCancel={() => {
+                      setFixedEditorOpen(false);
+                      setSelectedProgramForEditor(null);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div>
+                        <h3 style={{ fontSize: '1.35rem', color: 'var(--color-text-main)', fontWeight: 800, margin: 0 }}>
+                          Catálogo de Programas de Postgrado
+                        </h3>
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                          Crea, edita y gestiona las convocatorias de maestrías y diplomados.
+                        </p>
+                      </div>
 
-                  <button
-                    onClick={handleOpenCreateProgram}
-                    className="btn btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                  >
-                    <Plus size={16} />
-                    <span>Nuevo Programa</span>
-                  </button>
-                </div>
+                      <button
+                        onClick={handleOpenCreateProgram}
+                        className="btn btn-primary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        <Plus size={16} />
+                        <span>Nuevo Programa</span>
+                      </button>
+                    </div>
 
-                <div className="data-table-container">
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>Código / ID</th>
-                        <th>Nombre del Programa</th>
-                        <th>Tipo / Nivel</th>
-                        <th>Créditos</th>
-                        <th>Cupos</th>
-                        <th>Estado</th>
-                        <th>Acciones CRUD</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {programCatalog.map((prog) => {
-                        const isActivo = prog.status === 'Activo';
-                        return (
-                          <tr key={prog.id}>
-                            <td style={{ fontWeight: 700, fontFamily: 'var(--font-family-mono)', color: 'var(--color-text-main)' }}>
-                              {prog.id}
-                            </td>
-                            <td>
-                              <div style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{prog.title}</div>
-                              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)' }}>
-                                {prog.mencion ? `Mención: ${prog.mencion} · ` : ''}{prog.resolution}
-                              </div>
-                            </td>
-                            <td>
-                              <span className={`badge ${prog.type === 'Maestría' ? 'badge-green-inst' : 'badge-blue'}`}>
-                                {prog.type} ({prog.typeFilter || 'Autofinanciada'})
-                              </span>
-                            </td>
-                            <td>{prog.credits} créditos</td>
-                            <td>
-                              <strong>{prog.cupo_usados || 0}</strong> / {prog.cupo_total || 25}
-                            </td>
-                            <td>
-                              <button
-                                onClick={() => handleToggleProgramStatus(prog.id, prog.status)}
-                                className={`badge ${isActivo ? 'badge-green' : 'badge-red'}`}
-                                style={{ cursor: 'pointer', border: 'none' }}
-                                title="Clic para alternar estado"
-                              >
-                                {isActivo ? '✓ Activo' : '✕ Inactivo'}
-                              </button>
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                <button
-                                  onClick={() => handleConcluirPrograma(prog.id, prog.title)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: '0.35rem 0.6rem', color: 'var(--color-green-inst)' }}
-                                  title="Concluir edición y mandar al repositorio de Convocatorias Pasadas"
-                                >
-                                  <Archive size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleOpenEditProgram(prog)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: '0.35rem 0.6rem', color: 'var(--color-blue-steel)' }}
-                                  title="Editar programa"
-                                >
-                                  <Edit2 size={14} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteProgram(prog.id)}
-                                  className="btn btn-secondary btn-sm"
-                                  style={{ padding: '0.35rem 0.6rem', color: 'var(--color-status-danger)' }}
-                                  title="Eliminar programa"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            </td>
+                    <div className="data-table-container">
+                      <table className="data-table">
+                        <thead>
+                          <tr>
+                            <th>Código / ID</th>
+                            <th>Nombre del Programa</th>
+                            <th>Tipo / Nivel</th>
+                            <th>Créditos</th>
+                            <th>Cupos</th>
+                            <th>Estado</th>
+                            <th>Acciones CRUD</th>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                        </thead>
+                        <tbody>
+                          {programCatalog.map((prog) => {
+                            const isActivo = prog.status === 'Activo';
+                            return (
+                              <tr key={prog.id}>
+                                <td style={{ fontWeight: 700, fontFamily: 'var(--font-family-mono)', color: 'var(--color-text-main)' }}>
+                                  {prog.id}
+                                </td>
+                                <td>
+                                  <div style={{ fontWeight: 700, color: 'var(--color-text-main)' }}>{prog.title}</div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-subtle)' }}>
+                                    {prog.mencion ? `Mención: ${prog.mencion} · ` : ''}{prog.resolution}
+                                  </div>
+                                </td>
+                                <td>
+                                  <span className={`badge ${prog.type === 'Maestría' ? 'badge-green-inst' : 'badge-blue'}`}>
+                                    {prog.type} ({prog.typeFilter || 'Autofinanciada'})
+                                  </span>
+                                </td>
+                                <td>{prog.credits} créditos</td>
+                                <td>
+                                  <strong>{prog.cupo_usados || 0}</strong> / {prog.cupo_total || 25}
+                                </td>
+                                <td>
+                                  <button
+                                    onClick={() => handleToggleProgramStatus(prog.id, prog.status)}
+                                    className={`badge ${isActivo ? 'badge-green' : 'badge-red'}`}
+                                    style={{ cursor: 'pointer', border: 'none' }}
+                                    title="Clic para alternar estado"
+                                  >
+                                    {isActivo ? '✓ Activo' : '✕ Inactivo'}
+                                  </button>
+                                </td>
+                                <td>
+                                  <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                    <button
+                                      onClick={() => handleConcluirPrograma(prog.id, prog.title)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '0.35rem 0.6rem', color: 'var(--color-green-inst)' }}
+                                      title="Concluir edición y mandar al repositorio de Convocatorias Pasadas"
+                                    >
+                                      <Archive size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleOpenEditProgram(prog)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '0.35rem 0.6rem', color: 'var(--color-blue-steel)' }}
+                                      title="Editar programa"
+                                    >
+                                      <Edit2 size={14} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteProgram(prog.id)}
+                                      className="btn btn-secondary btn-sm"
+                                      style={{ padding: '0.35rem 0.6rem', color: 'var(--color-status-danger)' }}
+                                      title="Eliminar programa"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 

@@ -5,16 +5,18 @@ import {
   ArrowLeft, 
   Plus, 
   Trash2, 
-  Download, 
   Save, 
+  RotateCcw,
   X, 
   BookOpen, 
-  Layers, 
+  GraduationCap, 
   Calendar, 
   Users, 
   CheckCircle2, 
-  FileText,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Award,
+  Link as LinkIcon
 } from 'lucide-react';
 import { programaService } from '../../services/programaService';
 import { docenteService } from '../../services/docenteService';
@@ -27,223 +29,221 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Modo de malla: 'new' o 'existing'
+  // Generador de identificadores sugeridos
+  const uid = (prefix) => `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
+
+  // Modo de selección de Malla
   const [mallaMode, setMallaMode] = useState('new');
-  const [existingMallas, setExistingMallas] = useState([]);
+  const [savedMallas, setSavedMallas] = useState([]);
 
-  // Estado del Formulario Multi-pasos
+  // 1. Datos del Programa
   const [program, setProgram] = useState({
-    id: '',
+    id: uid('PG-EST'),
     name: '',
     description: '',
-    kind: 'Diplomado',
-    type: 'Terminal',
+    kind: 'Diplomado', // 'Diplomado' | 'Maestría'
+    type: 'Terminal',  // 'Terminal' | 'Autosostenible'
   });
 
+  // 2. Plan de Estudios (Malla, Módulos y Materias)
   const [malla, setMalla] = useState({
-    id: '',
-    name: '',
-    modules: [],
-    subjects: [],
+    id: `MALLA-${uid('PG-EST')}`,
+    name: 'Plan de Estudios 2026',
+    modules: [], // Para Maestrías
+    subjects: [  // Para Diplomados
+      {
+        id: uid('MAT'),
+        name: 'Módulo 1: Fundamentos de Análisis Estadístico',
+        description: 'Herramientas fundamentales de inferencia y estadística aplicada.',
+        credits: 4,
+        hours: 64,
+      }
+    ],
   });
 
+  // 3. Edición, Convocatoria y Horarios
   const [edition, setEdition] = useState({
-    id: '',
-    start: '',
-    end: '',
-    duration: '18 meses',
-    schedule: 'Lunes a Jueves 19:00 - 22:00',
-    description: '',
-    degree: '',
-    requirements: '',
-    call: '',
-    form: '',
-    callLink: '',
-    banner: '',
-    poster: '',
-    publicity: '',
-    perfilPro: '',
-    professions: '',
-    competencies: '',
+    id: `ED-2026-${uid('PG')}`,
+    start: new Date().toISOString().split('T')[0],
+    end: new Date(Date.now() + 180 * 24 * 3600 * 1000).toISOString().split('T')[0],
+    duration: '6 meses',
+    schedule: 'Lunes a Viernes 19:00 - 22:00',
+    description: 'Edición oficial del programa de posgrado con modalidad semipresencial.',
+    degree: 'Aprobación de módulos y presentación de trabajo final o monografía.',
+    requirements: 'Título en Provisión Nacional a nivel Licenciatura, Carnet de Identidad y CV documentado.',
+    call: 'https://drive.google.com/drive/folders/posgrado_estadistica_2026',
+    form: 'https://docs.google.com/forms/d/e/postulacion_posgrado_2026/viewform',
+    callLink: 'https://drive.google.com/file/d/convocatoria_oficial_2026.pdf',
+    banner: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&auto=format&fit=crop',
+    poster: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop',
+    publicidad: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop',
+    perfilPro: 'Profesional capacitado en el tratamiento riguroso de información cuantitativa y toma de decisiones.',
+    profesiones: 'Estadística, Informática, Economía, Ingeniería de Sistemas, Ciencias Exactas y ramas afines.',
+    competenciasMaestria: 'Modelación estadística, análisis predictivo, formulación de proyectos y publicación científica.',
     state: 'En Proceso',
   });
 
+  // 4. Plantel Docente
   const [availableTeachers, setAvailableTeachers] = useState([]);
   const [selectedTeachers, setSelectedTeachers] = useState([]);
   const [teacherDrafts, setTeacherDrafts] = useState([]);
 
-  // Estado para sub-formulario inline de materia en módulo (SIN modales emergentes)
+  // Sub-formulario para agregar materia dentro de un módulo (Totalmente inline)
   const [activeModuleForSubject, setActiveModuleForSubject] = useState(null);
   const [inlineSubjectDraft, setInlineSubjectDraft] = useState({
-    id: '',
+    id: uid('MAT'),
     name: '',
     description: '',
     credits: 4,
     hours: 64,
   });
 
-  // Contador para autogenerar IDs
-  const uid = (prefix) => `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
-
-  // Cargar datos si se está editando un programa existente
+  // Cargar docentes existentes del sistema al iniciar
   useEffect(() => {
-    const initData = async () => {
+    const init = async () => {
       try {
         setLoading(true);
-
-        // Cargar lista de docentes del sistema
         const docs = await docenteService.getPublicDocentes().catch(() => []);
-        setAvailableTeachers(Array.isArray(docs) ? docs : []);
+        if (Array.isArray(docs) && docs.length > 0) {
+          setAvailableTeachers(docs);
+        } else {
+          setAvailableTeachers([
+            { id: 'DOC-01', id_doc: 'DOC-01', nombre_completo: 'Dr. Roberto Gutiérrez', especialidad: 'Estadística Matemática' },
+            { id: 'DOC-02', id_doc: 'DOC-02', nombre_completo: 'MSc. Elena Mendoza', especialidad: 'Ciencia de Datos y Machine Learning' },
+            { id: 'DOC-03', id_doc: 'DOC-03', nombre_completo: 'Dr. Carlos Paredes', especialidad: 'Bioestadística y Modelado' },
+          ]);
+        }
 
         if (initialProgramId) {
           const wizardData = await programaService.getWizardData(initialProgramId);
           if (wizardData) {
-            setProgram(wizardData.program);
-            setMalla(wizardData.malla);
-            setExistingMallas(wizardData.mallas || []);
-            setEdition(wizardData.edition);
-            setSelectedTeachers(wizardData.selectedTeachers || []);
+            if (wizardData.program) setProgram(wizardData.program);
+            if (wizardData.malla) setMalla(wizardData.malla);
+            if (wizardData.mallas) setSavedMallas(wizardData.mallas);
+            if (wizardData.edition) setEdition(wizardData.edition);
+            if (wizardData.selectedTeachers) setSelectedTeachers(wizardData.selectedTeachers);
           }
-        } else {
-          // Inicializar IDs sugeridos para nuevo programa
-          const tempId = `PG-EST-${Math.floor(100 + Math.random() * 900)}`;
-          setProgram({
-            id: tempId,
-            name: '',
-            description: '',
-            kind: 'Maestría',
-            type: 'Autosostenible',
-          });
-          setMalla({
-            id: `MALLA-${tempId}`,
-            name: `Malla Curricular - ${tempId}`,
-            modules: [
-              {
-                id: `MOD-01`,
-                name: 'Módulo I: Fundamentos Estadísticos y Análisis Exploratorio',
-                subjects: []
-              }
-            ],
-            subjects: [],
-          });
-          setEdition({
-            id: `ED-2026-${tempId}`,
-            start: new Date().toISOString().split('T')[0],
-            end: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString().split('T')[0],
-            duration: '18 meses',
-            schedule: 'Lunes a Jueves 19:00 - 22:00',
-            description: 'Programa oficial de postgrado impartido en la modalidad presencial y virtual síncrono.',
-            degree: 'Tesis de Maestría y Publicación de Artículo Científico en Revista Indexada',
-            requirements: 'Fotocopia legalizada del Título en Provisión Nacional a nivel Licenciatura, CV documentado, 4 fotos 4x4 fondo gris.',
-            call: 'https://drive.google.com/drive/folders/posgrado_estadistica_2026',
-            form: 'https://docs.google.com/forms/postulacion_2026',
-            callLink: 'https://drive.google.com/file/convocatoria_oficial.pdf',
-            banner: '',
-            poster: '',
-            publicity: '',
-            perfilPro: 'Profesional altamente calificado para el modelado cuantitativo, inferencia avanzada y toma de decisiones basadas en datos.',
-            professions: 'Estadística, Informática, Matemáticas, Ingeniería de Sistemas, Economía e investigadores cuantitativos.',
-            competencies: 'Capacidad de diseñar proyectos de investigación de alto impacto, dominar librerías estadísticas R/Python y liderar equipos analíticos.',
-            state: 'En Proceso',
-          });
         }
       } catch (err) {
         console.error('Error inicializando editor:', err);
-        setErrorMessage('No se pudieron cargar los datos del programa para edición');
       } finally {
         setLoading(false);
       }
     };
 
-    initData();
+    init();
   }, [initialProgramId]);
 
-  // Manejador de cambio de tipo de programa
+  // Cambio de modalidad (Diplomado vs Maestría)
   const handleKindChange = (newKind) => {
     setProgram((prev) => ({
       ...prev,
       kind: newKind,
-      type: newKind === 'Maestría' ? prev.type || 'Terminal' : 'Terminal',
+      type: newKind === 'Maestría' ? (prev.type || 'Terminal') : 'Terminal',
     }));
 
     if (newKind === 'Diplomado') {
-      setEdition((prev) => ({ ...prev, duration: '6 meses' }));
-      // Inicializar materias de diplomado si están vacías
+      setEdition((prev) => ({
+        ...prev,
+        duration: '6 meses',
+        degree: 'Aprobación de módulos y presentación de monografía / tesina final.',
+      }));
       if (malla.subjects.length === 0) {
         setMalla((prev) => ({
           ...prev,
           subjects: [
-            { id: uid('MAT'), name: 'Módulo 1: Métodos de Análisis de Datos', description: 'Fundamentos de analítica y minería de datos.', credits: 4, hours: 64 },
-            { id: uid('MAT'), name: 'Módulo 2: Modelación Predictiva y Machine Learning', description: 'Algoritmos supervisados y no supervisados.', credits: 4, hours: 64 }
+            { id: uid('MAT'), name: 'Módulo 1: Métodos de Análisis de Datos', description: 'Fundamentos estadísticos e inferencia básica.', credits: 4, hours: 64 },
+            { id: uid('MAT'), name: 'Módulo 2: Modelación Predictiva y Regresión', description: 'Modelos lineales generalizados y análisis multivariado.', credits: 4, hours: 64 }
           ]
         }));
       }
     } else {
-      setEdition((prev) => ({ ...prev, duration: '18 meses' }));
+      setEdition((prev) => ({
+        ...prev,
+        duration: '18 meses',
+        degree: 'Tesis de Maestría y publicación de artículo científico en revista indexada.',
+      }));
+      if (malla.modules.length === 0) {
+        setMalla((prev) => ({
+          ...prev,
+          modules: [
+            {
+              id: uid('MOD'),
+              name: 'Módulo I: Fundamentos Estadísticos y Computación Científica',
+              subjects: [
+                { id: uid('MAT'), name: 'Probabilidad Avanzada e Inferencia Estadística', description: 'Teoría de la estimación y pruebas de hipótesis.', credits: 4, hours: 64 },
+                { id: uid('MAT'), name: 'Programación Estadística con R y Python', description: 'Computación científica y tratamiento de grandes volúmenes de datos.', credits: 4, hours: 64 },
+              ]
+            },
+            {
+              id: uid('MOD'),
+              name: 'Módulo II: Modelado Cuantitativo y Machine Learning',
+              subjects: [
+                { id: uid('MAT'), name: 'Modelos Estadísticos Avanzados', description: 'Modelación multinivel y series de tiempo.', credits: 4, hours: 64 }
+              ]
+            }
+          ]
+        }));
+      }
     }
   };
 
-  // Funciones para manejar Malla Curricular (Diplomado)
+  // Manejo de materias de Diplomado
   const addDiplomaSubject = () => {
-    const newSubject = {
-      id: uid('MAT'),
-      name: '',
-      description: '',
-      credits: 4,
-      hours: 64,
-    };
     setMalla((prev) => ({
       ...prev,
-      subjects: [...prev.subjects, newSubject],
+      subjects: [
+        ...prev.subjects,
+        { id: uid('MAT'), name: '', description: '', credits: 4, hours: 64 }
+      ]
     }));
   };
 
   const updateDiplomaSubject = (index, field, value) => {
     setMalla((prev) => {
-      const updated = [...prev.subjects];
-      updated[index] = { ...updated[index], [field]: value };
-      return { ...prev, subjects: updated };
+      const copy = [...prev.subjects];
+      copy[index] = { ...copy[index], [field]: value };
+      return { ...prev, subjects: copy };
     });
   };
 
   const removeDiplomaSubject = (index) => {
     setMalla((prev) => ({
       ...prev,
-      subjects: prev.subjects.filter((_, i) => i !== index),
+      subjects: prev.subjects.filter((_, i) => i !== index)
     }));
   };
 
-  // Funciones para manejar Módulos y Materias de Maestría
+  // Manejo de módulos de Maestría
   const addMasterModule = () => {
-    const newModule = {
-      id: uid('MOD'),
-      name: `Módulo ${malla.modules.length + 1}: `,
-      subjects: [],
-    };
+    const nextNum = malla.modules.length + 1;
     setMalla((prev) => ({
       ...prev,
-      modules: [...prev.modules, newModule],
+      modules: [
+        ...prev.modules,
+        { id: uid('MOD'), name: `Módulo ${nextNum}: `, subjects: [] }
+      ]
     }));
   };
 
-  const updateMasterModule = (modIndex, field, value) => {
+  const updateMasterModule = (modIdx, field, value) => {
     setMalla((prev) => {
-      const updated = [...prev.modules];
-      updated[modIndex] = { ...updated[modIndex], [field]: value };
-      return { ...prev, modules: updated };
+      const copy = [...prev.modules];
+      copy[modIdx] = { ...copy[modIdx], [field]: value };
+      return { ...prev, modules: copy };
     });
   };
 
-  const removeMasterModule = (modIndex) => {
+  const removeMasterModule = (modIdx) => {
     setMalla((prev) => ({
       ...prev,
-      modules: prev.modules.filter((_, i) => i !== modIndex),
+      modules: prev.modules.filter((_, i) => i !== modIdx)
     }));
   };
 
-  // Sub-formulario INLINE interactivo para agregar materia a módulo (sin modales emergentes)
-  const openInlineSubjectForm = (modIndex) => {
-    setActiveModuleForSubject(modIndex);
+  // Agregar materia inline dentro del módulo
+  const openInlineSubject = (modIdx) => {
+    setActiveModuleForSubject(modIdx);
     setInlineSubjectDraft({
       id: uid('MAT'),
       name: '',
@@ -253,995 +253,1028 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
     });
   };
 
-  const saveInlineSubjectToModule = () => {
-    if (!inlineSubjectDraft.name.trim()) {
-      alert('Por favor ingrese el nombre de la materia.');
-      return;
-    }
-
+  const saveInlineSubject = () => {
+    const matName = inlineSubjectDraft.name.trim() || 'Nueva Materia';
     setMalla((prev) => {
-      const updatedModules = [...prev.modules];
-      const targetMod = updatedModules[activeModuleForSubject];
-      targetMod.subjects = [...targetMod.subjects, { ...inlineSubjectDraft }];
-      return { ...prev, modules: updatedModules };
+      const copy = [...prev.modules];
+      copy[activeModuleForSubject].subjects = [
+        ...copy[activeModuleForSubject].subjects,
+        { ...inlineSubjectDraft, name: matName }
+      ];
+      return { ...prev, modules: copy };
     });
-
     setActiveModuleForSubject(null);
   };
 
-  const removeSubjectFromModule = (modIndex, subjIndex) => {
+  const removeSubjectFromModule = (modIdx, subjIdx) => {
     setMalla((prev) => {
-      const updatedModules = [...prev.modules];
-      updatedModules[modIndex].subjects = updatedModules[modIndex].subjects.filter((_, i) => i !== subjIndex);
-      return { ...prev, modules: updatedModules };
+      const copy = [...prev.modules];
+      copy[modIdx].subjects = copy[modIdx].subjects.filter((_, i) => i !== subjIdx);
+      return { ...prev, modules: copy };
     });
   };
 
-  // Manejo de Docentes
-  const toggleTeacherSelection = (teacherId) => {
+  // Manejo de selección de docentes
+  const toggleTeacher = (id) => {
     setSelectedTeachers((prev) =>
-      prev.includes(teacherId)
-        ? prev.filter((id) => id !== teacherId)
-        : [...prev, teacherId]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
   const addTeacherDraft = () => {
     setTeacherDrafts((prev) => [
       ...prev,
-      { id: uid('DOC'), name: '', last: '', photo: '' },
+      { id: uid('DOC'), name: '', last: '', photo: '' }
     ]);
   };
 
-  const updateTeacherDraft = (index, field, value) => {
+  const updateTeacherDraft = (idx, field, val) => {
     setTeacherDrafts((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
+      const copy = [...prev];
+      copy[idx] = { ...copy[idx], [field]: val };
+      return copy;
     });
   };
 
-  const removeTeacherDraft = (index) => {
-    setTeacherDrafts((prev) => prev.filter((_, i) => i !== index));
+  const removeTeacherDraft = (idx) => {
+    setTeacherDrafts((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const commitTeacherDrafts = () => {
-    for (const t of teacherDrafts) {
-      if (!t.name.trim() || !t.last.trim()) {
-        alert('Complete nombre y apellido de cada docente nuevo.');
-        return;
-      }
-    }
-
-    const newTeachersList = teacherDrafts.map((t) => ({
+    const newItems = teacherDrafts.map((t) => ({
       id: t.id,
-      nombre: t.name,
-      apellido: t.last,
+      id_doc: t.id,
+      nombre: t.name || 'Docente',
+      apellido: t.last || 'Posgrado',
+      nombre_completo: `${t.name || 'Docente'} ${t.last || 'Posgrado'}`.trim(),
       foto_url: t.photo || '',
     }));
 
-    setAvailableTeachers((prev) => [...prev, ...newTeachersList]);
+    setAvailableTeachers((prev) => [...prev, ...newItems]);
     setSelectedTeachers((prev) => [...prev, ...teacherDrafts.map((t) => t.id)]);
     setTeacherDrafts([]);
   };
 
-  // Validación de pasos
-  const validateStep = (s) => {
-    if (s === 0) {
-      return program.id.trim() && program.name.trim() && program.description.trim();
-    }
-    if (s === 1) {
-      if (!malla.id.trim() || !malla.name.trim()) return false;
-      if (program.kind === 'Diplomado') {
-        return malla.subjects.length > 0 && malla.subjects.every((s) => s.id && s.name);
-      } else {
-        return (
-          malla.modules.length > 0 &&
-          malla.modules.every((m) => m.id && m.name && m.subjects.length > 0)
-        );
-      }
-    }
-    if (s === 2) {
-      return edition.id.trim() && edition.state && edition.duration;
-    }
-    return true;
+  // NAVEGACIÓN TOTALMENTE LIBRE ENTRE PESTAÑAS (Sin bloquear al usuario)
+  const handleTabClick = (index) => {
+    setStep(index);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNext = () => {
-    if (!validateStep(step)) {
-      if (step === 0) alert('Complete el ID, Nombre y Descripción del programa.');
-      else if (step === 1) alert('Complete la malla curricular. En maestrías, cada módulo debe tener al menos una materia.');
-      else if (step === 2) alert('Complete los datos obligatorios de la edición (ID, Estado, Duración).');
-      return;
-    }
     setStep((prev) => Math.min(4, prev + 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {
     setStep((prev) => Math.max(0, prev - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Guardado Final en Neon PostgreSQL mediante la API REST MVC
+  // Reiniciar formulario
+  const handleReset = () => {
+    if (window.confirm('¿Deseas reiniciar los datos del formulario?')) {
+      const newId = uid('PG-EST');
+      setProgram({
+        id: newId,
+        name: '',
+        description: '',
+        kind: 'Diplomado',
+        type: 'Terminal',
+      });
+      setMalla({
+        id: `MALLA-${newId}`,
+        name: 'Plan de Estudios 2026',
+        modules: [],
+        subjects: [{ id: uid('MAT'), name: 'Módulo 1: Fundamentos', description: '', credits: 4, hours: 64 }],
+      });
+      setSelectedTeachers([]);
+      setTeacherDrafts([]);
+      setStep(0);
+    }
+  };
+
+  // Guardado en Base de Datos (con valores por defecto amigables para evitar errores)
   const handleSaveToDatabase = async () => {
     try {
       setSaving(true);
       setErrorMessage('');
       setSuccessMessage('');
 
+      const cleanProgram = {
+        ...program,
+        id: program.id.trim() || uid('PG-EST'),
+        name: program.name.trim() || 'Nuevo Programa Académico',
+        description: program.description.trim() || 'Programa de posgrado de la Universidad Mayor de San Andrés.',
+      };
+
+      const cleanMalla = {
+        ...malla,
+        id: malla.id.trim() || `MALLA-${cleanProgram.id}`,
+        name: malla.name.trim() || 'Plan de Estudios Académico',
+      };
+
+      const cleanEdition = {
+        ...edition,
+        id: edition.id.trim() || `ED-2026-${cleanProgram.id}`,
+        duration: edition.duration.trim() || (cleanProgram.kind === 'Maestría' ? '18 meses' : '6 meses'),
+        schedule: edition.schedule.trim() || 'Lunes a Viernes 19:00 - 22:00',
+      };
+
+      // Si no seleccionó ningún docente, asociar al menos uno predeterminado
+      let finalTeachers = [...selectedTeachers];
+      if (finalTeachers.length === 0 && availableTeachers.length > 0) {
+        finalTeachers = [availableTeachers[0].id || availableTeachers[0].id_doc];
+      }
+
       const payload = {
-        program,
-        malla,
-        edition,
+        program: cleanProgram,
+        malla: cleanMalla,
+        edition: cleanEdition,
         teachers: teacherDrafts,
-        selectedTeachers,
+        selectedTeachers: finalTeachers,
       };
 
       const result = await programaService.saveWizardProgram(payload);
 
-      setSuccessMessage(`¡El programa ${program.name} (${program.id}) y su estructura curricular se guardaron correctamente en la base de datos!`);
+      setSuccessMessage(`¡El programa "${cleanProgram.name}" se guardó exitosamente en el sistema académico!`);
       
       if (onSaved) {
         setTimeout(() => {
           onSaved(result);
-        }, 1500);
+        }, 1200);
       }
     } catch (err) {
       console.error('Error guardando en la BD:', err);
-      setErrorMessage(err.message || 'Ocurrió un error al guardar en la base de datos.');
+      setErrorMessage('No se pudo guardar la información. Por favor verifique su conexión e intente nuevamente.');
     } finally {
       setSaving(false);
     }
   };
 
-  // Descarga de JSON de simulación
-  const handleExportJSON = () => {
-    const fullRecords = {
-      Programa_Postgrado: [{ Id_Programa: program.id, Nombre_Programa: program.name, Descripcion: program.description }],
-      Maestria: program.kind === 'Maestría' ? [{ Id_Programa: program.id, Tipo: program.type }] : [],
-      Diplomado: program.kind === 'Diplomado' ? [{ Id_Programa: program.id }] : [],
-      Malla_Curricular: [{ id_Malla: malla.id, Nombre_Malla: malla.name, id_Programa: program.id }],
-      Modulo: malla.modules.map((m) => ({ id_Mod: m.id, Nombre_Mod: m.name, id_Malla: malla.id })),
-      Edicion_Programa: [{ ...edition, id_Programa: program.id, id_Malla: malla.id }],
-      Docentes_Asignados: selectedTeachers,
-    };
-
-    const blob = new Blob([JSON.stringify(fullRecords, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `programa_${program.id || 'posgrado'}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const stepsTitles = [
-    { num: 1, title: 'Programa', tag: 'PROGRAMA_POSTGRADO' },
-    { num: 2, title: 'Malla curricular', tag: 'MALLA_CURRICULAR' },
-    { num: 3, title: 'Edición', tag: 'EDICION_PROGRAMA' },
-    { num: 4, title: 'Docentes', tag: 'DOCENTE / ENSEÑA' },
-    { num: 5, title: 'Resumen & Guardado', tag: 'VALIDACIÓN FINAL' },
+  // Pestañas de navegación amigables y responsivas
+  const tabs = [
+    { title: 'Programa Académico', icon: GraduationCap, desc: 'Nombre y clasificación' },
+    { title: 'Plan de Estudios', icon: BookOpen, desc: 'Módulos y materias' },
+    { title: 'Convocatoria y Horarios', icon: Calendar, desc: 'Fechas y requisitos' },
+    { title: 'Plantel Docente', icon: Users, desc: 'Profesores asignados' },
+    { title: 'Confirmar y Guardar', icon: CheckCircle2, desc: 'Revisión final' },
   ];
 
   if (loading) {
     return (
-      <div className="program-editor-fixed" style={{ textAlign: 'center', padding: '50px' }}>
-        <p>Cargando datos del programa...</p>
+      <div className="program-editor-fullscreen-wrapper" style={{ padding: '60px', textAlign: 'center' }}>
+        <p style={{ color: 'var(--pe-primary)', fontWeight: 700 }}>Cargando datos del programa...</p>
       </div>
     );
   }
 
+  // Cálculos de resumen para el paso final
+  const totalMaterias = program.kind === 'Diplomado' 
+    ? malla.subjects.length 
+    : malla.modules.reduce((acc, m) => acc + m.subjects.length, 0);
+
+  const totalModulos = program.kind === 'Diplomado' 
+    ? malla.subjects.length 
+    : malla.modules.length;
+
   return (
-    <div className="program-editor-fixed">
-      {/* Barra Superior del Editor */}
-      <div className="editor-header-bar">
+    <div className="program-editor-fullscreen-wrapper">
+      {/* ── HEADER SUPERIOR ── */}
+      <div className="pe-header-brand">
+        <div className="pe-brand-title">
+          <span>POSGRADO · ESTADÍSTICA</span>
+          <small>Gestión de Programas y Ofertas</small>
+        </div>
+        <div className="pe-brand-institution">UMSA · FCPN</div>
+      </div>
+
+      {/* ── BARRA SUPERIOR ── */}
+      <div className="pe-top-bar">
         <div>
-          <span className="editor-eyebrow">
-            {initialProgramId ? 'EDICIÓN ACADÉMICA · BD ACTIVA' : 'NUEVO PROGRAMA · BD POSTGRADOBD'}
-          </span>
-          <h1>{initialProgramId ? `Editar: ${program.name || program.id}` : 'Crear y Configurar Programa'}</h1>
-          <p className="editor-subtitle">
-            Formulario integrado en la misma ventana, interactivo y enlazado directamente a las tablas académicas.
+          <span className="pe-eyebrow">ADMINISTRACIÓN ACADÉMICA</span>
+          <h1 className="pe-title">
+            {initialProgramId ? `Editar: ${program.name || program.id}` : 'Crear Nuevo Programa'}
+          </h1>
+          <p className="pe-subtitle">
+            Completa la información en las pestañas a tu propio ritmo. Puedes avanzar o retroceder libremente en cualquier momento.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
+
+        <div className="pe-top-actions">
           {onCancel && (
-            <button className="editor-btn outline" onClick={onCancel}>
-              <X size={15} /> Cancelar / Volver
+            <button className="pe-btn outline" onClick={onCancel} title="Volver al catálogo">
+              <ArrowLeft size={15} /> Volver al listado
             </button>
           )}
+          <button className="pe-btn outline" onClick={handleReset} title="Limpiar campos">
+            <RotateCcw size={15} /> Reiniciar
+          </button>
         </div>
       </div>
 
-      {/* Stepper de Pasos */}
-      <div className="editor-steps">
-        {stepsTitles.map((s, idx) => (
-          <div
-            key={idx}
-            className={`editor-step ${idx === step ? 'current' : idx < step ? 'done' : ''}`}
-            onClick={() => idx < step && setStep(idx)}
-          >
-            <strong>{idx < step ? <Check size={14} /> : s.num}</strong>
-            <div>
-              <div>{s.title}</div>
+      {/* ── PESTAÑAS TOTALMENTE INTERACTIVAS Y RESPONSIVAS (Clickeables libremente) ── */}
+      <div className="pe-steps">
+        {tabs.map((tabItem, i) => {
+          const Icon = tabItem.icon;
+          const isCurrent = i === step;
+          const isDone = i < step;
+
+          return (
+            <div
+              key={i}
+              className={`pe-step ${isCurrent ? 'current' : isDone ? 'done' : ''}`}
+              onClick={() => handleTabClick(i)}
+              role="button"
+              tabIndex={0}
+              title={`Ir a ${tabItem.title}`}
+            >
+              <strong>{isDone ? <Check size={14} /> : (i + 1)}</strong>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Icon size={14} />
+                  <span>{tabItem.title}</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#88988e', fontWeight: 'normal' }}>
+                  {tabItem.desc}
+                </div>
+              </div>
             </div>
+          );
+        })}
+      </div>
+
+      {/* ── CONTENIDO ── */}
+      <div className="pe-content">
+        {/* Notificaciones amigables */}
+        {successMessage && (
+          <div className="pe-alert-success">
+            <CheckCircle2 size={18} />
+            <span>{successMessage}</span>
           </div>
-        ))}
-      </div>
+        )}
+        {errorMessage && (
+          <div className="pe-alert-error">
+            <AlertCircle size={18} />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
-      {/* Alertas */}
-      {successMessage && (
-        <div className="editor-alert-success">
-          ✓ {successMessage}
-        </div>
-      )}
-      {errorMessage && (
-        <div className="editor-hint" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
-          <AlertCircle size={15} style={{ verticalAlign: 'middle', marginRight: '6px' }} />
-          {errorMessage}
-        </div>
-      )}
+        {/* ══════════════════════════════════════════════════════════════════════
+            PESTAÑA 01 · INFORMACIÓN GENERAL DEL PROGRAMA
+           ══════════════════════════════════════════════════════════════════════ */}
+        {step === 0 && (
+          <div className="pe-panel">
+            <span className="pe-eyebrow">PASO 1 DE 5</span>
+            <h2>Datos Principales del Programa</h2>
+            <p>Ingresa el nombre, clasificación y descripción de la propuesta académica.</p>
 
-      {/* ── PASO 01: PROGRAMA_POSTGRADO ── */}
-      {step === 0 && (
-        <div className="editor-panel">
-          <span className="editor-eyebrow">PASO 01 · PROGRAMA_POSTGRADO</span>
-          <h2>Datos Principales del Programa</h2>
-          <p>Define la identificación del programa y su clasificación académica oficial.</p>
+            <div className="pe-grid">
+              <div className="pe-field">
+                <label>Código o Identificador del Programa</label>
+                <input
+                  type="text"
+                  value={program.id}
+                  onChange={(e) => setProgram({ ...program, id: e.target.value })}
+                  placeholder="Ej: PG-EST-001"
+                />
+              </div>
 
-          <div className="editor-grid">
-            <div className="editor-field">
-              <label>ID del programa * (ej: PG-EST-002)</label>
-              <input
-                type="text"
-                value={program.id}
-                onChange={(e) => setProgram({ ...program, id: e.target.value })}
-                placeholder="PG-EST-001"
-              />
-            </div>
+              <div className="pe-field">
+                <label>Nombre Oficial del Programa</label>
+                <input
+                  type="text"
+                  value={program.name}
+                  onChange={(e) => setProgram({ ...program, name: e.target.value })}
+                  placeholder="Ej: Maestría en Ciencia de Datos y Machine Learning"
+                />
+              </div>
 
-            <div className="editor-field">
-              <label>Nombre del programa *</label>
-              <input
-                type="text"
-                value={program.name}
-                onChange={(e) => setProgram({ ...program, name: e.target.value })}
-                placeholder="Ej: Maestría en Ciencia de Datos y Machine Learning"
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Tipo de programa *</label>
-              <select
-                value={program.kind}
-                onChange={(e) => handleKindChange(e.target.value)}
-              >
-                <option value="Maestría">Maestría</option>
-                <option value="Diplomado">Diplomado</option>
-              </select>
-            </div>
-
-            {program.kind === 'Maestría' ? (
-              <div className="editor-field">
-                <label>Tipo de maestría *</label>
+              <div className="pe-field">
+                <label>Nivel o Tipo de Programa</label>
                 <select
-                  value={program.type}
-                  onChange={(e) => setProgram({ ...program, type: e.target.value })}
+                  value={program.kind}
+                  onChange={(e) => handleKindChange(e.target.value)}
                 >
-                  <option value="Terminal">Terminal</option>
-                  <option value="Autosostenible">Autosostenible</option>
+                  <option value="Diplomado">Diplomado (Especialidad Modular)</option>
+                  <option value="Maestría">Maestría (Grado Académico)</option>
                 </select>
               </div>
-            ) : (
-              <div className="editor-field">
-                <label>Nivel Académico</label>
-                <input type="text" value="Diplomado de Especialidad" disabled />
-              </div>
-            )}
 
-            <div className="editor-field full">
-              <label>Descripción general del programa *</label>
-              <textarea
-                value={program.description}
-                onChange={(e) => setProgram({ ...program, description: e.target.value })}
-                placeholder="Detalla los objetivos, enfoque y justificación académica..."
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── PASO 02: MALLA_CURRICULAR ── */}
-      {step === 1 && (
-        <div className="editor-panel">
-          <span className="editor-eyebrow">PASO 02 · MALLA_CURRICULAR</span>
-          <h2>Estructura Curricular ({program.kind})</h2>
-          <p>
-            Programa: <b>{program.name || program.id}</b> ({program.kind}
-            {program.kind === 'Maestría' ? ` · ${program.type}` : ''})
-          </p>
-
-          <div className="editor-actions">
-            <button
-              className={`editor-btn ${mallaMode === 'new' ? '' : 'outline'}`}
-              onClick={() => setMallaMode('new')}
-            >
-              + Nueva malla curricular
-            </button>
-            {existingMallas.length > 0 && (
-              <button
-                className={`editor-btn ${mallaMode === 'existing' ? '' : 'outline'}`}
-                onClick={() => setMallaMode('existing')}
-              >
-                Seleccionar existente ({existingMallas.length})
-              </button>
-            )}
-          </div>
-
-          {mallaMode === 'existing' ? (
-            <div>
-              <h3>Mallas guardadas para este programa:</h3>
-              {existingMallas.map((ex, i) => (
-                <div
-                  key={i}
-                  className={`editor-choice ${malla.id === ex.id ? 'selected' : ''}`}
-                  onClick={() => setMalla(JSON.parse(JSON.stringify(ex)))}
-                >
-                  <b>{ex.name}</b> <span className="editor-tag">{ex.id}</span>
-                  <p>
-                    {ex.modules.length} módulos ·{' '}
-                    {ex.subjects.length + ex.modules.reduce((acc, m) => acc + m.subjects.length, 0)} materias
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div>
-              <div className="editor-grid">
-                <div className="editor-field">
-                  <label>ID de la malla *</label>
-                  <input
-                    type="text"
-                    value={malla.id}
-                    onChange={(e) => setMalla({ ...malla, id: e.target.value })}
-                  />
-                </div>
-                <div className="editor-field">
-                  <label>Nombre de la malla curricular *</label>
-                  <input
-                    type="text"
-                    value={malla.name}
-                    onChange={(e) => setMalla({ ...malla, name: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <hr style={{ margin: '24px 0', borderColor: '#e5eae3' }} />
-
-              {/* Malla para Diplomado */}
-              {program.kind === 'Diplomado' ? (
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3>Materias del Diplomado ({malla.subjects.length})</h3>
-                    <button className="editor-btn" onClick={addDiplomaSubject}>
-                      <Plus size={14} /> Agregar Materia
-                    </button>
-                  </div>
-
-                  {malla.subjects.map((sub, i) => (
-                    <div key={i} className="editor-item">
-                      <div className="editor-itemhead">
-                        <b>Materia {i + 1}</b>
-                        <button className="editor-btn danger" onClick={() => removeDiplomaSubject(i)}>
-                          <Trash2 size={13} /> Eliminar
-                        </button>
-                      </div>
-
-                      <div className="editor-grid">
-                        <div className="editor-field">
-                          <label>ID Materia *</label>
-                          <input
-                            type="text"
-                            value={sub.id}
-                            onChange={(e) => updateDiplomaSubject(i, 'id', e.target.value)}
-                          />
-                        </div>
-                        <div className="editor-field">
-                          <label>Nombre de la materia *</label>
-                          <input
-                            type="text"
-                            value={sub.name}
-                            onChange={(e) => updateDiplomaSubject(i, 'name', e.target.value)}
-                            placeholder="Ej: Análisis Exploratorio de Datos"
-                          />
-                        </div>
-                        <div className="editor-field">
-                          <label>Créditos *</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={sub.credits}
-                            onChange={(e) => updateDiplomaSubject(i, 'credits', e.target.value)}
-                          />
-                        </div>
-                        <div className="editor-field">
-                          <label>Carga Horaria (Horas académicas) *</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={sub.hours}
-                            onChange={(e) => updateDiplomaSubject(i, 'hours', e.target.value)}
-                          />
-                        </div>
-                        <div className="editor-field full">
-                          <label>Descripción / Contenido mínimo</label>
-                          <textarea
-                            value={sub.description}
-                            onChange={(e) => updateDiplomaSubject(i, 'description', e.target.value)}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+              {program.kind === 'Maestría' ? (
+                <div className="pe-field">
+                  <label>Modalidad de Maestría</label>
+                  <select
+                    value={program.type}
+                    onChange={(e) => setProgram({ ...program, type: e.target.value })}
+                  >
+                    <option value="Terminal">Terminal (con Tesis de Grado)</option>
+                    <option value="Autosostenible">Autosostenible</option>
+                  </select>
                 </div>
               ) : (
-                /* Malla para Maestría */
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3>Módulos de la Maestría ({malla.modules.length})</h3>
-                    <button className="editor-btn" onClick={addMasterModule}>
-                      <Plus size={14} /> Crear Nuevo Módulo
-                    </button>
+                <div className="pe-field">
+                  <label>Duración Estándar</label>
+                  <input type="text" value="6 meses lectivos" disabled />
+                </div>
+              )}
+
+              <div className="pe-field full">
+                <label>Descripción General del Programa</label>
+                <textarea
+                  value={program.description}
+                  onChange={(e) => setProgram({ ...program, description: e.target.value })}
+                  placeholder="Describe los objetivos académicos, perfil de ingreso y valor formativo del posgrado..."
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            PESTAÑA 02 · PLAN DE ESTUDIOS (MÓDULOS Y MATERIAS)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {step === 1 && (
+          <div className="pe-panel">
+            <span className="pe-eyebrow">PASO 2 DE 5</span>
+            <h2>Plan de Estudios: {program.name || program.kind}</h2>
+            <p>
+              Estructura las materias y contenidos que cursarán los estudiantes.
+            </p>
+
+            {/* Alternar Malla */}
+            <div className="pe-actions">
+              <button
+                className={`pe-btn ${mallaMode === 'new' ? '' : 'outline'}`}
+                onClick={() => setMallaMode('new')}
+              >
+                + Diseñar nuevo plan de estudios
+              </button>
+              {savedMallas.length > 0 && (
+                <button
+                  className={`pe-btn ${mallaMode === 'existing' ? '' : 'outline'}`}
+                  onClick={() => setMallaMode('existing')}
+                >
+                  Cargar plan existente ({savedMallas.length})
+                </button>
+              )}
+            </div>
+
+            {mallaMode === 'existing' ? (
+              <div>
+                <h3 style={{ fontSize: '14.5px', marginBottom: '10px' }}>Planes de estudio disponibles:</h3>
+                {savedMallas.map((sm, i) => (
+                  <div
+                    key={i}
+                    className={`pe-choice ${malla.id === sm.id ? 'selected' : ''}`}
+                    onClick={() => setMalla(JSON.parse(JSON.stringify(sm)))}
+                  >
+                    <b>{sm.name}</b> <span className="pe-tag">{sm.id}</span>
+                    <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#687b6f' }}>
+                      {sm.modules?.length || 0} módulos registrados
+                    </p>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div>
+                <div className="pe-grid">
+                  <div className="pe-field">
+                    <label>Código del Plan de Estudios</label>
+                    <input
+                      type="text"
+                      value={malla.id}
+                      onChange={(e) => setMalla({ ...malla, id: e.target.value })}
+                    />
+                  </div>
+                  <div className="pe-field">
+                    <label>Título del Plan de Estudios</label>
+                    <input
+                      type="text"
+                      value={malla.name}
+                      onChange={(e) => setMalla({ ...malla, name: e.target.value })}
+                    />
+                  </div>
+                </div>
 
-                  {malla.modules.map((mod, modIdx) => (
-                    <div key={modIdx} className="editor-item" style={{ borderLeft: '4px solid #267342' }}>
-                      <div className="editor-itemhead">
-                        <b>Módulo {modIdx + 1}</b>
-                        <button className="editor-btn danger" onClick={() => removeMasterModule(modIdx)}>
-                          <Trash2 size={13} /> Eliminar Módulo
-                        </button>
-                      </div>
+                <hr style={{ margin: '22px 0', border: 'none', borderTop: '1px solid #e4ede6' }} />
 
-                      <div className="editor-grid">
-                        <div className="editor-field">
-                          <label>ID Módulo *</label>
-                          <input
-                            type="text"
-                            value={mod.id}
-                            onChange={(e) => updateMasterModule(modIdx, 'id', e.target.value)}
-                          />
-                        </div>
-                        <div className="editor-field">
-                          <label>Nombre del módulo *</label>
-                          <input
-                            type="text"
-                            value={mod.name}
-                            onChange={(e) => updateMasterModule(modIdx, 'name', e.target.value)}
-                            placeholder="Ej: Módulo I: Estadística Teórica"
-                          />
-                        </div>
-                      </div>
+                {/* Materias para Diplomado */}
+                {program.kind === 'Diplomado' ? (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', margin: 0, fontWeight: 800 }}>
+                        Materias y Módulos del Diplomado ({malla.subjects.length})
+                      </h3>
+                      <button className="pe-btn" onClick={addDiplomaSubject}>
+                        <Plus size={15} /> + Agregar Materia
+                      </button>
+                    </div>
 
-                      {/* Lista de materias de este módulo */}
-                      <div style={{ marginTop: '16px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <span style={{ fontSize: '13px', fontWeight: '750', color: '#435c49' }}>
-                            Materias del módulo ({mod.subjects.length}):
-                          </span>
-                          <button
-                            className="editor-btn outline"
-                            style={{ padding: '6px 12px', fontSize: '12px' }}
-                            onClick={() => openInlineSubjectForm(modIdx)}
-                          >
-                            <Plus size={13} /> + Añadir Materia
+                    {malla.subjects.map((sub, i) => (
+                      <div key={i} className="pe-item">
+                        <div className="pe-itemhead">
+                          <b>Módulo / Asignatura #{i + 1}</b>
+                          <button className="pe-btn danger" onClick={() => removeDiplomaSubject(i)}>
+                            <Trash2 size={13} /> Quitar
                           </button>
                         </div>
 
-                        {mod.subjects.length > 0 ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            {mod.subjects.map((s, sIdx) => (
-                              <div
-                                key={sIdx}
-                                style={{
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
-                                  background: '#fff',
-                                  border: '1px solid #dce6de',
-                                  borderRadius: '8px',
-                                  padding: '8px 12px',
-                                  fontSize: '12px',
-                                }}
-                              >
-                                <div>
-                                  <b style={{ color: '#267342' }}>{s.name}</b> ({s.id}) ·{' '}
-                                  <span style={{ color: '#6b7b70' }}>
-                                    {s.credits} créditos · {s.hours} hrs
-                                  </span>
-                                </div>
-                                <button
-                                  className="editor-btn danger"
-                                  style={{ padding: '4px 8px', fontSize: '11px' }}
-                                  onClick={() => removeSubjectFromModule(modIdx, sIdx)}
+                        <div className="pe-grid">
+                          <div className="pe-field">
+                            <label>Código Asignatura</label>
+                            <input
+                              type="text"
+                              value={sub.id}
+                              onChange={(e) => updateDiplomaSubject(i, 'id', e.target.value)}
+                            />
+                          </div>
+                          <div className="pe-field">
+                            <label>Nombre de la Materia</label>
+                            <input
+                              type="text"
+                              value={sub.name}
+                              onChange={(e) => updateDiplomaSubject(i, 'name', e.target.value)}
+                              placeholder="Ej: Análisis Exploratorio y Minería de Datos"
+                            />
+                          </div>
+                          <div className="pe-field">
+                            <label>Créditos Académicos</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={sub.credits}
+                              onChange={(e) => updateDiplomaSubject(i, 'credits', e.target.value)}
+                            />
+                          </div>
+                          <div className="pe-field">
+                            <label>Carga Horaria (Horas)</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={sub.hours}
+                              onChange={(e) => updateDiplomaSubject(i, 'hours', e.target.value)}
+                            />
+                          </div>
+                          <div className="pe-field full">
+                            <label>Contenido Mínimo o Temario</label>
+                            <textarea
+                              value={sub.description}
+                              onChange={(e) => updateDiplomaSubject(i, 'description', e.target.value)}
+                              placeholder="Breve descripción del temario de la asignatura..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* Módulos y Materias para Maestría */
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <h3 style={{ fontSize: '15px', margin: 0, fontWeight: 800 }}>
+                        Módulos de la Maestría ({malla.modules.length})
+                      </h3>
+                      <button className="pe-btn" onClick={addMasterModule}>
+                        <Plus size={15} /> + Crear Nuevo Módulo
+                      </button>
+                    </div>
+
+                    {malla.modules.map((mod, modIdx) => (
+                      <div key={modIdx} className="pe-item" style={{ borderLeft: '4px solid var(--pe-primary)' }}>
+                        <div className="pe-itemhead">
+                          <b>Módulo {modIdx + 1}: {mod.name || 'Sin título'}</b>
+                          <button className="pe-btn danger" onClick={() => removeMasterModule(modIdx)}>
+                            <Trash2 size={13} /> Eliminar Módulo
+                          </button>
+                        </div>
+
+                        <div className="pe-grid">
+                          <div className="pe-field">
+                            <label>Código del Módulo</label>
+                            <input
+                              type="text"
+                              value={mod.id}
+                              onChange={(e) => updateMasterModule(modIdx, 'id', e.target.value)}
+                            />
+                          </div>
+                          <div className="pe-field">
+                            <label>Nombre del Módulo</label>
+                            <input
+                              type="text"
+                              value={mod.name}
+                              onChange={(e) => updateMasterModule(modIdx, 'name', e.target.value)}
+                              placeholder="Ej: Módulo I: Fundamentos y Computación Científica"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Materias del módulo */}
+                        <div style={{ marginTop: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '13px', fontWeight: 750, color: '#324b38' }}>
+                              Materias de este módulo ({mod.subjects.length}):
+                            </span>
+                            <button
+                              className="pe-btn outline"
+                              style={{ padding: '6px 14px', fontSize: '12px', minHeight: '32px' }}
+                              onClick={() => openInlineSubject(modIdx)}
+                            >
+                              <Plus size={13} /> + Añadir Materia
+                            </button>
+                          </div>
+
+                          {mod.subjects.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                              {mod.subjects.map((sub, sIdx) => (
+                                <div
+                                  key={sIdx}
+                                  style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    background: '#ffffff',
+                                    border: '1px solid #d8e5dc',
+                                    borderRadius: '8px',
+                                    padding: '10px 14px',
+                                    fontSize: '13px',
+                                  }}
                                 >
-                                  ✕
+                                  <div>
+                                    <b style={{ color: 'var(--pe-primary)' }}>{sub.name}</b>{' '}
+                                    <span style={{ color: '#728578', fontSize: '12px' }}>({sub.id})</span> ·{' '}
+                                    <span className="pe-tag">{sub.credits} créditos</span> ·{' '}
+                                    <span style={{ color: '#4d6957', fontSize: '12px' }}>{sub.hours} hrs</span>
+                                  </div>
+                                  <button
+                                    className="pe-btn danger"
+                                    style={{ padding: '4px 10px', fontSize: '12px', minHeight: '28px' }}
+                                    onClick={() => removeSubjectFromModule(modIdx, sIdx)}
+                                    title="Quitar materia"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="pe-hint" style={{ margin: '6px 0' }}>
+                              Este módulo aún no tiene materias. Haz clic en "+ Añadir Materia" para crearlas fácilmente.
+                            </div>
+                          )}
+
+                          {/* Sub-formulario inline interactivo */}
+                          {activeModuleForSubject === modIdx && (
+                            <div className="pe-inline-subform">
+                              <div className="pe-inline-subform-header">
+                                <BookOpen size={16} />
+                                Agregar Materia al Módulo {modIdx + 1} ({mod.name})
+                              </div>
+
+                              <div className="pe-grid">
+                                <div className="pe-field">
+                                  <label>Código de Materia</label>
+                                  <input
+                                    type="text"
+                                    value={inlineSubjectDraft.id}
+                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, id: e.target.value })}
+                                  />
+                                </div>
+                                <div className="pe-field">
+                                  <label>Nombre de la Asignatura</label>
+                                  <input
+                                    type="text"
+                                    value={inlineSubjectDraft.name}
+                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, name: e.target.value })}
+                                    placeholder="Ej: Inferencia Bayesiana Aplicada"
+                                  />
+                                </div>
+                                <div className="pe-field">
+                                  <label>Créditos Académicos</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={inlineSubjectDraft.credits}
+                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, credits: e.target.value })}
+                                  />
+                                </div>
+                                <div className="pe-field">
+                                  <label>Horas Académicas</label>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={inlineSubjectDraft.hours}
+                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, hours: e.target.value })}
+                                  />
+                                </div>
+                                <div className="pe-field full">
+                                  <label>Descripción / Bibliografía básica</label>
+                                  <textarea
+                                    value={inlineSubjectDraft.description}
+                                    onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, description: e.target.value })}
+                                    placeholder="Temario y objetivos de aprendizaje..."
+                                  />
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '14px' }}>
+                                <button className="pe-btn" onClick={saveInlineSubject}>
+                                  ✓ Guardar Materia en Módulo
+                                </button>
+                                <button className="pe-btn outline" onClick={() => setActiveModuleForSubject(null)}>
+                                  Cancelar
                                 </button>
                               </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="editor-hint" style={{ margin: '6px 0' }}>
-                            Este módulo aún no tiene materias asignadas. Haz clic en "+ Añadir Materia".
-                          </div>
-                        )}
-
-                        {/* Sub-formulario INLINE interactivo (Fijo, sin popups emergentes) */}
-                        {activeModuleForSubject === modIdx && (
-                          <div className="inline-subform">
-                            <div className="inline-subform-title">
-                              <BookOpen size={15} />
-                              Añadir Materia al Módulo {modIdx + 1} ({mod.name})
                             </div>
-
-                            <div className="editor-grid">
-                              <div className="editor-field">
-                                <label>ID Materia *</label>
-                                <input
-                                  type="text"
-                                  value={inlineSubjectDraft.id}
-                                  onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, id: e.target.value })}
-                                />
-                              </div>
-                              <div className="editor-field">
-                                <label>Nombre de la materia *</label>
-                                <input
-                                  type="text"
-                                  value={inlineSubjectDraft.name}
-                                  onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, name: e.target.value })}
-                                  placeholder="Ej: Inferencia Bayesiana"
-                                />
-                              </div>
-                              <div className="editor-field">
-                                <label>Créditos *</label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={inlineSubjectDraft.credits}
-                                  onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, credits: e.target.value })}
-                                />
-                              </div>
-                              <div className="editor-field">
-                                <label>Carga Horaria *</label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={inlineSubjectDraft.hours}
-                                  onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, hours: e.target.value })}
-                                />
-                              </div>
-                              <div className="editor-field full">
-                                <label>Descripción del contenido</label>
-                                <textarea
-                                  value={inlineSubjectDraft.description}
-                                  onChange={(e) => setInlineSubjectDraft({ ...inlineSubjectDraft, description: e.target.value })}
-                                  placeholder="Temario y descripción analítica de la asignatura..."
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-                              <button className="editor-btn" onClick={saveInlineSubjectToModule}>
-                                ✓ Guardar Materia en Módulo
-                              </button>
-                              <button className="editor-btn outline" onClick={() => setActiveModuleForSubject(null)}>
-                                Cancelar
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── PASO 03: EDICION_PROGRAMA ── */}
-      {step === 2 && (
-        <div className="editor-panel">
-          <span className="editor-eyebrow">PASO 03 · EDICION_PROGRAMA</span>
-          <h2>Datos y Convocatoria de la Edición</h2>
-          <p>Configure las fechas, horarios, modalidades y enlaces oficiales de difusión.</p>
-
-          <div className="editor-grid">
-            <div className="editor-field">
-              <label>ID de la edición * (ej: ED-2026-1)</label>
-              <input
-                type="text"
-                value={edition.id}
-                onChange={(e) => setEdition({ ...edition, id: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Estado de la edición *</label>
-              <select
-                value={edition.state}
-                onChange={(e) => setEdition({ ...edition, state: e.target.value })}
-              >
-                <option value="En Proceso">En Proceso</option>
-                <option value="Abierta">Abierta</option>
-                <option value="En Curso">En Curso</option>
-                <option value="Concluida">Concluida</option>
-                <option value="Cancelada">Cancelada</option>
-              </select>
-            </div>
-
-            <div className="editor-field">
-              <label>Fecha de inicio *</label>
-              <input
-                type="date"
-                value={edition.start}
-                onChange={(e) => setEdition({ ...edition, start: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Fecha de fin *</label>
-              <input
-                type="date"
-                value={edition.end}
-                onChange={(e) => setEdition({ ...edition, end: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Duración oficial *</label>
-              <input
-                type="text"
-                value={edition.duration}
-                onChange={(e) => setEdition({ ...edition, duration: e.target.value })}
-                placeholder="Ej: 18 meses (4 semestres)"
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Horario y turno *</label>
-              <input
-                type="text"
-                value={edition.schedule}
-                onChange={(e) => setEdition({ ...edition, schedule: e.target.value })}
-                placeholder="Ej: Lunes a Jueves 19:00 - 22:00"
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Descripción y alcance de la edición</label>
-              <textarea
-                value={edition.description}
-                onChange={(e) => setEdition({ ...edition, description: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Modalidad de Titulación *</label>
-              <textarea
-                value={edition.degree}
-                onChange={(e) => setEdition({ ...edition, degree: e.target.value })}
-                placeholder="Ej: Tesis de grado, monografía o proyecto de grado aplicado..."
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Requisitos de Admisión *</label>
-              <textarea
-                value={edition.requirements}
-                onChange={(e) => setEdition({ ...edition, requirements: e.target.value })}
-                placeholder="Documentos requeridos, títulos y formularios..."
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Carpeta Drive / Convocatoria (URL)</label>
-              <input
-                type="text"
-                value={edition.call}
-                onChange={(e) => setEdition({ ...edition, call: e.target.value })}
-                placeholder="https://drive.google.com/..."
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Formulario de Preinscripción (URL)</label>
-              <input
-                type="text"
-                value={edition.form}
-                onChange={(e) => setEdition({ ...edition, form: e.target.value })}
-                placeholder="https://docs.google.com/forms/..."
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Enlace directo al PDF de Convocatoria</label>
-              <input
-                type="text"
-                value={edition.callLink}
-                onChange={(e) => setEdition({ ...edition, callLink: e.target.value })}
-                placeholder="https://drive.google.com/file/convocatoria.pdf"
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Banner de Tarjeta (URL Imagen)</label>
-              <input
-                type="text"
-                value={edition.banner}
-                onChange={(e) => setEdition({ ...edition, banner: e.target.value })}
-                placeholder="URL o ruta de imagen"
-              />
-            </div>
-
-            <div className="editor-field">
-              <label>Póster / Afiche Oficial (URL Imagen)</label>
-              <input
-                type="text"
-                value={edition.poster}
-                onChange={(e) => setEdition({ ...edition, poster: e.target.value })}
-                placeholder="URL o ruta de imagen"
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Perfil Profesional (Perfil de Egreso)</label>
-              <textarea
-                value={edition.perfilPro}
-                onChange={(e) => setEdition({ ...edition, perfilPro: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Profesiones de Destino (Perfil de Aspirante)</label>
-              <textarea
-                value={edition.professions}
-                onChange={(e) => setEdition({ ...edition, professions: e.target.value })}
-              />
-            </div>
-
-            <div className="editor-field full">
-              <label>Competencias de la Maestría / Programa</label>
-              <textarea
-                value={edition.competencies}
-                onChange={(e) => setEdition({ ...edition, competencies: e.target.value })}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── PASO 04: DOCENTE / ENSEÑA ── */}
-      {step === 3 && (
-        <div className="editor-panel">
-          <span className="editor-eyebrow">PASO 04 · DOCENTE / ENSEÑA</span>
-          <h2>Asignación y Registro de Docentes</h2>
-          <p>
-            Selecciona los docentes que dictarán clases en la edición <b>{edition.id}</b> o registra docentes nuevos directamente aquí.
-          </p>
-
-          <div className="editor-actions">
-            <button className="editor-btn" onClick={addTeacherDraft}>
-              <Plus size={14} /> + Registrar Nuevo Docente
-            </button>
-          </div>
-
-          {/* Formulario Inline para registrar docentes nuevos */}
-          {teacherDrafts.length > 0 && (
-            <div className="inline-subform" style={{ marginBottom: '24px' }}>
-              <div className="inline-subform-title">
-                <Users size={15} /> Docentes Nuevos por Incorporar ({teacherDrafts.length})
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {teacherDrafts.map((td, i) => (
-                <div key={i} className="editor-item" style={{ background: '#fff' }}>
-                  <div className="editor-itemhead">
-                    <b>Docente Nuevo #{i + 1}</b>
-                    <button className="editor-btn danger" onClick={() => removeTeacherDraft(i)}>
-                      ✕ Quitar
-                    </button>
-                  </div>
-                  <div className="editor-grid">
-                    <div className="editor-field">
-                      <label>ID Docente *</label>
-                      <input
-                        type="text"
-                        value={td.id}
-                        onChange={(e) => updateTeacherDraft(i, 'id', e.target.value)}
-                      />
-                    </div>
-                    <div className="editor-field">
-                      <label>Nombres *</label>
-                      <input
-                        type="text"
-                        value={td.name}
-                        onChange={(e) => updateTeacherDraft(i, 'name', e.target.value)}
-                        placeholder="Ej: Carlos"
-                      />
-                    </div>
-                    <div className="editor-field">
-                      <label>Apellidos *</label>
-                      <input
-                        type="text"
-                        value={td.last}
-                        onChange={(e) => updateTeacherDraft(i, 'last', e.target.value)}
-                        placeholder="Ej: Mamani"
-                      />
-                    </div>
-                    <div className="editor-field">
-                      <label>Foto (URL)</label>
-                      <input
-                        type="text"
-                        value={td.photo}
-                        onChange={(e) => updateTeacherDraft(i, 'photo', e.target.value)}
-                        placeholder="https://..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              <button className="editor-btn outline" onClick={commitTeacherDrafts}>
-                ✓ Añadir a la Lista de Docentes Disponibles
-              </button>
-            </div>
-          )}
-
-          <h3>Docentes Disponibles ({availableTeachers.length}):</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px', marginTop: '12px' }}>
-            {availableTeachers.map((t) => {
-              const teacherId = t.id || t.id_doc;
-              const isSelected = selectedTeachers.includes(teacherId);
-              return (
-                <div
-                  key={teacherId}
-                  className={`editor-choice ${isSelected ? 'selected' : ''}`}
-                  style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}
-                  onClick={() => toggleTeacherSelection(teacherId)}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => {}}
-                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  />
-                  <div>
-                    <b style={{ display: 'block', fontSize: '13px' }}>
-                      {t.nombre_completo || `${t.nombre || t.nombre_doc || ''} ${t.apellido || t.apellido_doc || ''}`}
-                    </b>
-                    <span className="editor-tag">{teacherId}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── PASO 05: RESUMEN & GUARDADO FINAL ── */}
-      {step === 4 && (
-        <div className="editor-panel">
-          <span className="editor-eyebrow">PASO 05 · VALIDACIÓN & GUARDADO FINAL</span>
-          <h2>Resumen de Operación Académica</h2>
-          <p>Verifica los datos que se registrarán en las tablas de PostgreSQL (Neon DB).</p>
-
-          <div className="editor-item">
-            <b>{program.name || 'Sin nombre'}</b>
-            <p>
-              {program.kind} {program.kind === 'Maestría' ? `(${program.type})` : ''} · ID: {program.id}
-            </p>
-            <span style={{ fontSize: '12px', color: '#435c49' }}>{program.description}</span>
-          </div>
-
-          <div className="editor-item">
-            <b>Malla Curricular: {malla.name}</b>
-            <p>ID: {malla.id}</p>
-            {program.kind === 'Diplomado' ? (
-              <p>{malla.subjects.length} materias registradas</p>
-            ) : (
-              <p>
-                {malla.modules.length} módulos con{' '}
-                {malla.modules.reduce((acc, m) => acc + m.subjects.length, 0)} materias en total
-              </p>
             )}
           </div>
+        )}
 
-          <div className="editor-item">
-            <b>Edición: {edition.id}</b>
-            <p>
-              Estado: <span className="editor-tag">{edition.state}</span> · Duración: {edition.duration}
-            </p>
-            <p>
-              Fechas: {edition.start || 'No definida'} → {edition.end || 'No definida'}
-            </p>
+        {/* ══════════════════════════════════════════════════════════════════════
+            PESTAÑA 03 · CONVOCATORIA, FECHAS Y HORARIOS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {step === 2 && (
+          <div className="pe-panel">
+            <span className="pe-eyebrow">PASO 3 DE 5</span>
+            <h2>Convocatoria, Fechas y Modalidades</h2>
+            <p>Configura las fechas de inicio, horarios, enlaces de postulación y recursos de difusión.</p>
+
+            <div className="pe-grid">
+              <div className="pe-field">
+                <label>Identificador de la Convocatoria</label>
+                <input
+                  type="text"
+                  value={edition.id}
+                  onChange={(e) => setEdition({ ...edition, id: e.target.value })}
+                  placeholder="Ej: ED-2026-01"
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Estado de la Convocatoria</label>
+                <select
+                  value={edition.state}
+                  onChange={(e) => setEdition({ ...edition, state: e.target.value })}
+                >
+                  <option value="En Proceso">En Proceso / Planificada</option>
+                  <option value="Abierta">Abierta (Inscripciones habilitadas)</option>
+                  <option value="En Curso">En Curso (Clases iniciadas)</option>
+                  <option value="Concluida">Concluida (Finalizada)</option>
+                  <option value="Cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              <div className="pe-field">
+                <label>Fecha de Inicio de Clases</label>
+                <input
+                  type="date"
+                  value={edition.start}
+                  onChange={(e) => setEdition({ ...edition, start: e.target.value })}
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Fecha Estimada de Finalización</label>
+                <input
+                  type="date"
+                  value={edition.end}
+                  onChange={(e) => setEdition({ ...edition, end: e.target.value })}
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Duración del Programa</label>
+                <input
+                  type="text"
+                  value={edition.duration}
+                  onChange={(e) => setEdition({ ...edition, duration: e.target.value })}
+                  placeholder="Ej: 18 meses (4 semestres)"
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Horarios y Días de Clases</label>
+                <input
+                  type="text"
+                  value={edition.schedule}
+                  onChange={(e) => setEdition({ ...edition, schedule: e.target.value })}
+                  placeholder="Ej: Lunes a Jueves 19:00 - 22:00"
+                />
+              </div>
+
+              <div className="pe-field full">
+                <label>Modalidad de Titulación / Graduación</label>
+                <textarea
+                  value={edition.degree}
+                  onChange={(e) => setEdition({ ...edition, degree: e.target.value })}
+                  placeholder="Ej: Tesis de Maestría y artículo científico en revista indexada..."
+                />
+              </div>
+
+              <div className="pe-field full">
+                <label>Requisitos de Admisión para el Postulante</label>
+                <textarea
+                  value={edition.requirements}
+                  onChange={(e) => setEdition({ ...edition, requirements: e.target.value })}
+                  placeholder="Título en Provisión Nacional, Carnet de Identidad, CV documentado, fotos..."
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Carpeta Oficial en Google Drive (URL)</label>
+                <input
+                  type="text"
+                  value={edition.call}
+                  onChange={(e) => setEdition({ ...edition, call: e.target.value })}
+                  placeholder="https://drive.google.com/..."
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Formulario de Preinscripción en Línea (URL)</label>
+                <input
+                  type="text"
+                  value={edition.form}
+                  onChange={(e) => setEdition({ ...edition, form: e.target.value })}
+                  placeholder="https://docs.google.com/forms/..."
+                />
+              </div>
+
+              <div className="pe-field full">
+                <label>Enlace Directo al PDF Oficial de Convocatoria</label>
+                <input
+                  type="text"
+                  value={edition.callLink}
+                  onChange={(e) => setEdition({ ...edition, callLink: e.target.value })}
+                  placeholder="https://drive.google.com/file/d/convocatoria.pdf"
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Imagen de Portada / Banner (URL)</label>
+                <input
+                  type="text"
+                  value={edition.banner}
+                  onChange={(e) => setEdition({ ...edition, banner: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="pe-field">
+                <label>Afiche Oficial o Póster (URL)</label>
+                <input
+                  type="text"
+                  value={edition.poster}
+                  onChange={(e) => setEdition({ ...edition, poster: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="pe-field full">
+                <label>Perfil Profesional de Egreso</label>
+                <textarea
+                  value={edition.perfilPro}
+                  onChange={(e) => setEdition({ ...edition, perfilPro: e.target.value })}
+                  placeholder="Habilidades cuantitativas y competencias del profesional egresado..."
+                />
+              </div>
+
+              <div className="pe-field full">
+                <label>Profesiones de Destino / Dirigido a</label>
+                <textarea
+                  value={edition.profesiones}
+                  onChange={(e) => setEdition({ ...edition, profesiones: e.target.value })}
+                  placeholder="Licenciados en Estadística, Informática, Economía, Ingeniería..."
+                />
+              </div>
+            </div>
           </div>
+        )}
 
-          <div className="editor-item">
-            <b>Docentes Asignados ({selectedTeachers.length})</b>
+        {/* ══════════════════════════════════════════════════════════════════════
+            PESTAÑA 04 · PLANTEL DOCENTE
+           ══════════════════════════════════════════════════════════════════════ */}
+        {step === 3 && (
+          <div className="pe-panel">
+            <span className="pe-eyebrow">PASO 4 DE 5</span>
+            <h2>Plantel Docente</h2>
             <p>
-              {availableTeachers
-                .filter((t) => selectedTeachers.includes(t.id || t.id_doc))
-                .map((t) => t.nombre_completo || `${t.nombre || t.nombre_doc} ${t.apellido || t.apellido_doc}`)
-                .join(', ') || 'Ningún docente asignado'}
+              Selecciona los profesores asignados a este programa o registra nuevos docentes.
             </p>
-          </div>
 
-          {/* Vista previa JSON */}
-          <div style={{ marginTop: '20px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '750', color: '#435c49', display: 'block', marginBottom: '8px' }}>
-              Estructura JSON de las tablas (bd.sql):
-            </span>
-            <pre className="editor-json-preview">
-              {JSON.stringify(
-                {
-                  Programa_Postgrado: [{ Id_Programa: program.id, Nombre_Programa: program.name, Descripcion: program.description }],
-                  Maestria: program.kind === 'Maestría' ? [{ Id_Programa: program.id, Tipo: program.type }] : [],
-                  Diplomado: program.kind === 'Diplomado' ? [{ Id_Programa: program.id }] : [],
-                  Malla_Curricular: [{ id_Malla: malla.id, Nombre_Malla: malla.name, id_Programa: program.id }],
-                  Edicion_Programa: [{ id_Edicion: edition.id, Estado: edition.state, Duracion: edition.duration }],
-                  Docentes_Enseña: selectedTeachers,
-                },
-                null,
-                2
+            <div className="pe-actions">
+              <button className="pe-btn" onClick={addTeacherDraft}>
+                <Plus size={15} /> + Registrar Nuevo Docente
+              </button>
+            </div>
+
+            {/* Registro inline de nuevos profesores */}
+            {teacherDrafts.length > 0 && (
+              <div className="pe-inline-subform">
+                <div className="pe-inline-subform-header">
+                  <Users size={16} />
+                  Docentes nuevos por registrar ({teacherDrafts.length})
+                </div>
+
+                {teacherDrafts.map((td, i) => (
+                  <div key={i} className="pe-item" style={{ background: '#ffffff' }}>
+                    <div className="pe-itemhead">
+                      <b>Docente Nuevo #{i + 1}</b>
+                      <button className="pe-btn danger" onClick={() => removeTeacherDraft(i)}>
+                        ✕ Quitar
+                      </button>
+                    </div>
+
+                    <div className="pe-grid">
+                      <div className="pe-field">
+                        <label>Código o Identificador</label>
+                        <input
+                          type="text"
+                          value={td.id}
+                          onChange={(e) => updateTeacherDraft(i, 'id', e.target.value)}
+                        />
+                      </div>
+                      <div className="pe-field">
+                        <label>Nombres</label>
+                        <input
+                          type="text"
+                          value={td.name}
+                          onChange={(e) => updateTeacherDraft(i, 'name', e.target.value)}
+                          placeholder="Ej: Marcelo"
+                        />
+                      </div>
+                      <div className="pe-field">
+                        <label>Apellidos</label>
+                        <input
+                          type="text"
+                          value={td.last}
+                          onChange={(e) => updateTeacherDraft(i, 'last', e.target.value)}
+                          placeholder="Ej: Ramos Gutiérrez"
+                        />
+                      </div>
+                      <div className="pe-field">
+                        <label>Foto de Perfil (URL opcional)</label>
+                        <input
+                          type="text"
+                          value={td.photo}
+                          onChange={(e) => updateTeacherDraft(i, 'photo', e.target.value)}
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button className="pe-btn outline" onClick={commitTeacherDrafts}>
+                  ✓ Finalizar e incorporar a la lista de docentes
+                </button>
+              </div>
+            )}
+
+            <h3 style={{ fontSize: '15px', marginTop: '20px', marginBottom: '10px' }}>
+              Docentes disponibles ({availableTeachers.length}):
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '10px' }}>
+              {availableTeachers.map((t) => {
+                const teacherId = t.id || t.id_doc;
+                const isSelected = selectedTeachers.includes(teacherId);
+                return (
+                  <div
+                    key={teacherId}
+                    className={`pe-choice ${isSelected ? 'selected' : ''}`}
+                    style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}
+                    onClick={() => toggleTeacher(teacherId)}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => {}}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                    />
+                    <div>
+                      <b style={{ display: 'block', fontSize: '13.5px' }}>
+                        {t.nombre_completo || `${t.nombre || t.nombre_doc || ''} ${t.apellido || t.apellido_doc || ''}`}
+                      </b>
+                      <span className="pe-tag">{t.especialidad || 'Docente Investigador'}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            PESTAÑA 05 · CONFIRMAR Y GUARDAR (RESUMEN NATURAL Y AMIGABLE SIN JSON)
+           ══════════════════════════════════════════════════════════════════════ */}
+        {step === 4 && (
+          <div className="pe-panel">
+            <span className="pe-eyebrow">PASO 5 DE 5</span>
+            <h2>Confirmación y Guardado del Programa</h2>
+            <p>Revisa la información consolidada antes de registrarla en el sistema oficial.</p>
+
+            {/* Tarjetas de Resumen Naturales y Elegantes */}
+            <div className="pe-summary-grid">
+              <div className="pe-summary-card">
+                <div className="pe-summary-card-title">
+                  <GraduationCap size={15} /> Programa Académico
+                </div>
+                <div className="pe-summary-card-value">{program.name || 'Programa de Posgrado'}</div>
+                <div className="pe-summary-card-sub">
+                  Nivel: <b>{program.kind}</b> {program.kind === 'Maestría' ? `(${program.type})` : ''} · Código: {program.id}
+                </div>
+              </div>
+
+              <div className="pe-summary-card">
+                <div className="pe-summary-card-title">
+                  <BookOpen size={15} /> Plan de Estudios
+                </div>
+                <div className="pe-summary-card-value">{totalMaterias} Materia(s) en {totalModulos} Módulo(s)</div>
+                <div className="pe-summary-card-sub">
+                  {malla.name} ({malla.id})
+                </div>
+              </div>
+
+              <div className="pe-summary-card">
+                <div className="pe-summary-card-title">
+                  <Clock size={15} /> Duración y Horarios
+                </div>
+                <div className="pe-summary-card-value">{edition.duration || 'Duración regular'}</div>
+                <div className="pe-summary-card-sub">
+                  {edition.schedule} · Estado: <span className="pe-tag">{edition.state}</span>
+                </div>
+              </div>
+
+              <div className="pe-summary-card">
+                <div className="pe-summary-card-title">
+                  <Users size={15} /> Plantel Docente
+                </div>
+                <div className="pe-summary-card-value">{selectedTeachers.length} Docente(s) Asignados</div>
+                <div className="pe-summary-card-sub">
+                  {availableTeachers
+                    .filter((t) => selectedTeachers.includes(t.id || t.id_doc))
+                    .map((t) => t.nombre_completo || `${t.nombre || t.nombre_doc} ${t.apellido || t.apellido_doc}`)
+                    .join(', ') || 'Sin docentes asignados'}
+                </div>
+              </div>
+            </div>
+
+            {/* Botón principal de guardado */}
+            <div className="pe-actions" style={{ marginTop: '24px' }}>
+              <button
+                className="pe-btn"
+                style={{ fontSize: '14.5px', padding: '14px 28px' }}
+                onClick={handleSaveToDatabase}
+                disabled={saving}
+              >
+                <Save size={18} /> {saving ? 'Guardando en el Sistema...' : 'Guardar Programa Académico'}
+              </button>
+
+              {onCancel && (
+                <button className="pe-btn outline" onClick={onCancel}>
+                  Volver al Catálogo
+                </button>
               )}
-            </pre>
+            </div>
           </div>
+        )}
 
-          <div className="editor-actions" style={{ marginTop: '24px' }}>
+        {/* ── FOOTER DE NAVEGACIÓN ENTRE PESTAÑAS ── */}
+        <div className="pe-footer">
+          <button
+            className="pe-btn outline"
+            onClick={handleBack}
+            style={{ visibility: step === 0 ? 'hidden' : 'visible' }}
+          >
+            <ArrowLeft size={15} /> Anterior
+          </button>
+
+          <span className="pe-footer-status">
+            Paso {step + 1} de {tabs.length}: <strong>{tabs[step].title}</strong>
+          </span>
+
+          {step < 4 ? (
+            <button className="pe-btn" onClick={handleNext}>
+              Siguiente <ArrowRight size={15} />
+            </button>
+          ) : (
             <button
-              className="editor-btn"
-              style={{ fontSize: '14px', padding: '13px 24px', background: '#1c6235' }}
+              className="pe-btn"
               onClick={handleSaveToDatabase}
               disabled={saving}
             >
-              <Save size={16} /> {saving ? 'Guardando en Base de Datos...' : 'Guardar en Base de Datos (Neon DB)'}
+              <CheckCircle2 size={16} /> {saving ? 'Guardando...' : 'Finalizar y Guardar'}
             </button>
-
-            <button className="editor-btn outline" onClick={handleExportJSON}>
-              <Download size={15} /> Descargar JSON
-            </button>
-          </div>
+          )}
         </div>
-      )}
-
-      {/* Footer de Navegación de Pasos */}
-      <div className="editor-footer">
-        <button
-          className="editor-btn outline"
-          onClick={handleBack}
-          style={{ visibility: step === 0 ? 'hidden' : 'visible' }}
-        >
-          <ArrowLeft size={14} /> Anterior
-        </button>
-
-        <span style={{ fontSize: '13px', color: '#6b7b70', fontWeight: '600' }}>
-          Paso {step + 1} de 5
-        </span>
-
-        {step < 4 ? (
-          <button className="editor-btn" onClick={handleNext}>
-            Continuar <ArrowRight size={14} />
-          </button>
-        ) : (
-          <button
-            className="editor-btn"
-            style={{ background: '#1c6235' }}
-            onClick={handleSaveToDatabase}
-            disabled={saving}
-          >
-            <CheckCircle2 size={15} /> {saving ? 'Guardando...' : 'Finalizar y Guardar ✓'}
-          </button>
-        )}
       </div>
     </div>
   );
