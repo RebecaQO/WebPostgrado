@@ -48,15 +48,26 @@ import {
   MapPin,
   Mail,
   Globe,
-  PhoneCall
+  PhoneCall,
+  Menu,
+  ChevronLeft,
+  ChevronRight,
+  LogOut,
+  Bell
 } from 'lucide-react';
 import { ProgramEditorFixed } from './ProgramEditorFixed';
+import '../../styles/admin-portal.css';
 
-export const AdminPortal = () => {
+export const AdminPortal = ({ onExitAdmin }) => {
   const { currentUser } = useAuth();
 
   // Sidebar Tab state: 'programas' | 'modulos' | 'convocatorias' | 'defensas' | 'carrera' | 'usuarios' | 'docentes' | 'metricas'
   const [activeTab, setActiveTab] = useState('programas');
+
+  // Sidebar responsivo & buscador global
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
 
   // Data states
   const [programCatalog, setProgramCatalog] = useState([]);
@@ -653,304 +664,210 @@ export const AdminPortal = () => {
   };
 
   return (
-    <div style={{ background: 'var(--color-bg-primary)', minHeight: 'calc(100vh - 80px)', padding: '2rem 0' }}>
-      <div className="container">
-        {/* Toast Notification */}
-        {feedbackMessage && (
-          <div style={{
-            position: 'fixed',
-            top: '90px',
-            right: '25px',
-            zIndex: 1100,
-            padding: '0.9rem 1.4rem',
-            borderRadius: 'var(--radius-md)',
-            background: feedbackMessage.type === 'error' ? 'var(--color-status-danger-bg)' : (feedbackMessage.type === 'warning' ? 'var(--color-status-warning-bg)' : 'var(--color-green-inst-subtle)'),
-            border: `1.5px solid ${feedbackMessage.type === 'error' ? 'var(--color-status-danger-border)' : (feedbackMessage.type === 'warning' ? 'var(--color-status-warning-border)' : 'var(--color-green-inst-border)')}`,
-            color: feedbackMessage.type === 'error' ? 'var(--color-status-danger)' : (feedbackMessage.type === 'warning' ? 'var(--color-status-warning)' : 'var(--color-green-inst)'),
-            boxShadow: 'var(--shadow-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            fontWeight: 700,
-            fontSize: '0.875rem',
-            animation: 'fadeIn 0.2s ease-out'
-          }}>
-            <CheckCircle2 size={18} />
-            <span>{feedbackMessage.text}</span>
-          </div>
-        )}
+    <>
+    <div className="adm-shell">
+      {/* ── TOPBAR 60px DE ADMINISTRACIÓN ── */}
+      <header className="adm-topbar">
+        {/* Toggle Hamburger / Collapse */}
+        <button
+          className="adm-topbar-toggle"
+          onClick={() => {
+            if (window.innerWidth <= 768) {
+              setIsMobileSidebarOpen(!isMobileSidebarOpen);
+            } else {
+              setIsSidebarCollapsed(!isSidebarCollapsed);
+            }
+          }}
+          title={isSidebarCollapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
+          aria-label="Alternar menú de navegación"
+        >
+          <Menu size={20} />
+        </button>
 
-        {/* Admin Header Banner */}
-        <div className="glass-card" style={{
-          marginBottom: '2rem',
-          background: 'linear-gradient(135deg, #267342 0%, #1e5f35 100%)',
-          borderLeft: '5px solid var(--color-green-lime)',
-          padding: '1.75rem 2rem',
-          color: '#ffffff'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-              <div style={{
-                width: '54px',
-                height: '54px',
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.18)',
-                border: '1.5px solid rgba(255, 255, 255, 0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '1.35rem'
-              }}>
-                ADM
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.2rem' }}>
-                  <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: '#ffffff', border: '1px solid rgba(255,255,255,0.3)' }}>
-                    PANEL DE ADMINISTRACIÓN CENTRAL
-                  </span>
-                  <span className="badge" style={{ background: '#eaf5ec', color: '#267342', fontWeight: 800 }}>
-                    PostgreSQL Neon Activo
-                  </span>
-                </div>
-                <h2 style={{ color: '#ffffff', fontSize: '1.4rem', margin: 0, fontWeight: 800 }}>
-                  Gestión de Postgrado — Estadística UMSA
-                </h2>
-                <div style={{ fontSize: '0.825rem', color: '#eaf5ec' }}>
-                  Administración integral de maestrías, diplomados, módulos, materias, docentes y usuarios
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={fetchAllData}
-              className="btn btn-secondary btn-sm"
-              style={{ background: '#ffffff', color: 'var(--color-green-inst)', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: 'transparent' }}
-            >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-              <span>Actualizar Datos</span>
-            </button>
+        {/* Logo Posgrado UMSA */}
+        <div className="adm-topbar-logo">
+          <div className="adm-topbar-logo-icon">EST</div>
+          <div className="adm-topbar-logo-text">
+            <strong>Posgrado Estadística</strong>
+            <small>UMSA · FCPN · Administración</small>
           </div>
         </div>
 
-        {/* Main Dashboard Layout with Sidebar */}
-        <div className="admin-dashboard-layout">
-          {/* SIDEBAR NAVIGATION TABS */}
-          <aside className="glass-card admin-dashboard-sidebar">
-            <div style={{
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              color: 'var(--color-text-subtle)',
-              marginBottom: '1rem',
-              paddingLeft: '0.5rem'
-            }}>
-              Módulos del Sistema
-            </div>
+        {/* ── SEPARADOR ── */}
+        <div className="adm-topbar-divider" />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <button
-                onClick={() => setActiveTab('programas')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'programas' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'programas' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'programas' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'programas' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <GraduationCap size={17} color={activeTab === 'programas' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Programas & Ofertas</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800, background: activeTab === 'programas' ? 'var(--color-green-inst)' : 'var(--color-border)', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                  {programCatalog.length}
-                </span>
-              </button>
+        {/* ── PERFIL DE USUARIO (LADO IZQUIERDO tras logo) ── */}
+        <div className="adm-topbar-user-left">
+          {/* Avatar/foto circular con iniciales */}
+          <div className="adm-topbar-user-avatar" title="Administrador activo">
+            {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : 'AD'}
+          </div>
+          <div className="adm-topbar-user-info">
+            <span className="adm-topbar-user-name">
+              {currentUser?.nombre || currentUser?.username || 'Administrador'}
+            </span>
+            <span className="adm-topbar-user-role">Administrador del Sistema</span>
+          </div>
 
-              {/* CONVOCATORIAS ANTERIORES TAB */}
-              <button
-                onClick={() => setActiveTab('convocatorias')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'convocatorias' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'convocatorias' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'convocatorias' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'convocatorias' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Archive size={17} color={activeTab === 'convocatorias' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Convocatorias Pasadas</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800, background: activeTab === 'convocatorias' ? 'var(--color-green-inst)' : 'var(--color-border)', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                  {convocatoriasPasadas.length}
-                </span>
-              </button>
+          {/* Botón de salir / volver al portal */}
+          {onExitAdmin && (
+            <button
+              className="adm-exit-btn"
+              onClick={onExitAdmin}
+              title="Volver al portal público institucional"
+            >
+              <LogOut size={13} />
+              <span>Salir</span>
+            </button>
+          )}
+        </div>
 
-              {/* NEW TAB: MÓDULOS Y MATERIAS */}
-              <button
-                onClick={() => setActiveTab('modulos')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'modulos' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'modulos' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'modulos' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'modulos' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <BookMarked size={17} color={activeTab === 'modulos' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Módulos & Materias</span>
-              </button>
+        {/* Buscador global (Ctrl + K) — crece al centro */}
+        <div className="adm-topbar-search">
+          <Search size={15} className="adm-topbar-search-icon" />
+          <input
+            type="text"
+            placeholder="Buscar programas, docentes, convocatorias... (Ctrl+K)"
+            value={globalSearch}
+            onChange={(e) => setGlobalSearch(e.target.value)}
+          />
+        </div>
 
-              <button
-                onClick={() => setActiveTab('usuarios')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'usuarios' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'usuarios' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'usuarios' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'usuarios' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Users size={17} color={activeTab === 'usuarios' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Gestión de Usuarios</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800, background: activeTab === 'usuarios' ? 'var(--color-green-inst)' : 'var(--color-border)', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                  {usuarios.length}
-                </span>
-              </button>
+        {/* Acciones Derecha: Sincronizar y Notificaciones */}
+        <div className="adm-topbar-right">
+          <button
+            className="adm-topbar-icon-btn"
+            onClick={fetchAllData}
+            title="Recargar y sincronizar datos con la base de datos"
+          >
+            <RefreshCw size={15} className={isLoading ? 'animate-spin' : ''} />
+          </button>
 
-              {/* DEFENSAS DE TESIS TAB */}
-              <button
-                onClick={() => setActiveTab('defensas')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'defensas' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'defensas' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'defensas' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'defensas' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Award size={17} color={activeTab === 'defensas' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Defensas de Tesis</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800, background: activeTab === 'defensas' ? 'var(--color-green-inst)' : 'var(--color-border)', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                  {defensasTesis.length}
-                </span>
-              </button>
+          <button className="adm-topbar-icon-btn" title="Notificaciones del sistema">
+            <Bell size={15} />
+            <span className="adm-notif-dot"></span>
+          </button>
+        </div>
+      </header>
 
-              {/* INFORMACION DE CARRERA TAB */}
-              <button
-                onClick={() => setActiveTab('carrera')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'carrera' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'carrera' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'carrera' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'carrera' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Landmark size={17} color={activeTab === 'carrera' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Info Carrera & IETA</span>
-              </button>
+      {/* ── TOAST NOTIFICACIÓN ── */}
+      {feedbackMessage && (
+        <div className={`adm-toast adm-toast-${feedbackMessage.type === 'error' ? 'error' : (feedbackMessage.type === 'warning' ? 'warning' : 'success')}`}>
+          <CheckCircle2 size={18} />
+          <span>{feedbackMessage.text}</span>
+        </div>
+      )}
 
-              <button
-                onClick={() => setActiveTab('docentes')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'docentes' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'docentes' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'docentes' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'docentes' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <BookOpen size={17} color={activeTab === 'docentes' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Planta Docente</span>
-                <span style={{ marginLeft: 'auto', fontSize: '0.75rem', fontWeight: 800, background: activeTab === 'docentes' ? 'var(--color-green-inst)' : 'var(--color-border)', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                  {docentes.length}
-                </span>
-              </button>
+      {/* ── CUERPO (SIDEBAR + MAIN CONTENIDO FLUIDO) ── */}
+      <div className="adm-body">
+        {/* SIDEBAR COLAPSABLE */}
+        <aside className={`adm-sidebar ${isSidebarCollapsed ? 'collapsed' : ''} ${isMobileSidebarOpen ? 'mobile-open' : ''}`}>
+          <div className="adm-sidebar-section-label">Módulos del Sistema</div>
 
-              <button
-                onClick={() => setActiveTab('metricas')}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  padding: '0.75rem 0.9rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: activeTab === 'metricas' ? 'var(--color-green-inst-subtle)' : 'transparent',
-                  color: activeTab === 'metricas' ? 'var(--color-green-inst)' : 'var(--color-text-main)',
-                  fontWeight: activeTab === 'metricas' ? 800 : 600,
-                  fontSize: '0.875rem',
-                  border: activeTab === 'metricas' ? '1.5px solid var(--color-green-inst)' : '1.5px solid transparent',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <Activity size={17} color={activeTab === 'metricas' ? 'var(--color-green-inst)' : 'var(--color-text-subtle)'} />
-                <span>Métricas & Reportes</span>
-              </button>
-            </div>
-          </aside>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', padding: '0 6px' }}>
+            <button
+              onClick={() => { setActiveTab('programas'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'programas' ? 'active' : ''}`}
+              title="Programas & Ofertas"
+            >
+              <span className="adm-nav-icon"><GraduationCap size={18} /></span>
+              <span className="adm-nav-label">Programas & Ofertas</span>
+              <span className="adm-badge">{programCatalog.length}</span>
+            </button>
 
-          {/* MAIN CONTENT AREA */}
-          <main>
+            <button
+              onClick={() => { setActiveTab('convocatorias'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'convocatorias' ? 'active' : ''}`}
+              title="Convocatorias Pasadas"
+            >
+              <span className="adm-nav-icon"><Archive size={18} /></span>
+              <span className="adm-nav-label">Convocatorias Pasadas</span>
+              <span className="adm-badge">{convocatoriasPasadas.length}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('modulos'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'modulos' ? 'active' : ''}`}
+              title="Módulos & Materias"
+            >
+              <span className="adm-nav-icon"><BookMarked size={18} /></span>
+              <span className="adm-nav-label">Módulos & Materias</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('usuarios'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'usuarios' ? 'active' : ''}`}
+              title="Gestión de Usuarios"
+            >
+              <span className="adm-nav-icon"><Users size={18} /></span>
+              <span className="adm-nav-label">Gestión de Usuarios</span>
+              <span className="adm-badge">{usuarios.length}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('defensas'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'defensas' ? 'active' : ''}`}
+              title="Defensas de Tesis"
+            >
+              <span className="adm-nav-icon"><Award size={18} /></span>
+              <span className="adm-nav-label">Defensas de Tesis</span>
+              <span className="adm-badge">{defensasTesis.length}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('carrera'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'carrera' ? 'active' : ''}`}
+              title="Info Carrera & IETA"
+            >
+              <span className="adm-nav-icon"><Landmark size={18} /></span>
+              <span className="adm-nav-label">Info Carrera & IETA</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('docentes'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'docentes' ? 'active' : ''}`}
+              title="Planta Docente"
+            >
+              <span className="adm-nav-icon"><BookOpen size={18} /></span>
+              <span className="adm-nav-label">Planta Docente</span>
+              <span className="adm-badge">{docentes.length}</span>
+            </button>
+
+            <button
+              onClick={() => { setActiveTab('metricas'); setIsMobileSidebarOpen(false); }}
+              className={`adm-nav-item ${activeTab === 'metricas' ? 'active' : ''}`}
+              title="Métricas & Reportes"
+            >
+              <span className="adm-nav-icon"><Activity size={18} /></span>
+              <span className="adm-nav-label">Métricas & Reportes</span>
+            </button>
+          </div>
+
+          {/* Botón inferior de colapso para escritorio */}
+          <div style={{ marginTop: 'auto', padding: '12px 14px', borderTop: '1px solid var(--adm-border)' }}>
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="adm-nav-item"
+              style={{ margin: 0, width: '100%', justifyContent: isSidebarCollapsed ? 'center' : 'flex-start' }}
+              title={isSidebarCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
+            >
+              <span className="adm-nav-icon">
+                {isSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+              </span>
+              <span className="adm-nav-label">Colapsar menú</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* OVERLAY PARA MÓVIL */}
+        <div
+          className={`adm-sidebar-overlay ${isMobileSidebarOpen ? 'visible' : ''}`}
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+
+        {/* ÁREA DE CONTENIDO FLUIDA A PANTALLA COMPLETA */}
+        <main className="adm-main">
+          <div className="adm-content">
             {/* 1. SECCIÓN PROGRAMAS */}
             {activeTab === 'programas' && (
               <div className="animate-fade-in">
@@ -1880,8 +1797,12 @@ export const AdminPortal = () => {
                 </div>
               </div>
             )}
-          </main>
-        </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+        {/* ===== MODALES (fuera del adm-shell, dentro del fragment) ===== */}
 
         {/* MODAL: CREAR MÓDULO */}
         {moduloModalOpen && (
@@ -2953,7 +2874,6 @@ export const AdminPortal = () => {
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </>
   );
 };

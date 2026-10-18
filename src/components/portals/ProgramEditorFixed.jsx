@@ -469,68 +469,121 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
 
   return (
     <div className="program-editor-fullscreen-wrapper">
-      {/* ── HEADER SUPERIOR ── */}
-      <div className="pe-header-brand">
-        <div className="pe-brand-title">
-          <span>POSGRADO · ESTADÍSTICA</span>
-          <small>Gestión de Programas y Ofertas</small>
-        </div>
-        <div className="pe-brand-institution">UMSA · FCPN</div>
-      </div>
+      {/* ── CABECERA ADMINISTRATIVA LIMPIA (Sin banner gigante) ── */}
+      <div className="pe-clean-header">
+        <div className="pe-header-left">
+          <div className="pe-breadcrumb">
+            {onCancel && (
+              <button className="pe-back-link" onClick={onCancel} title="Volver al catálogo de programas">
+                <ArrowLeft size={13} /> Volver al listado
+              </button>
+            )}
+            <span className="pe-crumb-sep">/</span>
+            <span>Posgrado</span>
+            <span className="pe-crumb-sep">&gt;</span>
+            <span>Estadística</span>
+            <span className="pe-crumb-sep">&gt;</span>
+            <span className="pe-crumb-current">
+              {initialProgramId ? 'Editar Programa' : 'Crear Nuevo Programa'}
+            </span>
+          </div>
 
-      {/* ── BARRA SUPERIOR ── */}
-      <div className="pe-top-bar">
-        <div>
-          <span className="pe-eyebrow">ADMINISTRACIÓN ACADÉMICA</span>
           <h1 className="pe-title">
-            {initialProgramId ? `Editar: ${program.name || program.id}` : 'Crear Nuevo Programa'}
+            {initialProgramId ? `Editar: ${program.name || program.id}` : 'Crear Nuevo Programa Académico'}
           </h1>
           <p className="pe-subtitle">
-            Crea la estructura del curso desde cero o reutiliza materias registradas en la base de datos mediante la barra desplegable.
+            Ingresa los datos generales, estructura curricular por módulos o materias, cronograma y plantel docente.
           </p>
         </div>
 
-        <div className="pe-top-actions">
+        <div className="pe-header-right-actions">
+          <button
+            className="pe-btn outline"
+            onClick={handleSaveToDatabase}
+            disabled={saving}
+            title="Guardar borrador de trabajo"
+          >
+            <Save size={14} /> Guardar Borrador
+          </button>
           {onCancel && (
-            <button className="pe-btn outline" onClick={onCancel} title="Volver al catálogo">
-              <ArrowLeft size={15} /> Volver al listado
+            <button className="pe-btn outline-danger" onClick={onCancel} title="Cancelar y volver">
+              <X size={14} /> Cancelar
             </button>
           )}
-          <button className="pe-btn outline" onClick={handleReset} title="Limpiar campos">
-            <RotateCcw size={15} /> Reiniciar
+          <button className="pe-btn outline" onClick={handleReset} title="Restablecer formulario">
+            <RotateCcw size={14} /> Reiniciar
           </button>
         </div>
       </div>
 
-      {/* ── PESTAÑAS INTERACTIVAS Y RESPONSIVAS ── */}
-      <div className="pe-steps">
-        {tabs.map((tabItem, i) => {
-          const Icon = tabItem.icon;
-          const isCurrent = i === step;
-          const isDone = i < step;
+      {/* ── WIZARD DE PASOS DUAL Y RESPONSIVO ── */}
+      {/* Móvil & Tablet (< 768px): Selector desplegable con % */}
+      <div className="pe-mobile-step-selector">
+        <div className="pe-mobile-step-header">
+          <div>
+            <span className="pe-mobile-step-badge">
+              Paso {step + 1} de {tabs.length} ({Math.round(((step + 1) / tabs.length) * 100)}%)
+            </span>
+            <div className="pe-mobile-step-current-title">{tabs[step].title}</div>
+          </div>
+          <select
+            className="pe-mobile-step-dropdown"
+            value={step}
+            onChange={(e) => handleTabClick(Number(e.target.value))}
+            aria-label="Seleccionar paso del formulario"
+          >
+            {tabs.map((t, idx) => (
+              <option key={idx} value={idx}>
+                Paso {idx + 1}: {t.title} {idx < step ? '✓' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="pe-progress-track">
+          <div
+            className="pe-progress-bar"
+            style={{ width: `${((step + 1) / tabs.length) * 100}%` }}
+          />
+        </div>
+      </div>
 
-          return (
-            <div
-              key={i}
-              className={`pe-step ${isCurrent ? 'current' : isDone ? 'done' : ''}`}
-              onClick={() => handleTabClick(i)}
-              role="button"
-              tabIndex={0}
-              title={`Ir a ${tabItem.title}`}
-            >
-              <strong>{isDone ? <Check size={14} /> : (i + 1)}</strong>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Icon size={14} />
-                  <span>{tabItem.title}</span>
-                </div>
-                <div style={{ fontSize: '11px', color: '#88988e', fontWeight: 'normal' }}>
-                  {tabItem.desc}
+      {/* Escritorio (>= 768px): Barra horizontal compacta con indicador de progreso */}
+      <div className="pe-desktop-steps">
+        <div className="pe-progress-track">
+          <div
+            className="pe-progress-bar"
+            style={{ width: `${((step + 1) / tabs.length) * 100}%` }}
+          />
+        </div>
+        <div className="pe-steps">
+          {tabs.map((tabItem, i) => {
+            const Icon = tabItem.icon;
+            const isCurrent = i === step;
+            const isDone = i < step;
+
+            return (
+              <div
+                key={i}
+                className={`pe-step ${isCurrent ? 'current' : isDone ? 'done' : ''}`}
+                onClick={() => handleTabClick(i)}
+                role="button"
+                tabIndex={0}
+                title={`Ir a ${tabItem.title}`}
+              >
+                <strong>{isDone ? <Check size={13} /> : (i + 1)}</strong>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Icon size={14} />
+                    <span>{tabItem.title}</span>
+                  </div>
+                  <div className="pe-step-desc">
+                    {tabItem.desc}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* ── CONTENIDO ── */}
@@ -1355,7 +1408,7 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
           </div>
         )}
 
-        {/* ── FOOTER DE NAVEGACIÓN ENTRE PESTAÑAS ── */}
+        {/* ── FOOTER DE NAVEGACIÓN ENTRE PESTAÑAS (Escritorio) ── */}
         <div className="pe-footer">
           <button
             className="pe-btn outline"
@@ -1383,6 +1436,30 @@ export const ProgramEditorFixed = ({ initialProgramId = null, onSaved, onCancel 
             </button>
           )}
         </div>
+      </div>
+
+      {/* ── BOTONES FLOTANTES EN MÓVIL (< 768px) ── */}
+      <div className="pe-mobile-floating-bar">
+        <button
+          className="pe-btn outline"
+          onClick={handleBack}
+          disabled={step === 0}
+          style={{ opacity: step === 0 ? 0.35 : 1 }}
+        >
+          <ArrowLeft size={14} /> Anterior
+        </button>
+        <span className="pe-floating-status">
+          Paso {step + 1}/{tabs.length}
+        </span>
+        {step < 4 ? (
+          <button className="pe-btn" onClick={handleNext}>
+            Siguiente <ArrowRight size={14} />
+          </button>
+        ) : (
+          <button className="pe-btn" onClick={handleSaveToDatabase} disabled={saving}>
+            <Save size={14} /> {saving ? 'Guardando...' : 'Guardar'}
+          </button>
+        )}
       </div>
     </div>
   );

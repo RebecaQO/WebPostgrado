@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ApplicantsProvider } from './context/ApplicantsContext';
 import { Navbar } from './components/layout/Navbar';
@@ -34,10 +34,8 @@ const MainApp = () => {
   const [selectedProgramDetailId, setSelectedProgramDetailId] = useState(null);
   const [targetProgramForAdmission, setTargetProgramForAdmission] = useState(null);
   const [programFilterState, setProgramFilterState] = useState(null);
-
   const { currentUser } = useAuth();
 
-  // Escuchar cambios de hash para soportar apertura en nueva pestaña (#programa/:id)
   React.useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash || '';
@@ -52,16 +50,13 @@ const MainApp = () => {
         setCurrentTab('programas');
       }
     };
-
     handleHash();
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
   const handleNavigateToAdmission = (programId = null) => {
-    if (programId) {
-      setTargetProgramForAdmission(programId);
-    }
+    if (programId) setTargetProgramForAdmission(programId);
     setCurrentTab('admision');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -84,12 +79,22 @@ const MainApp = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // MODO ADMIN: pantalla completa sin navbar/footer publicos
+  if (currentTab === 'portal-admin') {
+    return (
+      <AdminPortal
+        onExitAdmin={() => {
+          setCurrentTab('inicio');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
   return (
     <div className="page-shell">
-      {/* Skip Link accesible para lectores y teclado */}
       <a className="skip-link" href="#main">Saltar al contenido</a>
 
-      {/* Main Glass Sticky Navbar */}
       <Navbar
         currentTab={currentTab === 'programa-detalle' ? 'programas' : currentTab}
         setCurrentTab={(tab) => {
@@ -101,106 +106,47 @@ const MainApp = () => {
         onOpenProgramDetail={handleOpenProgramDetail}
       />
 
-      {/* Main Content Router */}
       <main id="main" className="site-main">
-        {/* INICIO TAB */}
         {currentTab === 'inicio' && (
           <div className="animate-fade-in">
-            <HeroSection
-              onNavigate={setCurrentTab}
-              onFilterPrograms={handleFilterPrograms}
-            />
-            {/* Banner de la Maestría Actual con Redirección Directa al Programa */}
-            <PromotionalBannerSection
-              onSelectProgram={handleOpenProgramDetail}
-            />
-            {/* 3 Convocatorias Principales Vigentes desde la BD */}
-            <FeaturedPrograms
-              onSelectProgram={handleOpenProgramDetail}
-              onNavigateToAdmission={handleNavigateToAdmission}
-            />
+            <HeroSection onNavigate={setCurrentTab} onFilterPrograms={handleFilterPrograms} />
+            <PromotionalBannerSection onSelectProgram={handleOpenProgramDetail} />
+            <FeaturedPrograms onSelectProgram={handleOpenProgramDetail} onNavigateToAdmission={handleNavigateToAdmission} />
             <KpiSection />
             <ImpactSection
-              onExplorePrograms={() => {
-                setCurrentTab('programas');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onAboutInstitution={() => {
-                setCurrentTab('institucion');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+              onExplorePrograms={() => { setCurrentTab('programas'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onAboutInstitution={() => { setCurrentTab('institucion'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             />
             <FAQSection />
           </div>
         )}
-
-        {/* INSTITUCIÓN TAB */}
         {currentTab === 'institucion' && <InstitutionView />}
-
-        {/* PROGRAMAS TAB */}
         {currentTab === 'programas' && (
-          <ProgramsView
-            onNavigateToAdmission={handleNavigateToAdmission}
-            initialFilter={programFilterState}
-            onSelectProgram={handleOpenProgramDetail}
-          />
+          <ProgramsView onNavigateToAdmission={handleNavigateToAdmission} initialFilter={programFilterState} onSelectProgram={handleOpenProgramDetail} />
         )}
-
-        {/* DETALLE COMPLETO DE PROGRAMA (Pestaña individual con sub-pestañas y descarga directa) */}
         {currentTab === 'programa-detalle' && (
           <ProgramDetailView
             programId={selectedProgramDetailId}
-            onBack={() => {
-              window.location.hash = 'programas';
-              setCurrentTab('programas');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
+            onBack={() => { window.location.hash = 'programas'; setCurrentTab('programas'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             onNavigateToAdmission={handleNavigateToAdmission}
           />
         )}
-
-        {/* ADMISIÓN TAB */}
-        {currentTab === 'admision' && (
-          <AdmissionView targetProgramId={targetProgramForAdmission} />
-        )}
-
-        {/* NORMATIVA TAB */}
+        {currentTab === 'admision' && <AdmissionView targetProgramId={targetProgramForAdmission} />}
         {currentTab === 'normativa' && <RegulationsView />}
-
-        {/* NOTICIAS Y DEFENSAS TAB */}
         {currentTab === 'noticias' && <NewsView />}
-
-        {/* CONTACTO Y UBICACIÓN TAB */}
         {currentTab === 'contacto' && <ContactView />}
-
-        {/* ROLE PORTALS */}
-        {currentTab === 'portal-admin' && <AdminPortal />}
       </main>
 
-      {/* Global Institutional Footer */}
-      <Footer onNavigate={(tab) => {
-        if (window.location.hash.startsWith('#programa/')) {
-          window.location.hash = '';
-        }
-        setCurrentTab(tab);
-      }} />
-
-      {/* Auth Login Modal */}
+      <Footer onNavigate={(tab) => { if (window.location.hash.startsWith('#programa/')) window.location.hash = ''; setCurrentTab(tab); }} />
       <LoginModal onLoginSuccess={handleLoginSuccess} />
 
-      {/* Program Detail Modal (Fallback) */}
       {selectedProgramModal && (
         <ProgramDetailModal
           program={selectedProgramModal}
           onClose={() => setSelectedProgramModal(null)}
-          onApply={(progId) => {
-            setSelectedProgramModal(null);
-            handleNavigateToAdmission(progId);
-          }}
+          onApply={(progId) => { setSelectedProgramModal(null); handleNavigateToAdmission(progId); }}
         />
       )}
-
-      {/* Promotional Master's Banner Popup */}
       <MasterBannerPopup onNavigateToProgram={handleOpenProgramDetail} />
     </div>
   );

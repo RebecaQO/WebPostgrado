@@ -7,16 +7,24 @@ export default defineConfig({
     port: 3000,
     open: false,
     proxy: {
+      // En desarrollo: redirige /api al backend Flask local (puerto 5000)
+      // Esto evita cold-start timeouts de Render y acelera el desarrollo
       '/api': {
-        target: 'https://webpostgrado.onrender.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
+            console.warn('[Vite Proxy] Error conectando al backend local:', err.message);
+          });
+        }
       },
       '/images': {
-        target: 'https://webpostgrado.onrender.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false
       }
     }
   }
 });
+
